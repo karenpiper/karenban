@@ -287,18 +287,32 @@ export default function HomePage() {
     
     const taskId = e.dataTransfer.getData('text/plain')
     if (taskId && draggedTask) {
-      // Update the task status and preserve/assign category
+      // Update the task status and preserve/assign category or person
       setTasks(prev => prev.map(task => {
         if (task.id === taskId) {
           const updatedTask = { ...task, status: columnId as Task["status"] }
           
-          // If moving to a day column and task has no category, assign to specified category or "standing"
-          if (category) {
-            updatedTask.category = category
-          } else if (columnId === "delegated" && !updatedTask.personId && people.length > 0) {
-            updatedTask.personId = people[0].id
-          } else if (columnId !== "delegated" && !updatedTask.category) {
-            updatedTask.category = "standing"
+          // Handle different column types
+          if (columnId === "delegated") {
+            // Moving to Follow-up column
+            if (category && category.startsWith('person-')) {
+              // Moving to a specific person
+              const personId = category.replace('person-', '')
+              updatedTask.personId = personId
+              updatedTask.category = '' // Clear category when moving to person
+            } else if (!updatedTask.personId && people.length > 0) {
+              // Moving to Follow-up column but no specific person, assign to first person
+              updatedTask.personId = people[0].id
+              updatedTask.category = ''
+            }
+          } else if (columnId !== "delegated") {
+            // Moving to a day column (today, later, etc.)
+            if (category) {
+              updatedTask.category = category
+            } else if (!updatedTask.category) {
+              updatedTask.category = "standing"
+            }
+            updatedTask.personId = undefined // Clear person when moving to day column
           }
           
           return updatedTask
