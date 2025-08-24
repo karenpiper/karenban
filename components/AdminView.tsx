@@ -21,7 +21,7 @@ import {
   Clock,
   BarChart3
 } from "lucide-react"
-import type { Project } from "../../types"
+import type { Project } from "../lib/types"
 
 interface TeamMember {
   id: string
