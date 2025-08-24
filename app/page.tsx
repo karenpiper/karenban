@@ -2335,13 +2335,13 @@ export default function HomePage() {
 
     const columns = currentView === "today" ? todayColumns : thisWeekColumns
     
-    return (
+        return (
       <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
-        {/* Quick Actions Bar */}
+        {/* Stats Section Above Main Cards */}
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px',
           padding: '16px',
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(16px)',
@@ -2350,137 +2350,59 @@ export default function HomePage() {
           marginBottom: '16px',
           boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
         }}>
-          <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Quick Actions:</span>
+          <div style={{ textAlign: 'center', padding: '12px' }}>
+            <div style={{ fontSize: '24px', fontWeight: '700', color: '#111827' }}>
+              {tasks.length}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Total Tasks
+            </div>
+          </div>
           
-          <button
-            onClick={addProject}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 12px',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#2563eb'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#3b82f6'
-            }}
-          >
-            📁 Add Project
-          </button>
+          <div style={{ textAlign: 'center', padding: '12px' }}>
+            <div style={{ fontSize: '24px', fontWeight: '700', color: '#10b981' }}>
+              {tasks.filter(t => t.status === 'completed').length}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Completed
+            </div>
+          </div>
           
-          <button
-            onClick={addTeamMember}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 12px',
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#059669'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#10b981'
-            }}
-          >
-            👥 Add Team Member
-          </button>
+          <div style={{ textAlign: 'center', padding: '12px' }}>
+            <div style={{ fontSize: '24px', fontWeight: '700', color: '#3b82f6' }}>
+              {tasks.filter(t => t.status === 'uncategorized' || t.status === 'today' || t.status === 'thisWeek').length}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Active
+            </div>
+          </div>
           
-          <button
-            onClick={() => setCurrentView("admin")}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 12px',
-              backgroundColor: '#8b5cf6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#7c3aed'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#8b5cf6'
-            }}
-          >
-            ⚙️ Admin Dashboard
-          </button>
+          <div style={{ textAlign: 'center', padding: '12px' }}>
+            <div style={{ fontSize: '24px', fontWeight: '700', color: '#f59e0b' }}>
+              {projects.length}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Projects
+            </div>
+          </div>
           
-          <button
-            onClick={() => setCurrentView("projects")}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 12px',
-              backgroundColor: '#f59e0b',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#d97706'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#f59e0b'
-            }}
-          >
-            📊 Project View
-          </button>
+          <div style={{ textAlign: 'center', padding: '12px' }}>
+            <div style={{ fontSize: '24px', fontWeight: '700', color: '#8b5cf6' }}>
+              {teamMembers.length}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Team Members
+            </div>
+          </div>
           
-          <button
-            onClick={() => setCurrentView("oneOnOne")}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 12px',
-              backgroundColor: '#ec4899',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '12px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#db2777'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#ec4899'
-            }}
-          >
-            💬 1:1 Mode
-          </button>
+          <div style={{ textAlign: 'center', padding: '12px' }}>
+            <div style={{ fontSize: '24px', fontWeight: '700', color: '#ec4899' }}>
+              {tasks.filter(t => t.status === 'delegated').length}
+            </div>
+            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Follow-up
+            </div>
+          </div>
         </div>
         
         <div style={{ display: 'flex', gap: '16px', paddingBottom: '16px', alignItems: 'flex-start' }}>
@@ -2680,6 +2602,167 @@ export default function HomePage() {
                     👥
                   </div>
                   {!sidebarCollapsed && <span style={{ fontSize: '13px' }}>Team</span>}
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Actions Section */}
+          <div style={{ padding: '20px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Quick Actions</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <button
+                onClick={addProject}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: 'transparent',
+                  color: '#a1a1aa',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
+                  e.currentTarget.style.color = 'white'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = '#a1a1aa'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '14px', height: '14px', color: '#a1a1aa' }}>
+                    📁
+                  </div>
+                  {!sidebarCollapsed && <span>Add Project</span>}
+                </div>
+              </button>
+
+              <button
+                onClick={addTeamMember}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: 'transparent',
+                  color: '#a1a1aa',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
+                  e.currentTarget.style.color = 'white'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = '#a1a1aa'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '14px', height: '14px', color: '#a1a1aa' }}>
+                    👥
+                  </div>
+                  {!sidebarCollapsed && <span>Add Team Member</span>}
+                </div>
+              </button>
+
+              <button
+                onClick={() => setCurrentView("admin")}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: 'transparent',
+                  color: '#a1a1aa',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
+                  e.currentTarget.style.color = 'white'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = '#a1a1aa'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '14px', height: '14px', color: '#a1a1aa' }}>
+                    ⚙️
+                  </div>
+                  {!sidebarCollapsed && <span>Admin Dashboard</span>}
+                </div>
+              </button>
+
+              <button
+                onClick={() => setCurrentView("projects")}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: 'transparent',
+                  color: '#a1a1aa',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
+                  e.currentTarget.style.color = 'white'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = '#a1a1aa'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '14px', height: '14px', color: '#a1a1aa' }}>
+                    📊
+                  </div>
+                  {!sidebarCollapsed && <span>Project View</span>}
+                </div>
+              </button>
+
+              <button
+                onClick={() => setCurrentView("oneOnOne")}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: 'transparent',
+                  color: '#a1a1aa',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
+                  e.currentTarget.style.color = 'white'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = '#a1a1aa'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '14px', height: '14px', color: '#a1a1aa' }}>
+                    💬
+                  </div>
+                  {!sidebarCollapsed && <span>1:1 Mode</span>}
                 </div>
               </button>
             </div>

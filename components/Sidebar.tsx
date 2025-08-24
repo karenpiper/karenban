@@ -29,6 +29,10 @@ interface SidebarProps {
   onViewChange: (view: string) => void
   onShowTaskForm: () => void
   onShowProjectForm: () => void
+  onAddTeamMember: () => void
+  onShowAdmin: () => void
+  onShowProjects: () => void
+  onShowOneOnOne: () => void
 }
 
 export function Sidebar({ 
@@ -37,7 +41,11 @@ export function Sidebar({
   currentView, 
   onViewChange,
   onShowTaskForm,
-  onShowProjectForm
+  onShowProjectForm,
+  onAddTeamMember,
+  onShowAdmin,
+  onShowProjects,
+  onShowOneOnOne
 }: SidebarProps) {
   const [activeSection, setActiveSection] = useState("main")
 
@@ -53,7 +61,10 @@ export function Sidebar({
   const quickActions = [
     { label: "Add Task", icon: Plus, onClick: onShowTaskForm, variant: "default" as const },
     { label: "New Project", icon: FolderOpen, onClick: onShowProjectForm, variant: "outline" as const },
-    { label: "Quick Search", icon: Search, onClick: () => {}, variant: "ghost" as const },
+    { label: "Add Team Member", icon: Users, onClick: onAddTeamMember, variant: "outline" as const },
+    { label: "Admin Dashboard", icon: Settings, onClick: onShowAdmin, variant: "outline" as const },
+    { label: "Project View", icon: FolderOpen, onClick: onShowProjects, variant: "outline" as const },
+    { label: "1:1 Mode", icon: Users, onClick: onShowOneOnOne, variant: "outline" as const },
   ]
 
   const stats = [
