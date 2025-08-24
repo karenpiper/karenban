@@ -127,8 +127,24 @@ export default function HomePage() {
     setTasks(prev => prev.filter(task => task.id !== taskId))
   }
 
-  const renderColumn = (column: { id: string; title: string; color: string }) => {
+  const renderColumn = (column: { id: string; title: string; color: string; hasCategories?: boolean }) => {
+    // Get tasks for this column - this will update when state changes
     const columnTasks = getTasksByStatus(column.id as Task["status"])
+    
+    // Calculate total task count for this column
+    const getTotalTaskCount = () => {
+      if (column.hasCategories) {
+        // For day columns, count tasks in all categories
+        const standing = getTasksByStatusAndCategory(column.id as Task["status"], "standing").length
+        const comms = getTasksByStatusAndCategory(column.id as Task["status"], "comms").length
+        const bigTasks = getTasksByStatusAndCategory(column.id as Task["status"], "big-tasks").length
+        const done = getTasksByStatusAndCategory(column.id as Task["status"], "done").length
+        return standing + comms + bigTasks + done
+      } else {
+        // For regular columns, count all tasks
+        return columnTasks.length
+      }
+    }
     
     return (
       <div 
@@ -152,11 +168,18 @@ export default function HomePage() {
           e.currentTarget.style.backgroundColor = 'transparent'
           const taskId = e.dataTransfer.getData('text/plain')
           if (taskId) {
-            setTasks(prev => prev.map(task => 
-              task.id === taskId 
-                ? { ...task, status: column.id as Task["status"] }
-                : task
-            ))
+            // Update the task status and preserve the category if moving to a day column
+            setTasks(prev => prev.map(task => {
+              if (task.id === taskId) {
+                const updatedTask = { ...task, status: column.id as Task["status"] }
+                // If moving to a day column and task has no category, assign to "standing"
+                if (column.hasCategories && !updatedTask.category) {
+                  updatedTask.category = "standing"
+                }
+                return updatedTask
+              }
+              return task
+            }))
           }
         }}
       >
@@ -183,7 +206,7 @@ export default function HomePage() {
             padding: '2px 8px',
             borderRadius: '9999px'
           }}>
-            {columnTasks.length}
+            {getTotalTaskCount()}
           </span>
         </div>
         
