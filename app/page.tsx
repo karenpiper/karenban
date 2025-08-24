@@ -83,7 +83,7 @@ export default function HomePage() {
   const todayColumns = [
     { id: "uncategorized", title: "Uncategorized", color: "bg-gray-400" },
     { id: "today", title: `${getCurrentDayName()} (Today)`, color: "bg-blue-400", hasCategories: true },
-    { id: "delegated", title: "Blocked", color: "bg-red-400" },
+    { id: "delegated", title: "Follow-up", color: "bg-red-400" },
     { id: "later", title: "Later", color: "bg-purple-400" },
     { id: "completed", title: "Completed", color: "bg-green-400" },
   ]
@@ -91,7 +91,7 @@ export default function HomePage() {
   const thisWeekColumns = [
     { id: "uncategorized", title: "Uncategorized", color: "bg-gray-400" },
     { id: "today", title: `${getCurrentDayName()} (Today)`, color: "bg-blue-400", hasCategories: true },
-    { id: "delegated", title: "Delegated", color: "bg-red-400" },
+    { id: "delegated", title: "Follow-up", color: "bg-red-400" },
     { id: "saturday", title: "Saturday", color: "bg-indigo-400", hasCategories: true },
     { id: "sunday", title: "Sunday", color: "bg-pink-400", hasCategories: true },
     { id: "monday", title: "Monday", color: "bg-teal-400", hasCategories: true },
@@ -133,7 +133,10 @@ export default function HomePage() {
     
     // Calculate total task count for this column
     const getTotalTaskCount = () => {
-      if (column.hasCategories) {
+      if (column.id === "delegated") {
+        // For Follow-up column, count people to follow up
+        return getTasksByStatusAndCategory(column.id as Task["status"], "follow-up").length
+      } else if (column.hasCategories) {
         // For day columns, count tasks in all categories
         const standing = getTasksByStatusAndCategory(column.id as Task["status"], "standing").length
         const comms = getTasksByStatusAndCategory(column.id as Task["status"], "comms").length
@@ -211,7 +214,91 @@ export default function HomePage() {
         </div>
         
         <div style={{ marginBottom: '8px', maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' }}>
-          {column.hasCategories ? (
+          {column.id === "delegated" ? (
+            // Render Follow-up column with people
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ 
+                fontSize: '11px', 
+                color: '#6b7280', 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.5px',
+                marginBottom: '6px',
+                fontWeight: '600'
+              }}>
+                People to Follow Up
+              </div>
+              {getTasksByStatusAndCategory(column.id as Task["status"], "follow-up").map((person) => (
+                <div
+                  key={person.id}
+                  style={{
+                    padding: '8px',
+                    marginBottom: '4px',
+                    cursor: 'grab',
+                    transition: 'all 0.2s ease',
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '12px',
+                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'
+                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.1)'
+                    e.currentTarget.style.transform = 'translateY(-1px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                    e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.06)'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                  }}
+                  draggable={true}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', person.id)
+                    e.currentTarget.style.opacity = '0.5'
+                  }}
+                  onDragEnd={(e) => {
+                    e.currentTarget.style.opacity = '1'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
+                    <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{person.title}</h4>
+                    <button
+                      onClick={() => deleteTask(person.id)}
+                      style={{
+                        fontSize: '10px',
+                        color: '#9ca3af',
+                        cursor: 'pointer',
+                        border: 'none',
+                        background: 'none',
+                        padding: '1px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = '#ef4444'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = '#9ca3af'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  {person.description && (
+                    <p style={{ fontSize: '10px', color: '#6b7280', marginBottom: '4px' }}>{person.description}</p>
+                  )}
+                  <span style={{
+                    fontSize: '9px',
+                    color: person.priority === 'high' ? '#dc2626' : person.priority === 'medium' ? '#d97706' : '#059669',
+                    backgroundColor: person.priority === 'high' ? '#fef2f2' : person.priority === 'medium' ? '#fffbeb' : '#f0fdf4',
+                    padding: '1px 4px',
+                    borderRadius: '9999px',
+                    fontWeight: '500'
+                  }}>
+                    {person.priority}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : column.hasCategories ? (
             // Render categories for day columns
             <>
               {/* Standing Tasks Category */}
@@ -778,7 +865,7 @@ export default function HomePage() {
         {column.id === "delegated" ? (
           <div style={{ textAlign: 'center', padding: '16px 8px' }}>
             <button
-              onClick={() => addTask(column.id)}
+              onClick={() => addFollowUpPerson()}
               style={{
                 width: '100%',
                 padding: '8px',
@@ -860,6 +947,19 @@ export default function HomePage() {
       role: "Team Member",
     }
     setTeamMembers(prev => [...prev, newMember])
+  }
+
+  const addFollowUpPerson = () => {
+    const newPerson: Task = {
+      id: Date.now().toString(),
+      title: "New Person to Follow Up",
+      description: "Person requiring follow-up",
+      status: "delegated",
+      category: "follow-up",
+      priority: "medium",
+      createdAt: new Date(),
+    }
+    setTasks(prev => [...prev, newPerson])
   }
 
   const deleteTeamMember = (memberId: string) => {
@@ -1236,7 +1336,7 @@ export default function HomePage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{ width: '16px', height: '16px', backgroundColor: '#ef4444', borderRadius: '2px' }}></div>
-                  <span style={{ fontSize: '13px', color: 'white' }}>Blocked</span>
+                  <span style={{ fontSize: '13px', color: 'white' }}>Follow-up</span>
                 </div>
                 <span style={{ fontSize: '11px', backgroundColor: '#374151', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>8</span>
               </div>
