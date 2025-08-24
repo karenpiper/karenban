@@ -85,11 +85,9 @@ export default function HomePage() {
   // Smart search and filtering state
   const [searchQuery, setSearchQuery] = useState("")
   const [searchFilters, setSearchFilters] = useState({
-    priority: [] as string[],
-    status: [] as string[],
-    category: [] as string[],
-    project: [] as string[],
-    person: [] as string[]
+    priority: 'all' as string,
+    assignee: 'all' as string,
+    timeframe: 'all' as string
   })
   const [showSearchFilters, setShowSearchFilters] = useState(false)
   
@@ -1704,28 +1702,22 @@ export default function HomePage() {
     }
 
     // Priority filter
-    if (searchFilters.priority.length > 0) {
-      filtered = filtered.filter(task => searchFilters.priority.includes(task.priority))
+    if (searchFilters.priority !== 'all') {
+      filtered = filtered.filter(task => task.priority === searchFilters.priority)
     }
 
-    // Status filter
-    if (searchFilters.status.length > 0) {
-      filtered = filtered.filter(task => searchFilters.status.includes(task.status))
+    // Assignee filter
+    if (searchFilters.assignee !== 'all') {
+      filtered = filtered.filter(task => task.personId === searchFilters.assignee)
     }
 
-    // Category filter
-    if (searchFilters.category.length > 0) {
-      filtered = filtered.filter(task => searchFilters.category.includes(task.category))
-    }
-
-    // Project filter
-    if (searchFilters.project.length > 0) {
-      filtered = filtered.filter(task => task.projectId && searchFilters.project.includes(task.projectId))
-    }
-
-    // Person filter
-    if (searchFilters.person.length > 0) {
-      filtered = filtered.filter(task => task.personId && searchFilters.person.includes(task.personId))
+    // Timeframe filter
+    if (searchFilters.timeframe === 'thisWeek') {
+      const now = new Date()
+      const thisWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+      filtered = filtered.filter(task => 
+        task.createdAt && new Date(task.createdAt) <= thisWeek
+      )
     }
 
     return filtered
@@ -1734,19 +1726,15 @@ export default function HomePage() {
   const toggleFilter = (filterType: keyof typeof searchFilters, value: string) => {
     setSearchFilters(prev => ({
       ...prev,
-      [filterType]: prev[filterType].includes(value)
-        ? prev[filterType].filter(v => v !== value)
-        : [...prev[filterType], value]
+      [filterType]: value
     }))
   }
 
   const clearAllFilters = () => {
     setSearchFilters({
-      priority: [],
-      status: [],
-      category: [],
-      project: [],
-      person: []
+      priority: 'all',
+      assignee: 'all',
+      timeframe: 'all'
     })
   }
 
@@ -2337,6 +2325,171 @@ export default function HomePage() {
     
         return (
       <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
+        {/* Search and Filter Section */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          padding: '12px 16px',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          borderRadius: '12px',
+          marginBottom: '12px',
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+        }}>
+          {/* Search Input */}
+          <div style={{ position: 'relative', flex: '1', maxWidth: '300px' }}>
+            <input
+              type="text"
+              placeholder="Search tasks, descriptions, tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px 8px 36px',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: 'white',
+                outline: 'none'
+              }}
+            />
+            <div style={{
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#6b7280',
+              fontSize: '16px'
+            }}>
+              🔍
+            </div>
+          </div>
+          
+          {/* Filter Buttons */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => toggleFilter('priority', 'all')}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: searchFilters.priority === 'all' ? '#3b82f6' : 'rgba(59, 130, 246, 0.1)',
+                color: searchFilters.priority === 'all' ? 'white' : '#3b82f6',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              All Priority
+            </button>
+            
+            <button
+              onClick={() => toggleFilter('priority', 'high')}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: searchFilters.priority === 'high' ? '#ef4444' : 'rgba(239, 68, 68, 0.1)',
+                color: searchFilters.priority === 'high' ? 'white' : '#ef4444',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              High
+            </button>
+            
+            <button
+              onClick={() => toggleFilter('priority', 'medium')}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: searchFilters.priority === 'medium' ? '#f59e0b' : 'rgba(245, 158, 11, 0.1)',
+                color: searchFilters.priority === 'medium' ? 'white' : '#f59e0b',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Medium
+            </button>
+            
+            <button
+              onClick={() => toggleFilter('priority', 'low')}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: searchFilters.priority === 'low' ? '#10b981' : 'rgba(16, 185, 129, 0.1)',
+                color: searchFilters.priority === 'low' ? 'white' : '#10b981',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Low
+            </button>
+            
+            <button
+              onClick={() => toggleFilter('assignee', 'all')}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: searchFilters.assignee === 'all' ? '#8b5cf6' : 'rgba(139, 92, 246, 0.1)',
+                color: searchFilters.assignee === 'all' ? 'white' : '#8b5cf6',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              All Assignees
+            </button>
+            
+            <button
+              onClick={() => toggleFilter('timeframe', 'thisWeek')}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: searchFilters.timeframe === 'thisWeek' ? '#ec4899' : 'rgba(236, 72, 153, 0.1)',
+                color: searchFilters.timeframe === 'thisWeek' ? 'white' : '#ec4899',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              This Week
+            </button>
+            
+            <button
+              onClick={clearAllFilters}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: 'rgba(107, 114, 128, 0.1)',
+                color: '#6b7280',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              Clear All
+            </button>
+          </div>
+        </div>
+        
         {/* Compact Stats Section Above Main Cards */}
         <div style={{
           display: 'flex',
@@ -2393,12 +2546,31 @@ export default function HomePage() {
             <span style={{ fontSize: '12px', color: '#6b7280' }}>Projects</span>
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-            <div style={{ width: '8px', height: '8px', backgroundColor: '#ec4899', borderRadius: '50%' }}></div>
-            <span style={{ fontSize: '14px', fontWeight: '600', color: '#ec4899' }}>{teamMembers.length}</span>
-            <span style={{ fontSize: '12px', color: '#6b7280' }}>Team</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+              <div style={{ width: '8px', height: '8px', backgroundColor: '#ec4899', borderRadius: '50%' }}></div>
+              <span style={{ fontSize: '14px', fontWeight: '600', color: '#ec4899' }}>{teamMembers.length}</span>
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>Team</span>
+            </div>
+            
+            {/* Status Indicators */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+              <div style={{ width: '8px', height: '8px', backgroundColor: '#10b981', borderRadius: '50%' }}></div>
+              <span style={{ fontSize: '14px', fontWeight: '600', color: '#10b981' }}>{tasks.filter(t => t.status === 'completed').length}</span>
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>T+1</span>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+              <div style={{ width: '8px', height: '8px', backgroundColor: '#3b82f6', borderRadius: '50%' }}></div>
+              <span style={{ fontSize: '14px', fontWeight: '600', color: '#3b82f6' }}>{tasks.filter(t => t.status === 'today').length}</span>
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>T+day</span>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+              <div style={{ width: '8px', height: '8px', backgroundColor: '#dc2626', borderRadius: '50%' }}></div>
+              <span style={{ fontSize: '14px', fontWeight: '600', color: '#dc2626' }}>{tasks.filter(t => t.status === 'blocked').length}</span>
+              <span style={{ fontSize: '12px', color: '#6b7280' }}>Blocked</span>
+            </div>
           </div>
-        </div>
         
         <div style={{ display: 'flex', gap: '12px', paddingBottom: '16px', alignItems: 'flex-start' }}>
           {columns.map(renderColumn)}
@@ -2441,34 +2613,94 @@ export default function HomePage() {
       <div style={{ display: 'flex', height: '100vh' }}>
         {/* Sidebar */}
         <div style={{
-          backgroundColor: '#1e1b4b',
-          borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+          backgroundColor: '#0f0f23',
+          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
           transition: 'all 0.3s ease',
           width: sidebarCollapsed ? '56px' : '240px',
           display: 'flex',
           flexDirection: 'column',
           color: 'white',
-          marginLeft: '-1px',
-          marginTop: '-1px'
+          marginLeft: '0',
+          marginTop: '0',
+          boxShadow: '2px 0 8px rgba(0, 0, 0, 0.1)'
         }}>
           {/* Header Section */}
-          <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <div style={{ width: '20px', height: '20px', backgroundColor: '#8b5cf6', borderRadius: '4px' }}></div>
-              <span style={{ fontSize: '16px', fontWeight: '600', color: 'white' }}>Task Manager</span>
+          <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ 
+                width: '24px', 
+                height: '24px', 
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)'
+              }}>
+                <span style={{ fontSize: '14px', fontWeight: '700', color: 'white' }}>T</span>
+              </div>
+              <span style={{ 
+                fontSize: '18px', 
+                fontWeight: '700', 
+                color: 'white',
+                letterSpacing: '-0.025em'
+              }}>
+                Task Manager
+              </span>
             </div>
-            <div style={{ fontSize: '14px', color: '#a1a1aa' }}>Friday Aug 22</div>
+            <div style={{ 
+              fontSize: '13px', 
+              color: '#a1a1aa',
+              fontWeight: '500',
+              letterSpacing: '0.025em'
+            }}>
+              {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'short', 
+                day: 'numeric' 
+              })}
+            </div>
           </div>
 
           {/* Stats Section */}
-          <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: 'white' }}>24</div>
-              <div style={{ fontSize: '12px', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Tasks</div>
+          <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ 
+                fontSize: '28px', 
+                fontWeight: '800', 
+                color: 'white',
+                marginBottom: '4px'
+              }}>
+                {tasks.length}
+              </div>
+              <div style={{ 
+                fontSize: '11px', 
+                color: '#a1a1aa', 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.75px',
+                fontWeight: '600'
+              }}>
+                Total Tasks
+              </div>
             </div>
             <div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#8b5cf6' }}>8</div>
-              <div style={{ fontSize: '12px', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Due Today</div>
+              <div style={{ 
+                fontSize: '28px', 
+                fontWeight: '800', 
+                color: '#8b5cf6',
+                marginBottom: '4px'
+              }}>
+                {tasks.filter(t => t.status === 'today' || t.status === 'thisWeek').length}
+              </div>
+              <div style={{ 
+                fontSize: '11px', 
+                color: '#a1a1aa', 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.75px',
+                fontWeight: '600'
+              }}>
+                Due Soon
+              </div>
             </div>
           </div>
 
@@ -2476,7 +2708,16 @@ export default function HomePage() {
 
           {/* Views Section */}
           <div style={{ padding: '20px 16px', flex: 1 }}>
-            <div style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Views</div>
+            <div style={{ 
+              fontSize: '10px', 
+              color: '#71717a', 
+              textTransform: 'uppercase', 
+              letterSpacing: '1.2px', 
+              marginBottom: '16px',
+              fontWeight: '700'
+            }}>
+              Views
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <button
                 onClick={() => setCurrentView("today")}
@@ -2569,8 +2810,17 @@ export default function HomePage() {
           </div>
 
           {/* Quick Actions Section */}
-          <div style={{ padding: '20px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <div style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Quick Actions</div>
+          <div style={{ padding: '20px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <div style={{ 
+              fontSize: '10px', 
+              color: '#71717a', 
+              textTransform: 'uppercase', 
+              letterSpacing: '1.2px', 
+              marginBottom: '16px',
+              fontWeight: '700'
+            }}>
+              Quick Actions
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <button
                 onClick={addProject}
@@ -2730,7 +2980,7 @@ export default function HomePage() {
           </div>
 
           {/* Footer */}
-          <div style={{ padding: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+          <div style={{ padding: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
             <button
               onClick={() => setCurrentView("admin")}
               style={{
