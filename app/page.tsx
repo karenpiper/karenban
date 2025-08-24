@@ -433,8 +433,8 @@ export default function HomePage() {
       <div 
         key={column.id} 
         style={{
-          minWidth: '240px',
-          padding: '12px',
+          minWidth: '200px',
+          padding: '10px',
           backgroundColor: 'transparent',
           border: 'none',
           boxShadow: 'none'
@@ -2336,18 +2336,18 @@ export default function HomePage() {
     const columns = currentView === "today" ? todayColumns : thisWeekColumns
     
         return (
-      <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
         {/* Compact Stats Section Above Main Cards */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '24px',
-          padding: '12px 16px',
+          gap: '20px',
+          padding: '10px 14px',
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(16px)',
           border: '1px solid rgba(255, 255, 255, 0.3)',
           borderRadius: '12px',
-          marginBottom: '16px',
+          marginBottom: '12px',
           boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
           overflowX: 'auto'
         }}>
@@ -2400,16 +2400,16 @@ export default function HomePage() {
           </div>
         </div>
         
-        <div style={{ display: 'flex', gap: '16px', paddingBottom: '16px', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: '12px', paddingBottom: '16px', alignItems: 'flex-start' }}>
           {columns.map(renderColumn)}
           
           {/* Add Column Button */}
           <div style={{
-            minWidth: '240px',
+            minWidth: '200px',
             backgroundColor: 'transparent',
             border: 'none',
             borderRadius: '16px',
-            padding: '24px',
+            padding: '20px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -2444,7 +2444,7 @@ export default function HomePage() {
           backgroundColor: '#1e1b4b',
           borderRight: '1px solid rgba(255, 255, 255, 0.1)',
           transition: 'all 0.3s ease',
-          width: sidebarCollapsed ? '56px' : '280px',
+          width: sidebarCollapsed ? '56px' : '240px',
           display: 'flex',
           flexDirection: 'column',
           color: 'white',
