@@ -70,7 +70,7 @@ export default function HomePage() {
     { id: "sarah-johnson", name: "Sarah Johnson" },
     { id: "mike-davis", name: "Mike Davis" }
   ])
-  const [currentView, setCurrentView] = useState<"today" | "thisWeek" | "assignees" | "projects" | "admin">("today")
+  const [currentView, setCurrentView] = useState<"today" | "thisWeek" | "assignees" | "projects" | "oneOnOne" | "admin">("today")
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isDarkTheme, setIsDarkTheme] = useState(false)
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false)
@@ -594,25 +594,54 @@ export default function HomePage() {
                     >
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
                         <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
-                        <button
-                          onClick={() => deleteTask(task.id)}
-                          style={{
-                            fontSize: '10px',
-                            color: '#9ca3af',
-                            cursor: 'pointer',
-                            border: 'none',
-                            background: 'none',
-                            padding: '1px'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.color = '#ef4444'
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.color = '#9ca3af'
-                          }}
-                        >
-                          ×
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          {/* Project Assignment */}
+                          <select
+                            value={task.projectId || ''}
+                            onChange={(e) => {
+                              const projectId = e.target.value || undefined
+                              setTasks(prev => prev.map(t => 
+                                t.id === task.id ? { ...t, projectId } : t
+                              ))
+                            }}
+                            style={{
+                              fontSize: '8px',
+                              padding: '1px 2px',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '4px',
+                              backgroundColor: 'white',
+                              color: '#374151'
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="">No Project</option>
+                            {projects.map(project => (
+                              <option key={project.id} value={project.id}>
+                                {project.name}
+                              </option>
+                            ))}
+                          </select>
+                          
+                          <button
+                            onClick={() => deleteTask(task.id)}
+                            style={{
+                              fontSize: '10px',
+                              color: '#9ca3af',
+                              cursor: 'pointer',
+                              border: 'none',
+                              background: 'none',
+                              padding: '1px'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = '#ef4444'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = '#9ca3af'
+                            }}
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
                       {task.description && (
                         <p style={{ fontSize: '10px', color: '#6b7280', marginBottom: '4px' }}>{task.description}</p>
@@ -2195,6 +2224,98 @@ export default function HomePage() {
     )
   }
 
+  const renderOneOnOneView = () => {
+    return (
+      <div className="flex-1 overflow-auto p-4 custom-scrollbar">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-gray-900 mb-1">1:1 Session Management</h2>
+          <p className="compact-sm text-gray-600">Manage one-on-one sessions and team member interactions</p>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Team Members Overview */}
+          <div className="glass-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="compact font-semibold text-gray-900">Team Members</h3>
+              <Button onClick={addTeamMember} size="sm" className="compact-xs">
+                <Plus className="w-3 h-3 mr-1" />
+                Add Member
+              </Button>
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
+              {teamMembers.map((member) => (
+                <div key={member.id} className="flex items-center justify-between p-2.5 glass rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${member.color}`}></div>
+                    <div>
+                      <h4 className="compact-sm font-medium text-gray-900">{member.title}</h4>
+                      {member.role && <p className="compact-xs text-gray-600">{member.role}</p>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="compact-xs text-gray-500 bg-white/60 px-1.5 py-0.5 rounded-full">
+                      {tasks.filter(t => t.personId === member.id).length} tasks
+                    </span>
+                    <button
+                      onClick={() => deleteTeamMember(member.id)}
+                      className="text-gray-400 hover:text-red-500 compact-xs"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {teamMembers.length === 0 && (
+                <p className="compact-sm text-gray-500 text-center py-6">No team members yet</p>
+              )}
+            </div>
+          </div>
+          
+          {/* Follow-up Tasks */}
+          <div className="glass-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="compact font-semibold text-gray-900">Follow-up Tasks</h3>
+              <span className="compact-xs text-gray-500 bg-white/60 px-2 py-1 rounded-full">
+                {tasks.filter(t => t.status === "delegated").length} total
+              </span>
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
+              {people.map((person) => {
+                const personTasks = tasks.filter(t => t.status === "delegated" && t.personId === person.id)
+                return (
+                  <div key={person.id} className="p-2.5 glass rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="compact-sm font-medium text-gray-900">{person.name}</h4>
+                      <span className="compact-xs text-gray-500 bg-white/60 px-1.5 py-0.5 rounded-full">
+                        {personTasks.length} tasks
+                      </span>
+                    </div>
+                    {personTasks.length > 0 ? (
+                      <div className="space-y-1">
+                        {personTasks.slice(0, 3).map(task => (
+                          <div key={task.id} className="text-xs text-gray-600 bg-white/40 p-1.5 rounded">
+                            {task.title}
+                          </div>
+                        ))}
+                        {personTasks.length > 3 && (
+                          <div className="text-xs text-gray-500 text-center py-1">
+                            +{personTasks.length - 3} more
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="compact-xs text-gray-500 text-center py-2">No tasks assigned</p>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const renderMainContent = () => {
     if (currentView === "admin") {
       return renderAdminView()
@@ -2208,10 +2329,160 @@ export default function HomePage() {
       return renderProjectsView()
     }
 
+    if (currentView === "oneOnOne") {
+      return renderOneOnOneView()
+    }
+
     const columns = currentView === "today" ? todayColumns : thisWeekColumns
     
     return (
       <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
+        {/* Quick Actions Bar */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '16px',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          borderRadius: '12px',
+          marginBottom: '16px',
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+        }}>
+          <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Quick Actions:</span>
+          
+          <button
+            onClick={addProject}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#2563eb'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#3b82f6'
+            }}
+          >
+            📁 Add Project
+          </button>
+          
+          <button
+            onClick={addTeamMember}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              backgroundColor: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#059669'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#10b981'
+            }}
+          >
+            👥 Add Team Member
+          </button>
+          
+          <button
+            onClick={() => setCurrentView("admin")}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              backgroundColor: '#8b5cf6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#7c3aed'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#8b5cf6'
+            }}
+          >
+            ⚙️ Admin Dashboard
+          </button>
+          
+          <button
+            onClick={() => setCurrentView("projects")}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              backgroundColor: '#f59e0b',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#d97706'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#f59e0b'
+            }}
+          >
+            📊 Project View
+          </button>
+          
+          <button
+            onClick={() => setCurrentView("oneOnOne")}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 12px',
+              backgroundColor: '#ec4899',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#db2777'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#ec4899'
+            }}
+          >
+            💬 1:1 Mode
+          </button>
+        </div>
+        
         <div style={{ display: 'flex', gap: '16px', paddingBottom: '16px', alignItems: 'flex-start' }}>
           {columns.map(renderColumn)}
           
