@@ -2,6 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Enhanced Drag & Drop Styles */
+.dragging {
+  cursor: grabbing !important;
+}
+
+.dragging * {
+  pointer-events: none;
+}
+
+/* Drop zone animations */
+.drop-zone-active {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: #3b82f6 !important;
+  transform: scale(1.02) !important;
+}
+
+/* Task card drag states */
+.task-card-dragging {
+  opacity: 0.8;
+  transform: rotate(5deg) scale(1.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+  z-index: 1000;
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced hover effects */
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Drop success animation */
+.drop-success {
+  animation: dropSuccess 0.3s ease-out;
+}
+
+@keyframes dropSuccess {
+  0% {
+    background-color: rgba(34, 197, 94, 0.2);
+    transform: scale(1.02);
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

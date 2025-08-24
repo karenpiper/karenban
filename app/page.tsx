@@ -74,6 +74,39 @@ export default function HomePage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isDarkTheme, setIsDarkTheme] = useState(false)
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false)
+  
+  // Enhanced drag & drop state
+  const [draggedTask, setDraggedTask] = useState<Task | null>(null)
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
+  const [dragOverCategory, setDragOverCategory] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragPreview, setDragPreview] = useState<{ x: number; y: number } | null>(null)
+
+  // Smart search and filtering state
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchFilters, setSearchFilters] = useState({
+    priority: [] as string[],
+    status: [] as string[],
+    category: [] as string[],
+    project: [] as string[],
+    person: [] as string[]
+  })
+  const [showSearchFilters, setShowSearchFilters] = useState(false)
+  
+  // Saved views and filters
+  const [savedViews, setSavedViews] = useState<Array<{
+    id: string
+    name: string
+    searchQuery: string
+    filters: typeof searchFilters
+    createdAt: Date
+  }>>([])
+  const [showSavedViews, setShowSavedViews] = useState(false)
+  
+  // Advanced sorting state
+  const [sortBy, setSortBy] = useState<"createdAt" | "priority" | "title" | "estimatedHours" | "actualHours">("createdAt")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+  const [showSortOptions, setShowSortOptions] = useState(false)
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -99,6 +132,16 @@ export default function HomePage() {
     if (savedTheme) {
       setIsDarkTheme(JSON.parse(savedTheme))
     }
+    
+    const savedViewsData = localStorage.getItem("saved-views")
+    if (savedViewsData) {
+      const parsed = JSON.parse(savedViewsData)
+      // Convert string dates back to Date objects
+      setSavedViews(parsed.map((view: any) => ({
+        ...view,
+        createdAt: new Date(view.createdAt)
+      })))
+    }
   }, [])
 
   // Save data to localStorage when it changes
@@ -121,6 +164,113 @@ export default function HomePage() {
   useEffect(() => {
     localStorage.setItem("theme", JSON.stringify(isDarkTheme))
   }, [isDarkTheme])
+
+  useEffect(() => {
+    localStorage.setItem("saved-views", JSON.stringify(savedViews))
+  }, [savedViews])
+
+  // Enhanced drag & drop functions
+  const handleDragStart = (e: React.DragEvent, task: Task) => {
+    setDraggedTask(task)
+    setIsDragging(true)
+    setDragPreview({ x: e.clientX, y: e.clientY })
+    
+    // Set drag data
+    e.dataTransfer.setData('text/plain', task.id)
+    e.dataTransfer.effectAllowed = 'move'
+    
+    // Add dragging class to body
+    document.body.classList.add('dragging')
+    
+    // Set drag image
+    const dragImage = e.currentTarget.cloneNode(true) as HTMLElement
+    dragImage.style.opacity = '0.8'
+    dragImage.style.transform = 'rotate(5deg)'
+    e.dataTransfer.setDragImage(dragImage, 0, 0)
+  }
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    setDraggedTask(null)
+    setIsDragging(false)
+    setDragOverColumn(null)
+    setDragOverCategory(null)
+    setDragPreview(null)
+    
+    // Remove dragging class from body
+    document.body.classList.remove('dragging')
+    
+    // Reset opacity
+    e.currentTarget.style.opacity = '1'
+    e.currentTarget.style.transform = 'none'
+  }
+
+  const handleDragOver = (e: React.DragEvent, columnId: string, category?: string) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    
+    setDragOverColumn(columnId)
+    setDragOverCategory(category || null)
+    
+    // Add visual feedback
+    e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'
+    e.currentTarget.style.borderColor = '#3b82f6'
+    e.currentTarget.style.transform = 'scale(1.02)'
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Reset visual feedback
+    e.currentTarget.style.backgroundColor = 'transparent'
+    e.currentTarget.style.borderColor = 'transparent'
+    e.currentTarget.style.transform = 'scale(1)'
+    
+    // Only clear if we're leaving the entire drop zone
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDragOverColumn(null)
+      setDragOverCategory(null)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent, columnId: string, category?: string) => {
+    e.preventDefault()
+    
+    // Reset visual feedback
+    e.currentTarget.style.backgroundColor = 'transparent'
+    e.currentTarget.style.borderColor = 'transparent'
+    e.currentTarget.style.transform = 'scale(1)'
+    
+    const taskId = e.dataTransfer.getData('text/plain')
+    if (taskId && draggedTask) {
+      // Update the task status and preserve/assign category
+      setTasks(prev => prev.map(task => {
+        if (task.id === taskId) {
+          const updatedTask = { ...task, status: columnId as Task["status"] }
+          
+          // If moving to a day column and task has no category, assign to specified category or "standing"
+          if (category) {
+            updatedTask.category = category
+          } else if (columnId === "delegated" && !updatedTask.personId && people.length > 0) {
+            updatedTask.personId = people[0].id
+          } else if (columnId !== "delegated" && !updatedTask.category) {
+            updatedTask.category = "standing"
+          }
+          
+          return updatedTask
+        }
+        return task
+      }))
+      
+      // Add success animation
+      const dropZone = e.currentTarget
+      dropZone.style.backgroundColor = 'rgba(34, 197, 94, 0.2)'
+      setTimeout(() => {
+        dropZone.style.backgroundColor = 'transparent'
+      }, 300)
+    }
+    
+    // Clear drag state
+    setDragOverColumn(null)
+    setDragOverCategory(null)
+  }
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -184,11 +334,13 @@ export default function HomePage() {
   ]
 
   const getTasksByStatus = (status: Task["status"]) => {
-    return tasks.filter((task) => task.status === status)
+    const filteredTasks = getFilteredTasks()
+    return sortTasks(filteredTasks.filter((task) => task.status === status))
   }
 
   const getTasksByStatusAndCategory = (status: Task["status"], category: string) => {
-    return tasks.filter((task) => task.status === status && task.category === category)
+    const filteredTasks = getFilteredTasks()
+    return sortTasks(filteredTasks.filter((task) => task.status === status && task.category === category))
   }
 
   const addTask = (columnId: string, category?: string, personId?: string) => {
@@ -303,12 +455,38 @@ export default function HomePage() {
           </span>
         </div>
         
-        <div style={{ marginBottom: '8px', maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' }}>
+        <div 
+          style={{ 
+            marginBottom: '8px', 
+            maxHeight: 'calc(100vh - 280px)', 
+            overflowY: 'auto',
+            border: dragOverColumn === column.id ? '2px dashed #3b82f6' : '2px dashed transparent',
+            borderRadius: '8px',
+            padding: '4px',
+            transition: 'all 0.2s ease'
+          }}
+          onDragOver={(e) => handleDragOver(e, column.id)}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, column.id)}
+        >
           {column.hasPeople ? (
             // Render people categories for Follow-up column
             <>
               {people.map((person) => (
-                <div key={person.id} style={{ marginBottom: '16px' }}>
+                <div 
+                  key={person.id} 
+                  style={{ 
+                    marginBottom: '16px',
+                    border: dragOverColumn === column.id && dragOverCategory === `person-${person.id}` ? '2px dashed #3b82f6' : '2px dashed transparent',
+                    borderRadius: '8px',
+                    padding: '8px',
+                    transition: 'all 0.2s ease',
+                    backgroundColor: dragOverColumn === column.id && dragOverCategory === `person-${person.id}` ? 'rgba(59, 130, 246, 0.05)' : 'transparent'
+                  }}
+                  onDragOver={(e) => handleDragOver(e, column.id, `person-${person.id}`)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, column.id, `person-${person.id}`)}
+                >
                   {/* Person Header */}
                   <div style={{ 
                     fontSize: '11px', 
@@ -344,7 +522,7 @@ export default function HomePage() {
                   </div>
                   
                   {/* Tasks for this person */}
-                  {tasks.filter(task => task.status === column.id && task.personId === person.id).map((task) => (
+                  {sortTasks(getFilteredTasks().filter(task => task.status === column.id && task.personId === person.id)).map((task) => (
                     <div
                       key={task.id}
                       style={{
@@ -369,13 +547,8 @@ export default function HomePage() {
                         e.currentTarget.style.transform = 'translateY(0)'
                       }}
                       draggable={true}
-                      onDragStart={(e) => {
-                        e.dataTransfer.setData('text/plain', task.id)
-                        e.currentTarget.style.opacity = '0.5'
-                      }}
-                      onDragEnd={(e) => {
-                        e.currentTarget.style.opacity = '1'
-                      }}
+                      onDragStart={(e) => handleDragStart(e, task)}
+                      onDragEnd={handleDragEnd}
                     >
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
                         <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
@@ -533,7 +706,19 @@ export default function HomePage() {
             // Render categories for day columns
             <>
               {/* Standing Tasks Category */}
-              <div style={{ marginBottom: '12px' }}>
+              <div 
+                style={{ 
+                  marginBottom: '12px',
+                  border: dragOverColumn === column.id && dragOverCategory === 'standing' ? '2px dashed #3b82f6' : '2px dashed transparent',
+                  borderRadius: '8px',
+                  padding: '8px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: dragOverColumn === column.id && dragOverCategory === 'standing' ? 'rgba(59, 130, 246, 0.05)' : 'transparent'
+                }}
+                onDragOver={(e) => handleDragOver(e, column.id, 'standing')}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, column.id, 'standing')}
+              >
                 <div style={{ 
                   fontSize: '11px', 
                   color: '#6b7280', 
@@ -567,15 +752,10 @@ export default function HomePage() {
                       e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
                       e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.06)'
                       e.currentTarget.style.transform = 'translateY(0)'
-                    }}
+                                        }}
                     draggable={true}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', task.id)
-                      e.currentTarget.style.opacity = '0.5'
-                    }}
-                    onDragEnd={(e) => {
-                      e.currentTarget.style.opacity = '1'
-                    }}
+                    onDragStart={(e) => handleDragStart(e, task)}
+                    onDragEnd={handleDragEnd}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
                       <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
@@ -612,6 +792,65 @@ export default function HomePage() {
                     }}>
                       {task.priority}
                     </span>
+                    
+                    {/* Time Tracking */}
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '4px', 
+                      marginTop: '4px',
+                      fontSize: '9px'
+                    }}>
+                      {/* Timer Button */}
+                      <button
+                        onClick={() => task.isTimerRunning ? stopTimer(task.id) : startTimer(task.id)}
+                        style={{
+                          padding: '2px 4px',
+                          backgroundColor: task.isTimerRunning ? '#ef4444' : '#10b981',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '8px',
+                          fontWeight: '500'
+                        }}
+                        title={task.isTimerRunning ? 'Stop timer' : 'Start timer'}
+                      >
+                        {task.isTimerRunning ? '⏹️' : '▶️'}
+                      </button>
+                      
+                      {/* Time Display */}
+                      {(task.estimatedHours || task.actualHours) && (
+                        <span style={{ color: '#6b7280' }}>
+                          {task.actualHours ? `${task.actualHours.toFixed(1)}h` : ''}
+                          {task.estimatedHours && task.actualHours ? '/' : ''}
+                          {task.estimatedHours ? `${task.estimatedHours}h` : ''}
+                        </span>
+                      )}
+                      
+                      {/* Quick Time Entry */}
+                      <button
+                        onClick={() => {
+                          const hours = prompt('Enter hours:', '0.5')
+                          if (hours && !isNaN(parseFloat(hours))) {
+                            addTimeEntry(task.id, parseFloat(hours))
+                          }
+                        }}
+                        style={{
+                          padding: '2px 4px',
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '8px',
+                          fontWeight: '500'
+                        }}
+                        title="Add time entry"
+                      >
+                        ⏱️
+                      </button>
+                    </div>
                   </div>
                 ))}
                 <button
@@ -641,7 +880,19 @@ export default function HomePage() {
               </div>
 
               {/* Comms Category */}
-              <div style={{ marginBottom: '12px' }}>
+              <div 
+                style={{ 
+                  marginBottom: '12px',
+                  border: dragOverColumn === column.id && dragOverCategory === 'comms' ? '2px dashed #3b82f6' : '2px dashed transparent',
+                  borderRadius: '8px',
+                  padding: '8px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: dragOverColumn === column.id && dragOverCategory === 'comms' ? 'rgba(59, 130, 246, 0.05)' : 'transparent'
+                }}
+                onDragOver={(e) => handleDragOver(e, column.id, 'comms')}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, column.id, 'comms')}
+              >
                 <div style={{ 
                   fontSize: '11px', 
                   color: '#6b7280', 
@@ -677,13 +928,8 @@ export default function HomePage() {
                       e.currentTarget.style.transform = 'translateY(0)'
                     }}
                     draggable={true}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', task.id)
-                      e.currentTarget.style.opacity = '0.5'
-                    }}
-                    onDragEnd={(e) => {
-                      e.currentTarget.style.opacity = '1'
-                    }}
+                    onDragStart={(e) => handleDragStart(e, task)}
+                    onDragEnd={handleDragEnd}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
                       <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
@@ -749,7 +995,19 @@ export default function HomePage() {
               </div>
 
               {/* Big Tasks Category */}
-              <div style={{ marginBottom: '12px' }}>
+              <div 
+                style={{ 
+                  marginBottom: '12px',
+                  border: dragOverColumn === column.id && dragOverCategory === 'big-tasks' ? '2px dashed #3b82f6' : '2px dashed transparent',
+                  borderRadius: '8px',
+                  padding: '8px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: dragOverColumn === column.id && dragOverCategory === 'big-tasks' ? 'rgba(59, 130, 246, 0.05)' : 'transparent'
+                }}
+                onDragOver={(e) => handleDragOver(e, column.id, 'big-tasks')}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, column.id, 'big-tasks')}
+              >
                 <div style={{ 
                   fontSize: '11px', 
                   color: '#6b7280', 
@@ -785,13 +1043,8 @@ export default function HomePage() {
                       e.currentTarget.style.transform = 'translateY(0)'
                     }}
                     draggable={true}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', task.id)
-                      e.currentTarget.style.opacity = '0.5'
-                    }}
-                    onDragEnd={(e) => {
-                      e.currentTarget.style.opacity = '1'
-                    }}
+                    onDragStart={(e) => handleDragStart(e, task)}
+                    onDragEnd={handleDragEnd}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
                       <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
@@ -857,7 +1110,19 @@ export default function HomePage() {
               </div>
 
               {/* Done Category */}
-              <div style={{ marginBottom: '12px' }}>
+              <div 
+                style={{ 
+                  marginBottom: '12px',
+                  border: dragOverColumn === column.id && dragOverCategory === 'done' ? '2px dashed #3b82f6' : '2px dashed transparent',
+                  borderRadius: '8px',
+                  padding: '8px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: dragOverColumn === column.id && dragOverCategory === 'done' ? 'rgba(59, 130, 246, 0.05)' : 'transparent'
+                }}
+                onDragOver={(e) => handleDragOver(e, column.id, 'done')}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, column.id, 'done')}
+              >
                 <div style={{ 
                   fontSize: '11px', 
                   color: '#6b7280', 
@@ -893,13 +1158,8 @@ export default function HomePage() {
                       e.currentTarget.style.transform = 'translateY(0)'
                     }}
                     draggable={true}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', task.id)
-                      e.currentTarget.style.opacity = '0.5'
-                    }}
-                    onDragEnd={(e) => {
-                      e.currentTarget.style.opacity = '1'
-                    }}
+                    onDragStart={(e) => handleDragStart(e, task)}
+                    onDragEnd={handleDragEnd}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
                       <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
@@ -991,13 +1251,8 @@ export default function HomePage() {
                   e.currentTarget.style.transform = 'translateY(0)'
                 }}
                 draggable={true}
-                onDragStart={(e) => {
-                  e.dataTransfer.setData('text/plain', task.id)
-                  e.currentTarget.style.opacity = '0.5'
-                }}
-                onDragEnd={(e) => {
-                  e.currentTarget.style.opacity = '1'
-                }}
+                onDragStart={(e) => handleDragStart(e, task)}
+                onDragEnd={handleDragEnd}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
                   <h4 style={{ fontSize: '13px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
@@ -1328,6 +1583,172 @@ export default function HomePage() {
       }
       return task
     }))
+  }
+
+  const renderDragPreview = () => {
+    if (!isDragging || !draggedTask || !dragPreview) return null
+    
+    return (
+      <div style={{
+        position: 'fixed',
+        top: dragPreview.y - 20,
+        left: dragPreview.x - 20,
+        zIndex: 9999,
+        pointerEvents: 'none',
+        transform: 'rotate(5deg)',
+        opacity: 0.8
+      }}>
+        <div style={{
+          padding: '8px 12px',
+          backgroundColor: 'rgba(59, 130, 246, 0.9)',
+          color: 'white',
+          borderRadius: '8px',
+          fontSize: '12px',
+          fontWeight: '500',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          📋 {draggedTask.title}
+        </div>
+      </div>
+    )
+  }
+
+  // Smart search and filtering functions
+  const getFilteredTasks = () => {
+    let filtered = tasks
+
+    // Text search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(task => 
+        task.title.toLowerCase().includes(query) ||
+        task.description.toLowerCase().includes(query) ||
+        task.notes?.toLowerCase().includes(query)
+      )
+    }
+
+    // Priority filter
+    if (searchFilters.priority.length > 0) {
+      filtered = filtered.filter(task => searchFilters.priority.includes(task.priority))
+    }
+
+    // Status filter
+    if (searchFilters.status.length > 0) {
+      filtered = filtered.filter(task => searchFilters.status.includes(task.status))
+    }
+
+    // Category filter
+    if (searchFilters.category.length > 0) {
+      filtered = filtered.filter(task => searchFilters.category.includes(task.category))
+    }
+
+    // Project filter
+    if (searchFilters.project.length > 0) {
+      filtered = filtered.filter(task => task.projectId && searchFilters.project.includes(task.projectId))
+    }
+
+    // Person filter
+    if (searchFilters.person.length > 0) {
+      filtered = filtered.filter(task => task.personId && searchFilters.person.includes(task.personId))
+    }
+
+    return filtered
+  }
+
+  const toggleFilter = (filterType: keyof typeof searchFilters, value: string) => {
+    setSearchFilters(prev => ({
+      ...prev,
+      [filterType]: prev[filterType].includes(value)
+        ? prev[filterType].filter(v => v !== value)
+        : [...prev[filterType], value]
+    }))
+  }
+
+  const clearAllFilters = () => {
+    setSearchFilters({
+      priority: [],
+      status: [],
+      category: [],
+      project: [],
+      person: []
+    })
+  }
+
+  const getAvailableFilters = () => {
+    const priorities = [...new Set(tasks.map(t => t.priority))]
+    const statuses = [...new Set(tasks.map(t => t.status))]
+    const categories = [...new Set(tasks.map(t => t.category).filter(Boolean))]
+    const projects = [...new Set(tasks.map(t => t.projectId).filter(Boolean))]
+    const people = [...new Set(tasks.map(t => t.personId).filter(Boolean))]
+
+    return { priorities, statuses, categories, projects, people }
+  }
+
+  // Saved views functions
+  const saveCurrentView = () => {
+    const name = prompt('Enter a name for this view:')
+    if (!name) return
+    
+    const newView = {
+      id: Date.now().toString(),
+      name,
+      searchQuery,
+      filters: { ...searchFilters },
+      createdAt: new Date()
+    }
+    
+    setSavedViews(prev => [...prev, newView])
+  }
+
+  const loadSavedView = (view: typeof savedViews[0]) => {
+    setSearchQuery(view.searchQuery)
+    setSearchFilters(view.filters)
+  }
+
+  const deleteSavedView = (viewId: string) => {
+    setSavedViews(prev => prev.filter(v => v.id !== viewId))
+  }
+
+  // Advanced sorting functions
+  const sortTasks = (taskList: Task[]) => {
+    return [...taskList].sort((a, b) => {
+      let aValue: any
+      let bValue: any
+      
+      switch (sortBy) {
+        case "createdAt":
+          aValue = a.createdAt.getTime()
+          bValue = b.createdAt.getTime()
+          break
+        case "priority":
+          const priorityOrder = { high: 3, medium: 2, low: 1 }
+          aValue = priorityOrder[a.priority as keyof typeof priorityOrder]
+          bValue = priorityOrder[b.priority as keyof typeof priorityOrder]
+          break
+        case "title":
+          aValue = a.title.toLowerCase()
+          bValue = b.title.toLowerCase()
+          break
+        case "estimatedHours":
+          aValue = a.estimatedHours || 0
+          bValue = b.estimatedHours || 0
+          break
+        case "actualHours":
+          aValue = a.actualHours || 0
+          bValue = b.actualHours || 0
+          break
+        default:
+          return 0
+      }
+      
+      if (sortOrder === "asc") {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
+    })
   }
 
   const renderKeyboardShortcuts = () => (
@@ -2007,6 +2428,8 @@ export default function HomePage() {
                   <input
                     type="text"
                     placeholder="Search tasks, descriptions, or tags..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     style={{
                       border: 'none',
                       outline: 'none',
@@ -2016,8 +2439,376 @@ export default function HomePage() {
                       color: '#374151'
                     }}
                   />
+                  <button
+                    onClick={() => setShowSearchFilters(!showSearchFilters)}
+                    style={{
+                      padding: '4px',
+                      backgroundColor: searchFilters.priority.length > 0 || searchFilters.status.length > 0 || searchFilters.category.length > 0 || searchFilters.project.length > 0 || searchFilters.person.length > 0 ? '#3b82f6' : 'transparent',
+                      color: searchFilters.priority.length > 0 || searchFilters.status.length > 0 || searchFilters.category.length > 0 || searchFilters.project.length > 0 || searchFilters.person.length > 0 ? 'white' : '#6b7280',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                    title="Toggle filters"
+                  >
+                    🔧
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowSavedViews(!showSavedViews)}
+                    style={{
+                      padding: '4px',
+                      backgroundColor: savedViews.length > 0 ? '#10b981' : 'transparent',
+                      color: savedViews.length > 0 ? 'white' : '#6b7280',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                    title="Saved views"
+                  >
+                    💾
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowSortOptions(!showSortOptions)}
+                    style={{
+                      padding: '4px',
+                      backgroundColor: sortBy !== 'createdAt' || sortOrder !== 'desc' ? '#f59e0b' : 'transparent',
+                      color: sortBy !== 'createdAt' || sortOrder !== 'desc' ? 'white' : '#6b7280',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                    title="Sort options"
+                  >
+                    ↕️
+                  </button>
                 </div>
+                
+                {/* Filter Panel */}
+                {showSearchFilters && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    marginTop: '8px',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                    zIndex: 1000
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Filters</span>
+                      <button
+                        onClick={clearAllFilters}
+                        style={{
+                          fontSize: '12px',
+                          color: '#6b7280',
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
+                      {/* Priority Filter */}
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280', marginBottom: '6px' }}>Priority</div>
+                        {getAvailableFilters().priorities.map(priority => (
+                          <label key={priority} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                            <input
+                              type="checkbox"
+                              checked={searchFilters.priority.includes(priority)}
+                              onChange={() => toggleFilter('priority', priority)}
+                              style={{ margin: 0 }}
+                            />
+                            {priority}
+                          </label>
+                        ))}
+                      </div>
+                      
+                      {/* Status Filter */}
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280', marginBottom: '6px' }}>Status</div>
+                        {getAvailableFilters().statuses.map(status => (
+                          <label key={status} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                            <input
+                              type="checkbox"
+                              checked={searchFilters.status.includes(status)}
+                              onChange={() => toggleFilter('status', status)}
+                              style={{ margin: 0 }}
+                            />
+                            {status}
+                          </label>
+                        ))}
+                      </div>
+                      
+                      {/* Category Filter */}
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280', marginBottom: '6px' }}>Category</div>
+                        {getAvailableFilters().categories.map(category => (
+                          <label key={category} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                            <input
+                              type="checkbox"
+                              checked={searchFilters.category.includes(category)}
+                              onChange={() => toggleFilter('category', category)}
+                              style={{ margin: 0 }}
+                            />
+                            {category}
+                          </label>
+                        ))}
+                      </div>
+                      
+                      {/* Project Filter */}
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280', marginBottom: '6px' }}>Project</div>
+                        {getAvailableFilters().projects.map(projectId => {
+                          const project = projects.find(p => p.id === projectId)
+                          return project ? (
+                            <label key={projectId} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                              <input
+                                type="checkbox"
+                                checked={searchFilters.project.includes(projectId)}
+                                onChange={() => toggleFilter('project', projectId)}
+                                style={{ margin: 0 }}
+                              />
+                              {project.name}
+                            </label>
+                          ) : null
+                        })}
+                      </div>
+                      
+                      {/* Person Filter */}
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280', marginBottom: '6px' }}>Person</div>
+                        {getAvailableFilters().people.map(personId => {
+                          const person = people.find(p => p.id === personId)
+                          return person ? (
+                            <label key={personId} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                              <input
+                                type="checkbox"
+                                checked={searchFilters.person.includes(personId)}
+                                onChange={() => toggleFilter('person', personId)}
+                                style={{ margin: 0 }}
+                              />
+                              {person.name}
+                            </label>
+                          ) : null
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Saved Views Dropdown */}
+                {showSavedViews && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    marginTop: '8px',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                    zIndex: 1000
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Saved Views</span>
+                      <button
+                        onClick={saveCurrentView}
+                        style={{
+                          fontSize: '12px',
+                          color: '#3b82f6',
+                          backgroundColor: 'transparent',
+                          border: '1px solid #3b82f6',
+                          borderRadius: '4px',
+                          padding: '4px 8px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Save Current
+                      </button>
+                    </div>
+                    
+                    {savedViews.length === 0 ? (
+                      <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center', padding: '20px' }}>
+                        No saved views yet. Create one by setting up your search and filters, then click "Save Current".
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {savedViews.map(view => (
+                          <div key={view.id} style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '8px',
+                            backgroundColor: '#f9fafb',
+                            borderRadius: '6px',
+                            border: '1px solid #e5e7eb'
+                          }}>
+                            <div>
+                              <div style={{ fontSize: '12px', fontWeight: '500', color: '#374151' }}>{view.name}</div>
+                              <div style={{ fontSize: '10px', color: '#6b7280' }}>
+                                {view.searchQuery && `"${view.searchQuery}"`}
+                                {view.filters.priority.length > 0 && ` • ${view.filters.priority.length} priority filters`}
+                                {view.filters.status.length > 0 && ` • ${view.filters.status.length} status filters`}
+                                {view.filters.category.length > 0 && ` • ${view.filters.category.length} category filters`}
+                                {view.filters.project.length > 0 && ` • ${view.filters.project.length} project filters`}
+                                {view.filters.person.length > 0 && ` • ${view.filters.person.length} person filters`}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button
+                                onClick={() => loadSavedView(view)}
+                                style={{
+                                  fontSize: '10px',
+                                  color: '#3b82f6',
+                                  backgroundColor: 'transparent',
+                                  border: '1px solid #3b82f6',
+                                  borderRadius: '4px',
+                                  padding: '2px 6px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Load
+                              </button>
+                              <button
+                                onClick={() => deleteSavedView(view.id)}
+                                style={{
+                                  fontSize: '10px',
+                                  color: '#ef4444',
+                                  backgroundColor: 'transparent',
+                                  border: '1px solid #ef4444',
+                                  borderRadius: '4px',
+                                  padding: '2px 6px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {/* Sorting Options Dropdown */}
+                {showSortOptions && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    marginTop: '8px',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                    zIndex: 1000
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Sort Options</span>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      {/* Sort By */}
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280', marginBottom: '6px' }}>Sort By</div>
+                        {[
+                          { value: 'createdAt', label: 'Date Created' },
+                          { value: 'priority', label: 'Priority' },
+                          { value: 'title', label: 'Title' },
+                          { value: 'estimatedHours', label: 'Estimated Hours' },
+                          { value: 'actualHours', label: 'Actual Hours' }
+                        ].map(option => (
+                          <label key={option.value} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                            <input
+                              type="radio"
+                              name="sortBy"
+                              value={option.value}
+                              checked={sortBy === option.value}
+                              onChange={() => setSortBy(option.value as any)}
+                              style={{ margin: 0 }}
+                            />
+                            {option.label}
+                          </label>
+                        ))}
+                      </div>
+                      
+                      {/* Sort Order */}
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280', marginBottom: '6px' }}>Order</div>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                          <input
+                            type="radio"
+                            name="sortOrder"
+                            value="desc"
+                            checked={sortOrder === 'desc'}
+                            onChange={() => setSortOrder('desc')}
+                            style={{ margin: 0 }}
+                          />
+                          Descending
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                          <input
+                            type="radio"
+                            name="sortOrder"
+                            value="asc"
+                            checked={sortOrder === 'asc'}
+                            onChange={() => setSortOrder('asc')}
+                            style={{ margin: 0 }}
+                          />
+                          Ascending
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
+              
+              {/* Search Results Summary */}
+              {(searchQuery.trim() || searchFilters.priority.length > 0 || searchFilters.status.length > 0 || searchFilters.category.length > 0 || searchFilters.project.length > 0 || searchFilters.person.length > 0) && (
+                <div style={{
+                  fontSize: '12px',
+                  color: '#6b7280',
+                  marginTop: '4px'
+                }}>
+                  Showing {getFilteredTasks().length} of {tasks.length} tasks
+                  <button
+                    onClick={() => {
+                      setSearchQuery("")
+                      clearAllFilters()
+                    }}
+                    style={{
+                      marginLeft: '8px',
+                      fontSize: '11px',
+                      color: '#3b82f6',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    Clear search
+                  </button>
+                </div>
+              )}
               
               {/* Filter Buttons */}
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -2129,6 +2920,9 @@ export default function HomePage() {
       
       {/* Keyboard Shortcuts Modal */}
       {showKeyboardShortcuts && renderKeyboardShortcuts()}
+      
+      {/* Drag Preview */}
+      {renderDragPreview()}
     </div>
   )
 }
