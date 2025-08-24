@@ -14,9 +14,8 @@ interface EnhancedSearchProps {
 export function EnhancedSearch({ onSelectTask, onSelectProject, onSelectPerson }: EnhancedSearchProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
-  const [selectedIndex, setSelectedIndex] = useState(0)
   
-  const { tasks, projects, people, getFilteredTasks } = useKanbanStore()
+  const { tasks, projects, people } = useKanbanStore()
   
   const inputRef = useRef<HTMLInputElement>(null)
   
@@ -55,11 +54,6 @@ export function EnhancedSearch({ onSelectTask, onSelectProject, onSelectPerson }
     document.addEventListener('keydown', down)
     return () => document.removeEventListener('keydown', down)
   }, [])
-  
-  // Reset selection when search changes
-  useEffect(() => {
-    setSelectedIndex(0)
-  }, [search])
   
   // Focus input when opened
   useEffect(() => {
@@ -136,176 +130,165 @@ export function EnhancedSearch({ onSelectTask, onSelectProject, onSelectPerson }
       </button>
       
       {/* Command Dialog */}
-      <Command.Dialog
-        open={open}
-        onOpenChange={setOpen}
-        className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]"
-      >
-        <Command.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
-        
-        <div className="relative w-full max-w-2xl mx-4">
-          <Command className="relative bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center border-b border-gray-200 px-4 py-3">
-              <Search className="w-5 h-5 text-gray-400 mr-3" />
-              <Command.Input
-                ref={inputRef}
-                value={search}
-                onValueChange={setSearch}
-                placeholder="Search tasks, projects, people, categories..."
-                className="flex-1 text-sm outline-none placeholder:text-gray-400"
-              />
-              <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-400 bg-gray-100 rounded border">
-                ESC
-              </kbd>
-            </div>
-            
-            {/* Results */}
-            <Command.List className="max-h-96 overflow-y-auto p-2">
-              {search.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <Search className="mx-auto w-8 h-8 mb-2 opacity-50" />
-                  <p>Type to search...</p>
-                  <p className="text-xs mt-1">Search for tasks, projects, people, or categories</p>
-                </div>
-              )}
-              
-              {search.length > 0 && totalResults === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <Search className="mx-auto w-8 h-8 mb-2 opacity-50" />
-                  <p>No results found for "{search}"</p>
-                  <p className="text-xs mt-1">Try different keywords or check spelling</p>
-                </div>
-              )}
-              
-              {/* Tasks */}
-              {filteredTasks.length > 0 && (
-                <div className="mb-4">
-                  <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                    Tasks ({filteredTasks.length})
-                  </div>
-                  {filteredTasks.map((task, index) => (
-                    <Command.Item
-                      key={`task:${task.id}`}
-                      value={`task:${task.id}`}
-                      onSelect={handleSelect}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
-                        selectedIndex === index ? 'bg-blue-50 text-blue-900' : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex-shrink-0">
-                        {getStatusIcon(task.status)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm truncate">{task.title}</span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(task.priority)} bg-gray-100`}>
-                            {task.priority}
-                          </span>
-                        </div>
-                        {task.description && (
-                          <p className="text-xs text-gray-600 truncate mt-1">{task.description}</p>
-                        )}
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className={`text-xs ${getStatusColor(task.status)}`}>
-                            {task.status}
-                          </span>
-                          {task.category && (
-                            <span className="text-xs text-gray-500 flex items-center gap-1">
-                              <Tag className="w-3 h-3" />
-                              {task.category}
-                            </span>
-                          )}
-                          {task.estimatedHours && (
-                            <span className="text-xs text-gray-500 flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {task.estimatedHours}h
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </Command.Item>
-                  ))}
-                </div>
-              )}
-              
-              {/* Projects */}
-              {filteredProjects.length > 0 && (
-                <div className="mb-4">
-                  <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                    Projects ({filteredProjects.length})
-                  </div>
-                  {filteredProjects.map((project, index) => (
-                    <Command.Item
-                      key={`project:${project.id}`}
-                      value={`project:${project.id}`}
-                      onSelect={handleSelect}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
-                        selectedIndex === filteredTasks.length + index ? 'bg-blue-50 text-blue-900' : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      <FolderOpen className="w-5 h-5 text-blue-500 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm">{project.name}</div>
-                        {project.description && (
-                          <p className="text-xs text-gray-600 truncate mt-1">{project.description}</p>
-                        )}
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            project.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            project.status === 'on-hold' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-blue-100 text-blue-700'
-                          }`}>
-                            {project.status}
-                          </span>
-                          <span className="text-xs text-gray-500">{project.progress}% complete</span>
-                        </div>
-                      </div>
-                    </Command.Item>
-                  ))}
-                </div>
-              )}
-              
-              {/* People */}
-              {filteredPeople.length > 0 && (
-                <div className="mb-4">
-                  <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                    People ({filteredPeople.length})
-                  </div>
-                  {filteredPeople.map((person, index) => (
-                    <Command.Item
-                      key={`person:${person.id}`}
-                      value={`person:${person.id}`}
-                      onSelect={handleSelect}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
-                        selectedIndex === filteredTasks.length + filteredProjects.length + index ? 'bg-blue-50 text-blue-900' : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      <User className="w-5 h-5 text-green-500 flex-shrink-0" />
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{person.name}</div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {tasks.filter(t => t.personId === person.id).length} tasks assigned
-                        </div>
-                      </div>
-                    </Command.Item>
-                  ))}
-                </div>
-              )}
-            </Command.List>
-            
-            {/* Footer */}
-            {search.length > 0 && totalResults > 0 && (
-              <div className="border-t border-gray-200 px-4 py-2 text-xs text-gray-500">
-                {totalResults} result{totalResults !== 1 ? 's' : ''} found
-                <span className="ml-2">
-                  Use ↑↓ to navigate, Enter to select, Esc to close
-                </span>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          
+          <div className="relative w-full max-w-2xl mx-4">
+            <div className="relative bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center border-b border-gray-200 px-4 py-3">
+                <Search className="w-5 h-5 text-gray-400 mr-3" />
+                <input
+                  ref={inputRef}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search tasks, projects, people, categories..."
+                  className="flex-1 text-sm outline-none placeholder:text-gray-400"
+                />
+                <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-400 bg-gray-100 rounded border">
+                  ESC
+                </kbd>
               </div>
-            )}
-          </Command>
+              
+              {/* Results */}
+              <div className="max-h-96 overflow-y-auto p-2">
+                {search.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Search className="mx-auto w-8 h-8 mb-2 opacity-50" />
+                    <p>Type to search...</p>
+                    <p className="text-xs mt-1">Search for tasks, projects, people, or categories</p>
+                  </div>
+                )}
+                
+                {search.length > 0 && totalResults === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Search className="mx-auto w-8 h-8 mb-2 opacity-50" />
+                    <p>No results found for "{search}"</p>
+                    <p className="text-xs mt-1">Try different keywords or check spelling</p>
+                  </div>
+                )}
+                
+                {/* Tasks */}
+                {filteredTasks.length > 0 && (
+                  <div className="mb-4">
+                    <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      Tasks ({filteredTasks.length})
+                    </div>
+                    {filteredTasks.map((task) => (
+                      <button
+                        key={`task:${task.id}`}
+                        onClick={() => handleSelect(`task:${task.id}`)}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 text-left"
+                      >
+                        <div className="flex-shrink-0">
+                          {getStatusIcon(task.status)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm truncate">{task.title}</span>
+                            <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(task.priority)} bg-gray-100`}>
+                              {task.priority}
+                            </span>
+                          </div>
+                          {task.description && (
+                            <p className="text-xs text-gray-600 truncate mt-1">{task.description}</p>
+                          )}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`text-xs ${getStatusColor(task.status)}`}>
+                              {task.status}
+                            </span>
+                            {task.category && (
+                              <span className="text-xs text-gray-500 flex items-center gap-1">
+                                <Tag className="w-3 h-3" />
+                                {task.category}
+                              </span>
+                            )}
+                            {task.estimatedHours && (
+                              <span className="text-xs text-gray-500 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {task.estimatedHours}h
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Projects */}
+                {filteredProjects.length > 0 && (
+                  <div className="mb-4">
+                    <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      Projects ({filteredProjects.length})
+                    </div>
+                    {filteredProjects.map((project) => (
+                      <button
+                        key={`project:${project.id}`}
+                        onClick={() => handleSelect(`project:${project.id}`)}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 text-left"
+                      >
+                        <FolderOpen className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm">{project.name}</div>
+                          {project.description && (
+                            <p className="text-xs text-gray-600 truncate mt-1">{project.description}</p>
+                          )}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              project.status === 'completed' ? 'bg-green-100 text-green-700' :
+                              project.status === 'on-hold' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-blue-100 text-blue-700'
+                            }`}>
+                              {project.status}
+                            </span>
+                            <span className="text-xs text-gray-500">{project.progress}% complete</span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* People */}
+                {filteredPeople.length > 0 && (
+                  <div className="mb-4">
+                    <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      People ({filteredPeople.length})
+                    </div>
+                    {filteredPeople.map((person) => (
+                      <button
+                        key={`person:${person.id}`}
+                        onClick={() => handleSelect(`person:${person.id}`)}
+                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 text-left"
+                      >
+                        <User className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{person.name}</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {tasks.filter(t => t.personId === person.id).length} tasks assigned
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Footer */}
+              {search.length > 0 && totalResults > 0 && (
+                <div className="border-t border-gray-200 px-4 py-2 text-xs text-gray-500">
+                  {totalResults} result{totalResults !== 1 ? 's' : ''} found
+                  <span className="ml-2">
+                    Click to select, Esc to close
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </Command.Dialog>
+      )}
     </>
   )
 } 
