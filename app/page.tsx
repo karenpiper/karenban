@@ -125,43 +125,48 @@ export default function HomePage() {
     const columnTasks = getTasksByStatus(column.id as Task["status"])
     
     return (
-      <div key={column.id} className="min-w-[280px] bg-white rounded-lg border border-gray-200 p-4">
-        <div className="mb-3 flex items-center justify-between">
+      <div key={column.id} className="min-w-[240px] glass-card p-3">
+        <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${column.color}`}></div>
-            <h3 className="text-sm font-semibold text-gray-700">{column.title}</h3>
+            <div className={`w-2 h-2 rounded-full ${column.color}`}></div>
+            <h3 className="compact font-semibold text-gray-800">{column.title}</h3>
           </div>
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+          <span className="compact-xs text-gray-500 bg-white/60 px-2 py-0.5 rounded-full">
             {columnTasks.length}
           </span>
         </div>
         
-        <div className="space-y-2 mb-3">
+        <div className="space-y-1.5 mb-2 max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
           {columnTasks.map((task) => (
             <div
               key={task.id}
-              className="bg-gray-50 rounded-lg border border-gray-100 p-3 shadow-sm hover:shadow-md transition-shadow"
+              className="glass rounded-lg p-2.5 hover:bg-white/80 transition-all duration-200 group"
             >
-              <div className="flex items-start justify-between mb-2">
-                <h4 className="font-medium text-gray-900 text-sm">{task.title}</h4>
+              <div className="flex items-start justify-between mb-1">
+                <h4 className="compact-sm font-medium text-gray-900 leading-tight">{task.title}</h4>
                 <button
                   onClick={() => deleteTask(task.id)}
-                  className="text-gray-400 hover:text-red-500 text-xs"
+                  className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 compact-xs transition-opacity"
                 >
                   ×
                 </button>
               </div>
               {task.description && (
-                <p className="text-gray-600 text-xs mt-1 mb-2">{task.description}</p>
+                <p className="compact-xs text-gray-600 mb-1.5 line-clamp-2">{task.description}</p>
               )}
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  task.priority === "high" ? "bg-red-100 text-red-800" :
-                  task.priority === "medium" ? "bg-yellow-100 text-yellow-800" :
-                  "bg-green-100 text-green-800"
+              <div className="flex items-center gap-1.5">
+                <span className={`px-1.5 py-0.5 rounded-full compact-xs font-medium ${
+                  task.priority === "high" ? "bg-red-100 text-red-700" :
+                  task.priority === "medium" ? "bg-amber-100 text-amber-700" :
+                  "bg-emerald-100 text-emerald-700"
                 }`}>
                   {task.priority}
                 </span>
+                {task.projectId && (
+                  <span className="compact-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">
+                    Project
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -169,7 +174,7 @@ export default function HomePage() {
 
         <button
           onClick={() => addTask(column.id)}
-          className="w-full p-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg border border-dashed border-gray-300 transition-colors"
+          className="w-full p-2 compact-sm text-gray-600 hover:text-gray-900 hover:bg-white/60 rounded-lg border border-dashed border-gray-300/60 transition-all duration-200"
         >
           + Add Task
         </button>
@@ -211,30 +216,35 @@ export default function HomePage() {
   }
 
   const renderAdminView = () => (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h2>
+    <div className="p-4 custom-scrollbar overflow-auto">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold text-gray-900 mb-1">Admin Dashboard</h2>
+        <p className="compact-sm text-gray-600">Manage projects and team members</p>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Projects</h3>
-            <Button onClick={addProject} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="compact font-semibold text-gray-900">Projects</h3>
+            <Button onClick={addProject} size="sm" className="compact-xs">
+              <Plus className="w-3 h-3 mr-1" />
               Add Project
             </Button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
             {projects.map((project) => (
-              <div key={project.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={project.id} className="flex items-center justify-between p-2.5 glass rounded-lg">
                 <div>
-                  <h4 className="font-medium text-gray-900">{project.name}</h4>
-                  <p className="text-sm text-gray-600">{project.description}</p>
+                  <h4 className="compact-sm font-medium text-gray-900">{project.name}</h4>
+                  <p className="compact-xs text-gray-600">{project.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">{project.totalTasks} tasks</span>
+                  <span className="compact-xs text-gray-500 bg-white/60 px-1.5 py-0.5 rounded-full">
+                    {project.totalTasks} tasks
+                  </span>
                   <button
                     onClick={() => deleteProject(project.id)}
-                    className="text-gray-400 hover:text-red-500 text-sm"
+                    className="text-gray-400 hover:text-red-500 compact-xs"
                   >
                     ×
                   </button>
@@ -242,39 +252,39 @@ export default function HomePage() {
               </div>
             ))}
             {projects.length === 0 && (
-              <p className="text-gray-500 text-sm text-center py-4">No projects yet</p>
+              <p className="compact-sm text-gray-500 text-center py-6">No projects yet</p>
             )}
           </div>
         </div>
         
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Team Members</h3>
-            <Button onClick={addTeamMember} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
+        <div className="glass-card p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="compact font-semibold text-gray-900">Team Members</h3>
+            <Button onClick={addTeamMember} size="sm" className="compact-xs">
+              <Plus className="w-3 h-3 mr-1" />
               Add Member
             </Button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
             {teamMembers.map((member) => (
-              <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${member.color}`}></div>
+              <div key={member.id} className="flex items-center justify-between p-2.5 glass rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${member.color}`}></div>
                   <div>
-                    <h4 className="font-medium text-gray-900">{member.title}</h4>
-                    {member.role && <p className="text-sm text-gray-600">{member.role}</p>}
+                    <h4 className="compact-sm font-medium text-gray-900">{member.title}</h4>
+                    {member.role && <p className="compact-xs text-gray-600">{member.role}</p>}
                   </div>
                 </div>
                 <button
                   onClick={() => deleteTeamMember(member.id)}
-                  className="text-gray-400 hover:text-red-500 text-sm"
+                  className="text-gray-400 hover:text-red-500 compact-xs"
                 >
                   ×
                 </button>
               </div>
             ))}
             {teamMembers.length === 0 && (
-              <p className="text-gray-500 text-sm text-center py-4">No team members yet</p>
+              <p className="compact-sm text-gray-500 text-center py-6">No team members yet</p>
             )}
           </div>
         </div>
@@ -293,12 +303,12 @@ export default function HomePage() {
 
   const renderAssigneesView = () => {
     return (
-      <div className="flex-1 overflow-auto p-6">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Team Assignments</h2>
-          <p className="text-gray-600 text-sm">Manage tasks assigned to team members</p>
+      <div className="flex-1 overflow-auto p-4 custom-scrollbar">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-gray-900 mb-1">Team Assignments</h2>
+          <p className="compact-sm text-gray-600">Manage tasks assigned to team members</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {assigneesColumns.map((column) => {
             const assignedTasks = tasks.filter(task => 
               task.status === "delegated" && 
@@ -306,40 +316,40 @@ export default function HomePage() {
             )
             
             return (
-              <div key={column.id} className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="mb-3 flex items-center justify-between">
+              <div key={column.id} className="glass-card p-3">
+                <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${column.color}`}></div>
-                    <h3 className="text-sm font-semibold text-gray-700">{column.title}</h3>
+                    <div className={`w-2 h-2 rounded-full ${column.color}`}></div>
+                    <h3 className="compact font-semibold text-gray-800">{column.title}</h3>
                   </div>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  <span className="compact-xs text-gray-500 bg-white/60 px-2 py-0.5 rounded-full">
                     {assignedTasks.length}
                   </span>
                 </div>
                 
-                <div className="space-y-2 mb-3">
+                <div className="space-y-1.5 mb-2 max-h-64 overflow-y-auto custom-scrollbar">
                   {assignedTasks.map((task) => (
                     <div
                       key={task.id}
-                      className="bg-gray-50 rounded-lg border border-gray-100 p-3 shadow-sm"
+                      className="glass rounded-lg p-2.5 hover:bg-white/80 transition-all duration-200 group"
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-gray-900 text-sm">{task.title}</h4>
+                      <div className="flex items-start justify-between mb-1">
+                        <h4 className="compact-sm font-medium text-gray-900 leading-tight">{task.title}</h4>
                         <button
                           onClick={() => deleteTask(task.id)}
-                          className="text-gray-400 hover:text-red-500 text-xs"
+                          className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 compact-xs transition-opacity"
                         >
                           ×
                         </button>
                       </div>
                       {task.description && (
-                        <p className="text-gray-600 text-xs mt-1 mb-2">{task.description}</p>
+                        <p className="compact-xs text-gray-600 mb-1.5 line-clamp-2">{task.description}</p>
                       )}
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          task.priority === "high" ? "bg-red-100 text-red-800" :
-                          task.priority === "medium" ? "bg-yellow-100 text-yellow-800" :
-                          "bg-green-100 text-green-800"
+                      <div className="flex items-center gap-1.5">
+                        <span className={`px-1.5 py-0.5 rounded-full compact-xs font-medium ${
+                          task.priority === "high" ? "bg-red-100 text-red-700" :
+                          task.priority === "medium" ? "bg-amber-100 text-amber-700" :
+                          "bg-emerald-100 text-emerald-700"
                         }`}>
                           {task.priority}
                         </span>
@@ -362,7 +372,7 @@ export default function HomePage() {
                       }
                       setTasks(prev => [...prev, newTask])
                     }}
-                    className="w-full p-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg border border-dashed border-gray-300 transition-colors"
+                    className="w-full p-2 compact-sm text-gray-600 hover:text-gray-900 hover:bg-white/60 rounded-lg border border-dashed border-gray-300/60 transition-all duration-200"
                   >
                     + Assign Task
                   </button>
@@ -377,54 +387,54 @@ export default function HomePage() {
 
   const renderProjectsView = () => {
     return (
-      <div className="flex-1 overflow-auto p-6">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Projects</h2>
-          <p className="text-gray-600 text-sm">Manage your projects and track progress</p>
+      <div className="flex-1 overflow-auto p-4 custom-scrollbar">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-gray-900 mb-1">Projects</h2>
+          <p className="compact-sm text-gray-600">Manage your projects and track progress</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {projects.map((project) => {
             const projectTasks = tasks.filter(task => task.projectId === project.id)
             const completedTasks = projectTasks.filter(task => task.status === "completed")
             const progress = projectTasks.length > 0 ? Math.round((completedTasks.length / projectTasks.length) * 100) : 0
             
             return (
-              <div key={project.id} className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-start justify-between mb-4">
+              <div key={project.id} className="glass-card p-4">
+                <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{project.name}</h3>
-                    <p className="text-gray-600 text-sm mt-1">{project.description}</p>
+                    <h3 className="compact font-semibold text-gray-900">{project.name}</h3>
+                    <p className="compact-xs text-gray-600 mt-0.5 line-clamp-2">{project.description}</p>
                   </div>
                   <button
                     onClick={() => deleteProject(project.id)}
-                    className="text-gray-400 hover:text-red-500 text-sm"
+                    className="text-gray-400 hover:text-red-500 compact-xs"
                   >
                     ×
                   </button>
                 </div>
                 
-                <div className="mb-4">
-                  <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <div className="mb-3">
+                  <div className="flex items-center justify-between compact-xs text-gray-600 mb-1">
                     <span>Progress</span>
                     <span>{progress}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                      className="bg-blue-500 h-1.5 rounded-full transition-all duration-300" 
                       style={{ width: `${progress}%` }}
                     ></div>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 text-center">
+                <div className="grid grid-cols-2 gap-3 text-center mb-3">
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">{projectTasks.length}</div>
-                    <div className="text-xs text-gray-600">Total Tasks</div>
+                    <div className="text-lg font-bold text-gray-900">{projectTasks.length}</div>
+                    <div className="compact-xs text-gray-600">Total</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-green-600">{completedTasks.length}</div>
-                    <div className="text-xs text-gray-600">Completed</div>
+                    <div className="text-lg font-bold text-emerald-600">{completedTasks.length}</div>
+                    <div className="compact-xs text-gray-600">Done</div>
                   </div>
                 </div>
                 
@@ -442,20 +452,20 @@ export default function HomePage() {
                     }
                     setTasks(prev => [...prev, newTask])
                   }}
-                  className="w-full mt-4 p-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg border border-dashed border-gray-300 transition-colors"
+                  className="w-full p-2 compact-sm text-gray-600 hover:text-gray-900 hover:bg-white/60 rounded-lg border border-dashed border-gray-300/60 transition-all duration-200"
                 >
-                  + Add Task to Project
+                  + Add Task
                 </button>
               </div>
             )
           })}
           
           {projects.length === 0 && (
-            <div className="col-span-full text-center py-12">
-              <p className="text-gray-500 mb-4">No projects yet</p>
-              <Button onClick={addProject}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Your First Project
+            <div className="col-span-full text-center py-8">
+              <p className="compact text-gray-500 mb-3">No projects yet</p>
+              <Button onClick={addProject} className="compact-sm">
+                <Plus className="w-3 h-3 mr-1.5" />
+                Create Project
               </Button>
             </div>
           )}
@@ -480,88 +490,98 @@ export default function HomePage() {
     const columns = currentView === "today" ? todayColumns : thisWeekColumns
     
     return (
-      <div className="flex-1 overflow-auto p-6">
-        <div className="flex gap-6">
+      <div className="flex-1 overflow-auto p-4 custom-scrollbar">
+        <div className="flex gap-4 pb-4">
           {columns.map(renderColumn)}
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
       <div className="flex h-screen">
         {/* Sidebar */}
-        <div className={`bg-white border-r border-gray-200 transition-all duration-200 ${
-          sidebarCollapsed ? "w-16" : "w-64"
+        <div className={`glass-sidebar transition-all duration-300 ${
+          sidebarCollapsed ? "w-14" : "w-56"
         }`}>
-          <div className="p-4">
+          <div className="p-3">
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="w-full p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              className="w-full p-2 compact text-gray-600 hover:bg-white/60 rounded-lg transition-colors"
             >
               {sidebarCollapsed ? "☰" : "← Collapse"}
             </button>
           </div>
-          
-          <nav className="space-y-2 px-4">
+
+          <nav className="space-y-1 px-3">
             <button
               onClick={() => setCurrentView("today")}
-              className={`w-full text-left p-3 rounded-lg transition-colors ${
-                currentView === "today" ? "bg-blue-100 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+              className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
+                currentView === "today" 
+                  ? "bg-blue-500/20 text-blue-700 shadow-sm" 
+                  : "text-gray-700 hover:bg-white/60"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Calendar className="w-4 h-4" />
-                {!sidebarCollapsed && <span>Today</span>}
+                <Calendar className="w-4 h-4 flex-shrink-0" />
+                {!sidebarCollapsed && <span className="compact">Today</span>}
               </div>
             </button>
-            
+
             <button
               onClick={() => setCurrentView("thisWeek")}
-              className={`w-full text-left p-3 rounded-lg transition-colors ${
-                currentView === "thisWeek" ? "bg-blue-100 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+              className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
+                currentView === "thisWeek" 
+                  ? "bg-blue-500/20 text-blue-700 shadow-sm" 
+                  : "text-gray-700 hover:bg-white/60"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Calendar className="w-4 h-4" />
-                {!sidebarCollapsed && <span>This Week</span>}
+                <Calendar className="w-4 h-4 flex-shrink-0" />
+                {!sidebarCollapsed && <span className="compact">This Week</span>}
               </div>
             </button>
-            
+
             <button
               onClick={() => setCurrentView("assignees")}
-              className={`w-full text-left p-3 rounded-lg transition-colors ${
-                currentView === "assignees" ? "bg-blue-100 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+              className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
+                currentView === "assignees" 
+                  ? "bg-blue-500/20 text-blue-700 shadow-sm" 
+                  : "text-gray-700 hover:bg-white/60"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Users className="w-4 h-4" />
-                {!sidebarCollapsed && <span>Assignees</span>}
+                <Users className="w-4 h-4 flex-shrink-0" />
+                {!sidebarCollapsed && <span className="compact">Assignees</span>}
               </div>
             </button>
-            
+
             <button
               onClick={() => setCurrentView("projects")}
-              className={`w-full text-left p-3 rounded-lg transition-colors ${
-                currentView === "projects" ? "bg-blue-100 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+              className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
+                currentView === "projects" 
+                  ? "bg-blue-500/20 text-blue-700 shadow-sm" 
+                  : "text-gray-700 hover:bg-white/60"
               }`}
             >
               <div className="flex items-center gap-3">
-                <BarChart3 className="w-4 h-4" />
-                {!sidebarCollapsed && <span>Projects</span>}
+                <BarChart3 className="w-4 h-4 flex-shrink-0" />
+                {!sidebarCollapsed && <span className="compact">Projects</span>}
               </div>
             </button>
-            
+
             <button
               onClick={() => setCurrentView("admin")}
-              className={`w-full text-left p-3 rounded-lg transition-colors ${
-                currentView === "admin" ? "bg-blue-100 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+              className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
+                currentView === "admin" 
+                  ? "bg-blue-500/20 text-blue-700 shadow-sm" 
+                  : "text-gray-700 hover:bg-white/60"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Settings className="w-4 h-4" />
-                {!sidebarCollapsed && <span>Admin</span>}
+                <Settings className="w-4 h-4 flex-shrink-0" />
+                {!sidebarCollapsed && <span className="compact">Admin</span>}
               </div>
             </button>
           </nav>
@@ -570,15 +590,15 @@ export default function HomePage() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
-          <header className="bg-white border-b border-gray-200 px-6 py-4">
+          <header className="glass-navbar px-4 py-3">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-semibold text-gray-900">KarenBan</h1>
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600">
-                  {tasks.length} total tasks
+              <h1 className="text-lg font-bold text-gray-900">KarenBan</h1>
+              <div className="flex items-center gap-3">
+                <span className="compact-sm text-gray-600 bg-white/60 px-2 py-1 rounded-full">
+                  {tasks.length} tasks
                 </span>
-                <Button size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button size="sm" className="compact-sm">
+                  <Plus className="w-3 h-3 mr-1.5" />
                   Add Task
                 </Button>
               </div>
