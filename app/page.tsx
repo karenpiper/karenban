@@ -175,6 +175,7 @@ export default function HomePage() {
   const [newNote, setNewNote] = useState("")
 
   const [selectedAssignee, setSelectedAssignee] = useState<string | null>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     const loadedTasks = loadTasks()
