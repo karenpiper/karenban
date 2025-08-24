@@ -46,6 +46,7 @@ export function Sidebar({
     { id: "thisWeek", label: "This Week", icon: Calendar, count: 45, color: "text-purple-600" },
     { id: "assignees", label: "Assignees", icon: Users, count: 8, color: "text-green-600" },
     { id: "projects", label: "Projects", icon: FolderOpen, count: 6, color: "text-orange-600" },
+    { id: "admin", label: "Admin", icon: Settings, count: 0, color: "text-red-600" },
   ]
 
   const quickActions = [

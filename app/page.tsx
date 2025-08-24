@@ -35,6 +35,7 @@ import { TaskColumn } from "@/components/TaskColumn"
 import { TaskCategory } from "@/components/TaskCategory"
 import { TaskCard } from "@/components/TaskCard"
 import { ProjectView } from "@/components/ProjectView"
+import { AdminView } from "@/components/AdminView"
 
 /*
  * IMPORTANT: The "Delegated" column and "Assignees" view are connected:
@@ -164,7 +165,7 @@ export default function HomePage() {
   const [teamMembers, setTeamMembers] = useState<{ id: string; title: string; color: string }[]>([])
   const [showAddMember, setShowAddMember] = useState(false)
   const [newMemberName, setNewMemberName] = useState("")
-  const [currentView, setCurrentView] = useState<"today" | "thisWeek" | "assignees" | "projects">("today")
+  const [currentView, setCurrentView] = useState<"today" | "thisWeek" | "assignees" | "projects" | "admin">("today")
   const [searchFilter, setSearchFilter] = useState("")
   const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all")
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
@@ -548,32 +549,48 @@ export default function HomePage() {
     }
   }
 
-  const addTeamMember = () => {
-    if (!newMemberName.trim()) return
+  const addTeamMember = (memberData?: { title: string; color: string; email?: string; role?: string; department?: string }) => {
+    const name = memberData?.title || newMemberName.trim()
+    if (!name) return
 
     const colors = [
-      "bg-pink-100 text-pink-800",
-      "bg-indigo-100 text-indigo-800",
-      "bg-teal-100 text-teal-800",
-      "bg-amber-100 text-amber-800",
-      "bg-purple-100 text-purple-800",
-      "bg-green-100 text-green-800",
-      "bg-blue-100 text-blue-800",
-      "bg-red-100 text-red-800",
+      "bg-pink-400",
+      "bg-indigo-400",
+      "bg-teal-400",
+      "bg-amber-400",
+      "bg-purple-400",
+      "bg-green-400",
+      "bg-blue-400",
+      "bg-red-400",
     ]
 
     const newMember = {
-      id: newMemberName.toLowerCase().replace(/\s+/g, "-"),
-      title: newMemberName.trim(),
-      color: colors[teamMembers.length % colors.length],
+      id: memberData?.id || name.toLowerCase().replace(/\s+/g, "-"),
+      title: name,
+      color: memberData?.color || colors[teamMembers.length % colors.length],
+      email: memberData?.email,
+      role: memberData?.role,
+      department: memberData?.department,
     }
 
     const updatedMembers = [...teamMembers, newMember]
     setTeamMembers(updatedMembers)
     localStorage.setItem("team-members", JSON.stringify(updatedMembers))
-    setNewMemberName("")
-    setShowAddMember(false)
+    
+    if (!memberData) {
+      setNewMemberName("")
+      setShowAddMember(false)
+    }
+    
     console.log("[v0] Added new team member:", newMember)
+  }
+
+  const editTeamMember = (memberData: { id: string; title: string; color: string; email?: string; role?: string; department?: string }) => {
+    const updatedMembers = teamMembers.map((member) =>
+      member.id === memberData.id ? memberData : member
+    )
+    setTeamMembers(updatedMembers)
+    localStorage.setItem("team-members", JSON.stringify(updatedMembers))
   }
 
   const removeTeamMember = (memberId: string) => {
@@ -761,8 +778,22 @@ export default function HomePage() {
                   />
                 )}
 
+                {/* Admin View */}
+                {currentView === "admin" && (
+                  <AdminView
+                    projects={projects}
+                    teamMembers={teamMembers}
+                    onEditProject={handleEditProject}
+                    onDeleteProject={handleDeleteProject}
+                    onShowProjectForm={() => setShowProjectForm(true)}
+                    onAddTeamMember={addTeamMember}
+                    onEditTeamMember={editTeamMember}
+                    onDeleteTeamMember={removeTeamMember}
+                  />
+                )}
+
                 {/* Other Views */}
-                {currentView !== "projects" && (
+                {currentView !== "projects" && currentView !== "admin" && (
                   <div className={`${
                     currentView === "thisWeek" 
                       ? "flex overflow-x-auto space-x-4 pb-4" 
@@ -796,32 +827,48 @@ export default function HomePage() {
                               {getTasksByStatus(column.id as Task["status"]).length}
                             </span>
                           </div>
-                          {column.id === "delegated" ? (
+                          <div className="flex gap-1">
+                            {column.id === "delegated" ? (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setShowAddMember(true)
+                                }}
+                                className="glass-button h-6 w-6 p-0 hover:bg-white/30"
+                                title="Add Team Member"
+                              >
+                                <User className="w-3 h-3" />
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setFormData((prev) => ({ ...prev, status: column.id as Task["status"] }))
+                                  setShowTaskForm(true)
+                                }}
+                                className="glass-button h-6 w-6 p-0 hover:bg-white/30"
+                                title="Add Task"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            )}
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                setShowAddMember(true)
+                                setShowProjectForm(true)
                               }}
                               className="glass-button h-6 w-6 p-0 hover:bg-white/30"
+                              title="New Project"
                             >
-                              <User className="w-3 h-3" />
+                              <FolderOpen className="w-3 h-3" />
                             </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setFormData((prev) => ({ ...prev, status: column.id as Task["status"] }))
-                                setShowTaskForm(true)
-                              }}
-                              className="glass-button h-6 w-6 p-0 hover:bg-white/30"
-                            >
-                              <Plus className="w-3 h-3" />
-                            </Button>
-                          )}
+                          </div>
                         </div>
 
                         <div className="space-y-2">

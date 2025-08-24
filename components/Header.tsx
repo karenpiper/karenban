@@ -40,6 +40,7 @@ export function Header({
     { id: "thisWeek", label: "This Week", icon: Calendar, count: tasks.filter(t => ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].includes(t.status)).length },
     { id: "assignees", label: "Assignees", icon: Users, count: tasks.filter(t => t.status === "delegated").length },
     { id: "projects", label: "Projects", icon: BarChart3, count: projects.length },
+    { id: "admin", label: "Admin", icon: Settings, count: 0 },
   ]
 
   return (
@@ -137,11 +138,17 @@ export function Header({
             <Bell className="w-3 h-3" />
           </Button>
 
-          {/* Settings */}
+          {/* Settings/Admin */}
           <Button
             variant="ghost"
             size="sm"
-            className="glass-button h-8 w-8 p-0 text-gray-600 hover:text-gray-900 hover:bg-white/30"
+            onClick={() => onViewChange("admin")}
+            className={`glass-button h-8 w-8 p-0 transition-all duration-200 ${
+              currentView === "admin"
+                ? "text-blue-600 bg-blue-50 hover:bg-blue-100"
+                : "text-gray-600 hover:text-gray-900 hover:bg-white/30"
+            }`}
+            title="Admin Dashboard"
           >
             <Settings className="w-3 h-3" />
           </Button>
