@@ -20,21 +20,28 @@ export function EnhancedSearch({ onSelectTask, onSelectProject, onSelectPerson }
   const inputRef = useRef<HTMLInputElement>(null)
   
   // Filter tasks, projects, and people based on search
-  const filteredTasks = tasks.filter((task) =>
-    task.title.toLowerCase().includes(search.toLowerCase()) ||
-    task.description?.toLowerCase().includes(search.toLowerCase()) ||
-    task.category?.toLowerCase().includes(search.toLowerCase()) ||
-    task.notes?.toLowerCase().includes(search.toLowerCase())
-  )
+  const filteredTasks = tasks.filter((task) => {
+    const searchLower = search.toLowerCase()
+    return (
+      task.title.toLowerCase().includes(searchLower) ||
+      (task.description && task.description.toLowerCase().includes(searchLower)) ||
+      (task.category && task.category.toLowerCase().includes(searchLower)) ||
+      (task.notes && task.notes.toLowerCase().includes(searchLower))
+    )
+  })
   
-  const filteredProjects = projects.filter((project) =>
-    project.name.toLowerCase().includes(search.toLowerCase()) ||
-    project.description?.toLowerCase().includes(search.toLowerCase())
-  )
+  const filteredProjects = projects.filter((project) => {
+    const searchLower = search.toLowerCase()
+    return (
+      project.name.toLowerCase().includes(searchLower) ||
+      (project.description && project.description.toLowerCase().includes(searchLower))
+    )
+  })
   
-  const filteredPeople = people.filter((person) =>
-    person.name.toLowerCase().includes(search.toLowerCase())
-  )
+  const filteredPeople = people.filter((person) => {
+    const searchLower = search.toLowerCase()
+    return person.name.toLowerCase().includes(searchLower)
+  })
   
   const totalResults = filteredTasks.length + filteredProjects.length + filteredPeople.length
   

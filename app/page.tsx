@@ -87,7 +87,11 @@ export default function HomePage() {
   const [searchFilters, setSearchFilters] = useState({
     priority: 'all' as string,
     assignee: 'all' as string,
-    timeframe: 'all' as string
+    timeframe: 'all' as string,
+    status: 'all' as string,
+    category: 'all' as string,
+    project: 'all' as string,
+    person: 'all' as string
   })
   const [showSearchFilters, setShowSearchFilters] = useState(false)
   
@@ -1734,7 +1738,11 @@ export default function HomePage() {
     setSearchFilters({
       priority: 'all',
       assignee: 'all',
-      timeframe: 'all'
+      timeframe: 'all',
+      status: 'all',
+      category: 'all',
+      project: 'all',
+      person: 'all'
     })
   }
 
@@ -2971,10 +2979,10 @@ export default function HomePage() {
                       <div>
                         <div style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280', marginBottom: '6px' }}>Priority</div>
                         {getAvailableFilters().priorities.map(priority => (
-                          <label key={priority} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                          <label key={priority} style={{ display: 'flex', items: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
                             <input
                               type="checkbox"
-                              checked={searchFilters.priority.includes(priority)}
+                              checked={searchFilters.priority === priority || searchFilters.priority === 'all'}
                               onChange={() => toggleFilter('priority', priority)}
                               style={{ margin: 0 }}
                             />
@@ -2987,10 +2995,10 @@ export default function HomePage() {
                       <div>
                         <div style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280', marginBottom: '6px' }}>Status</div>
                         {getAvailableFilters().statuses.map(status => (
-                          <label key={status} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                          <label key={status} style={{ display: 'flex', items: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
                             <input
                               type="checkbox"
-                              checked={searchFilters.status.includes(status)}
+                              checked={searchFilters.status === status || searchFilters.status === 'all'}
                               onChange={() => toggleFilter('status', status)}
                               style={{ margin: 0 }}
                             />
@@ -3003,10 +3011,10 @@ export default function HomePage() {
                       <div>
                         <div style={{ fontSize: '12px', fontWeight: '500', color: '#6b7280', marginBottom: '6px' }}>Category</div>
                         {getAvailableFilters().categories.map(category => (
-                          <label key={category} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                          <label key={category} style={{ display: 'flex', items: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
                             <input
                               type="checkbox"
-                              checked={searchFilters.category.includes(category)}
+                              checked={searchFilters.category === category || searchFilters.category === 'all'}
                               onChange={() => toggleFilter('category', category)}
                               style={{ margin: 0 }}
                             />
@@ -3021,10 +3029,10 @@ export default function HomePage() {
                         {getAvailableFilters().projects.map(projectId => {
                           const project = projects.find(p => p.id === projectId)
                           return project ? (
-                            <label key={projectId} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                            <label key={projectId} style={{ display: 'flex', items: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
                               <input
                                 type="checkbox"
-                                checked={searchFilters.project.includes(projectId)}
+                                checked={searchFilters.project === projectId || searchFilters.project === 'all'}
                                 onChange={() => toggleFilter('project', projectId)}
                                 style={{ margin: 0 }}
                               />
@@ -3040,10 +3048,10 @@ export default function HomePage() {
                         {getAvailableFilters().people.map(personId => {
                           const person = people.find(p => p.id === personId)
                           return person ? (
-                            <label key={personId} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
+                            <label key={personId} style={{ display: 'flex', items: 'center', gap: '4px', fontSize: '11px', cursor: 'pointer' }}>
                               <input
                                 type="checkbox"
-                                checked={searchFilters.person.includes(personId)}
+                                checked={searchFilters.person === personId || searchFilters.person === 'all'}
                                 onChange={() => toggleFilter('person', personId)}
                                 style={{ margin: 0 }}
                               />
