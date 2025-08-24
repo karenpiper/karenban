@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useKanbanStore, type Project, type Task } from '@/lib/store'
+import { AddProjectForm } from './AddProjectForm'
 import { 
   FolderOpen, 
   Plus, 
@@ -88,7 +89,7 @@ export function ProjectView() {
   }
   
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -105,7 +106,7 @@ export function ProjectView() {
       </div>
       
       {/* Controls */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {/* View Mode Toggle */}
@@ -172,7 +173,7 @@ export function ProjectView() {
             const team = getProjectTeam(project.id)
             
             return (
-              <div key={project.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
+              <div key={project.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow shadow-sm">
                 {/* Project Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -227,7 +228,7 @@ export function ProjectView() {
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="bg-gray-50 rounded-lg p-3 text-center">
                     <div className="text-lg font-semibold text-gray-900">{stats.totalTasks}</div>
-                    <div className="text-xs text-gray-600">Total Tasks</div>
+                    <div className="text-xs text-gray-600">Total</div>
                   </div>
                   <div className="bg-green-50 rounded-lg p-3 text-center">
                     <div className="text-lg font-semibold text-green-600">{stats.completedTasks}</div>
@@ -278,7 +279,7 @@ export function ProjectView() {
           })}
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -400,6 +401,12 @@ export function ProjectView() {
           </button>
         </div>
       )}
+
+      {/* Add Project Form */}
+      <AddProjectForm
+        isOpen={showAddProject}
+        onClose={() => setShowAddProject(false)}
+      />
     </div>
   )
 } 
