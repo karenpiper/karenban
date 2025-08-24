@@ -587,92 +587,189 @@ export default function HomePage() {
       <div style={{ display: 'flex', height: '100vh' }}>
         {/* Sidebar */}
         <div style={{
-          backdropFilter: 'blur(20px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderRight: '1px solid rgba(255, 255, 255, 0.2)',
+          backgroundColor: '#1e1b4b',
+          borderRight: '1px solid rgba(255, 255, 255, 0.1)',
           transition: 'all 0.3s ease',
-          width: sidebarCollapsed ? '56px' : '224px'
+          width: sidebarCollapsed ? '56px' : '280px',
+          display: 'flex',
+          flexDirection: 'column',
+          color: 'white'
         }}>
-          <div className="p-3">
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="w-full p-2 compact text-gray-600 hover:bg-white/60 rounded-lg transition-colors"
-            >
-              {sidebarCollapsed ? "☰" : "← Collapse"}
-            </button>
+          {/* Header Section */}
+          <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <div style={{ width: '20px', height: '20px', backgroundColor: '#8b5cf6', borderRadius: '4px' }}></div>
+              <span style={{ fontSize: '16px', fontWeight: '600', color: 'white' }}>Task Manager</span>
+            </div>
+            <div style={{ fontSize: '14px', color: '#a1a1aa' }}>Friday Aug 22</div>
           </div>
 
-          <nav className="space-y-1 px-3">
-            <button
-              onClick={() => setCurrentView("today")}
-              className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
-                currentView === "today" 
-                  ? "bg-blue-500/20 text-blue-700 shadow-sm" 
-                  : "text-gray-700 hover:bg-white/60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Calendar className="w-4 h-4 flex-shrink-0" />
-                {!sidebarCollapsed && <span className="compact">Today</span>}
-              </div>
-            </button>
+          {/* Stats Section */}
+          <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: 'white' }}>24</div>
+              <div style={{ fontSize: '12px', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Tasks</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#8b5cf6' }}>8</div>
+              <div style={{ fontSize: '12px', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Due Today</div>
+            </div>
+          </div>
 
-            <button
-              onClick={() => setCurrentView("thisWeek")}
-              className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
-                currentView === "thisWeek" 
-                  ? "bg-blue-500/20 text-blue-700 shadow-sm" 
-                  : "text-gray-700 hover:bg-white/60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Calendar className="w-4 h-4 flex-shrink-0" />
-                {!sidebarCollapsed && <span className="compact">This Week</span>}
+          {/* Status Section */}
+          <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Status</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0' }}>
+                <div style={{ width: '16px', height: '16px', backgroundColor: '#10b981', borderRadius: '2px' }}></div>
+                <span style={{ fontSize: '13px', color: 'white' }}>T+1 Complete</span>
               </div>
-            </button>
-
-            <button
-              onClick={() => setCurrentView("assignees")}
-              className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
-                currentView === "assignees" 
-                  ? "bg-blue-500/20 text-blue-700 shadow-sm" 
-                  : "text-gray-700 hover:bg-white/60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Users className="w-4 h-4 flex-shrink-0" />
-                {!sidebarCollapsed && <span className="compact">Assignees</span>}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0' }}>
+                <div style={{ width: '16px', height: '16px', backgroundColor: '#3b82f6', borderRadius: '2px' }}></div>
+                <span style={{ fontSize: '13px', color: 'white' }}>T+day</span>
               </div>
-            </button>
-
-            <button
-              onClick={() => setCurrentView("projects")}
-              className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
-                currentView === "projects" 
-                  ? "bg-blue-500/20 text-blue-700 shadow-sm" 
-                  : "text-gray-700 hover:bg-white/60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <BarChart3 className="w-4 h-4 flex-shrink-0" />
-                {!sidebarCollapsed && <span className="compact">Projects</span>}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '16px', height: '16px', backgroundColor: '#f59e0b', borderRadius: '2px' }}></div>
+                  <span style={{ fontSize: '13px', color: 'white' }}>Unassigned</span>
+                </div>
+                <span style={{ fontSize: '11px', backgroundColor: '#374151', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>8</span>
               </div>
-            </button>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '16px', height: '16px', backgroundColor: '#ef4444', borderRadius: '2px' }}></div>
+                  <span style={{ fontSize: '13px', color: 'white' }}>Blocked</span>
+                </div>
+                <span style={{ fontSize: '11px', backgroundColor: '#374151', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>8</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '16px', height: '16px', backgroundColor: '#f97316', borderRadius: '2px' }}></div>
+                  <span style={{ fontSize: '13px', color: 'white' }}>Overdue</span>
+                </div>
+                <span style={{ fontSize: '11px', backgroundColor: '#374151', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>3</span>
+              </div>
+            </div>
+          </div>
 
+          {/* Views Section */}
+          <div style={{ padding: '20px 16px', flex: 1 }}>
+            <div style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Views</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <button
+                onClick={() => setCurrentView("today")}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: currentView === "today" ? '#8b5cf6' : 'transparent',
+                  color: currentView === "today" ? 'white' : '#a1a1aa',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '16px', height: '16px', color: currentView === "today" ? 'white' : '#a1a1aa' }}>
+                    👁️
+                  </div>
+                  {!sidebarCollapsed && <span style={{ fontSize: '13px', fontWeight: '500' }}>Today</span>}
+                </div>
+              </button>
+
+              <button
+                onClick={() => setCurrentView("thisWeek")}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: 'transparent',
+                  color: '#a1a1aa',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '16px', height: '16px', color: '#a1a1aa' }}>
+                    📅
+                  </div>
+                  {!sidebarCollapsed && <span style={{ fontSize: '13px' }}>My calendar</span>}
+                </div>
+              </button>
+
+              <button
+                onClick={() => setCurrentView("assignees")}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: 'transparent',
+                  color: '#a1a1aa',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '16px', height: '16px', color: '#a1a1aa' }}>
+                    📊
+                  </div>
+                  {!sidebarCollapsed && <span style={{ fontSize: '13px' }}>Analytics</span>}
+                </div>
+              </button>
+
+              <button
+                onClick={() => setCurrentView("projects")}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: 'transparent',
+                  color: '#a1a1aa',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '16px', height: '16px', color: '#a1a1aa' }}>
+                    👥
+                  </div>
+                  {!sidebarCollapsed && <span style={{ fontSize: '13px' }}>Team</span>}
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ padding: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
             <button
               onClick={() => setCurrentView("admin")}
-              className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 ${
-                currentView === "admin" 
-                  ? "bg-blue-500/20 text-blue-700 shadow-sm" 
-                  : "text-gray-700 hover:bg-white/60"
-              }`}
+              style={{
+                width: '100%',
+                textAlign: 'left',
+                padding: '8px',
+                borderRadius: '6px',
+                transition: 'all 0.2s ease',
+                backgroundColor: 'transparent',
+                color: '#a1a1aa',
+                border: 'none',
+                cursor: 'pointer'
+              }}
             >
-              <div className="flex items-center gap-3">
-                <Settings className="w-4 h-4 flex-shrink-0" />
-                {!sidebarCollapsed && <span className="compact">Admin</span>}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '14px', height: '14px', color: '#a1a1aa' }}>
+                  ⚙️
+                </div>
+                {!sidebarCollapsed && <span style={{ fontSize: '12px' }}>Settings</span>}
               </div>
             </button>
-          </nav>
+          </div>
         </div>
 
         {/* Main Content */}
