@@ -223,22 +223,22 @@ export default function HomePage() {
 
   const todayColumns = [
     { id: "uncategorized", title: "Uncategorized", color: "bg-gray-400" },
-    { id: "today", title: "Friday (Today)", color: "bg-blue-400" },
-    { id: "delegated", title: "Delegated", color: "bg-red-400" },
+    { id: "today", title: "Friday (Today)", color: "bg-blue-400", hasCategories: true },
+    { id: "delegated", title: "Follow-up", color: "bg-red-400", hasTeamMembers: true },
     { id: "later", title: "Later", color: "bg-purple-400" },
     { id: "completed", title: "Completed", color: "bg-green-400" },
   ]
 
   const thisWeekColumns = [
     { id: "uncategorized", title: "Uncategorized", color: "bg-gray-400" },
-    { id: "today", title: "Friday (Today)", color: "bg-blue-400" },
-    { id: "delegated", title: "Delegated", color: "bg-red-400" },
-    { id: "saturday", title: "Saturday", color: "bg-indigo-400" },
-    { id: "sunday", title: "Sunday", color: "bg-pink-400" },
-    { id: "monday", title: "Monday", color: "bg-teal-400" },
-    { id: "tuesday", title: "Tuesday", color: "bg-orange-400" },
-    { id: "wednesday", title: "Wednesday", color: "bg-cyan-400" },
-    { id: "thursday", title: "Thursday", color: "bg-lime-400" },
+    { id: "today", title: "Friday (Today)", color: "bg-blue-400", hasCategories: true },
+    { id: "delegated", title: "Follow-up", color: "bg-red-400", hasTeamMembers: true },
+    { id: "saturday", title: "Saturday", color: "bg-indigo-400", hasCategories: true },
+    { id: "sunday", title: "Sunday", color: "bg-pink-400", hasCategories: true },
+    { id: "monday", title: "Monday", color: "bg-teal-400", hasCategories: true },
+    { id: "tuesday", title: "Tuesday", color: "bg-orange-400", hasCategories: true },
+    { id: "wednesday", title: "Wednesday", color: "bg-cyan-400", hasCategories: true },
+    { id: "thursday", title: "Thursday", color: "bg-lime-400", hasCategories: true },
     { id: "later", title: "Later", color: "bg-purple-400" },
     { id: "completed", title: "Completed", color: "bg-green-400" },
   ]
