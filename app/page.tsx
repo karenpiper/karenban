@@ -125,45 +125,108 @@ export default function HomePage() {
     const columnTasks = getTasksByStatus(column.id as Task["status"])
     
     return (
-      <div key={column.id} className="min-w-[240px] glass-card p-3">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${column.color}`}></div>
-            <h3 className="compact font-semibold text-gray-800">{column.title}</h3>
+      <div key={column.id} style={{
+        minWidth: '240px',
+        backdropFilter: 'blur(16px)',
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        borderRadius: '16px',
+        padding: '12px',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+      }}>
+        <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: column.color.replace('bg-', '').includes('400') ? 
+                column.color.replace('bg-', '') === 'blue-400' ? '#60a5fa' :
+                column.color.replace('bg-', '') === 'red-400' ? '#f87171' :
+                column.color.replace('bg-', '') === 'green-400' ? '#4ade80' :
+                column.color.replace('bg-', '') === 'purple-400' ? '#a78bfa' :
+                column.color.replace('bg-', '') === 'gray-400' ? '#9ca3af' : '#60a5fa'
+                : '#60a5fa'
+            }}></div>
+            <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#1f2937' }}>{column.title}</h3>
           </div>
-          <span className="compact-xs text-gray-500 bg-white/60 px-2 py-0.5 rounded-full">
+          <span style={{
+            fontSize: '12px',
+            color: '#6b7280',
+            backgroundColor: 'rgba(255, 255, 255, 0.6)',
+            padding: '2px 8px',
+            borderRadius: '9999px'
+          }}>
             {columnTasks.length}
           </span>
         </div>
         
-        <div className="space-y-1.5 mb-2 max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
+        <div style={{ marginBottom: '8px', maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' }}>
           {columnTasks.map((task) => (
             <div
               key={task.id}
-              className="glass rounded-lg p-2.5 hover:bg-white/80 transition-all duration-200 group"
+              style={{
+                backdropFilter: 'blur(16px)',
+                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                borderRadius: '8px',
+                padding: '10px',
+                marginBottom: '6px',
+                transition: 'all 0.2s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.9)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.7)'
+              }}
             >
-              <div className="flex items-start justify-between mb-1">
-                <h4 className="compact-sm font-medium text-gray-900 leading-tight">{task.title}</h4>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
                 <button
                   onClick={() => deleteTask(task.id)}
-                  className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 compact-xs transition-opacity"
+                  style={{
+                    fontSize: '12px',
+                    color: '#9ca3af',
+                    cursor: 'pointer',
+                    border: 'none',
+                    background: 'none',
+                    padding: '2px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#ef4444'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#9ca3af'
+                  }}
                 >
                   ×
                 </button>
               </div>
               {task.description && (
-                <p className="compact-xs text-gray-600 mb-1.5 line-clamp-2">{task.description}</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '6px' }}>{task.description}</p>
               )}
-              <div className="flex items-center gap-1.5">
-                <span className={`px-1.5 py-0.5 rounded-full compact-xs font-medium ${
-                  task.priority === "high" ? "bg-red-100 text-red-700" :
-                  task.priority === "medium" ? "bg-amber-100 text-amber-700" :
-                  "bg-emerald-100 text-emerald-700"
-                }`}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{
+                  padding: '2px 6px',
+                  borderRadius: '9999px',
+                  fontSize: '12px',
+                  fontWeight: '500',
+                  backgroundColor: task.priority === "high" ? '#fef2f2' : 
+                                 task.priority === "medium" ? '#fffbeb' : '#f0fdf4',
+                  color: task.priority === "high" ? '#dc2626' : 
+                         task.priority === "medium" ? '#d97706' : '#16a34a'
+                }}>
                   {task.priority}
                 </span>
                 {task.projectId && (
-                  <span className="compact-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">
+                  <span style={{
+                    fontSize: '12px',
+                    color: '#2563eb',
+                    backgroundColor: '#eff6ff',
+                    padding: '2px 6px',
+                    borderRadius: '9999px'
+                  }}>
                     Project
                   </span>
                 )}
@@ -174,7 +237,25 @@ export default function HomePage() {
 
         <button
           onClick={() => addTask(column.id)}
-          className="w-full p-2 compact-sm text-gray-600 hover:text-gray-900 hover:bg-white/60 rounded-lg border border-dashed border-gray-300/60 transition-all duration-200"
+          style={{
+            width: '100%',
+            padding: '8px',
+            fontSize: '13px',
+            color: '#6b7280',
+            backgroundColor: 'transparent',
+            border: '1px dashed rgba(156, 163, 175, 0.6)',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
+            e.currentTarget.style.color = '#111827'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent'
+            e.currentTarget.style.color = '#6b7280'
+          }}
         >
           + Add Task
         </button>
@@ -490,8 +571,8 @@ export default function HomePage() {
     const columns = currentView === "today" ? todayColumns : thisWeekColumns
     
     return (
-      <div className="flex-1 overflow-auto p-4 custom-scrollbar">
-        <div className="flex gap-4 pb-4">
+      <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
+        <div style={{ display: 'flex', gap: '16px', paddingBottom: '16px' }}>
           {columns.map(renderColumn)}
         </div>
       </div>
@@ -499,12 +580,19 @@ export default function HomePage() {
   }
 
     return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
-      <div className="flex h-screen">
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #e0e7ff 0%, #ffffff 50%, #e0f2fe 100%)'
+    }}>
+      <div style={{ display: 'flex', height: '100vh' }}>
         {/* Sidebar */}
-        <div className={`glass-sidebar transition-all duration-300 ${
-          sidebarCollapsed ? "w-14" : "w-56"
-        }`}>
+        <div style={{
+          backdropFilter: 'blur(20px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderRight: '1px solid rgba(255, 255, 255, 0.2)',
+          transition: 'all 0.3s ease',
+          width: sidebarCollapsed ? '56px' : '224px'
+        }}>
           <div className="p-3">
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -588,17 +676,28 @@ export default function HomePage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Header */}
-          <header className="glass-navbar px-4 py-3">
-            <div className="flex items-center justify-between">
-              <h1 className="text-lg font-bold text-gray-900">KarenBan</h1>
-              <div className="flex items-center gap-3">
-                <span className="compact-sm text-gray-600 bg-white/60 px-2 py-1 rounded-full">
+          <header style={{
+            backdropFilter: 'blur(20px)',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            padding: '12px 16px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h1 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827' }}>KarenBan</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{
+                  fontSize: '13px',
+                  color: '#6b7280',
+                  backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                  padding: '4px 8px',
+                  borderRadius: '9999px'
+                }}>
                   {tasks.length} tasks
                 </span>
-                <Button size="sm" className="compact-sm">
-                  <Plus className="w-3 h-3 mr-1.5" />
+                <Button size="sm" style={{ fontSize: '13px' }}>
+                  <Plus style={{ width: '12px', height: '12px', marginRight: '6px' }} />
                   Add Task
                 </Button>
               </div>
