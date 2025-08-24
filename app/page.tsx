@@ -2333,9 +2333,6 @@ export default function HomePage() {
     
     return (
       <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
-        {/* Quick Actions Bar */}
-        <QuickActionsBar />
-        
         {/* Compact Stats Section Above Main Cards */}
         <div style={{
           display: 'flex',
