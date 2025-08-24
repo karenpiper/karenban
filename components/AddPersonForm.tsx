@@ -2,29 +2,27 @@
 
 import { useState } from 'react'
 import { useKanbanStore } from '@/lib/store'
-import { X, User, Mail, Briefcase, Palette, Plus } from 'lucide-react'
+import { X, User, Palette, Plus } from 'lucide-react'
 
-interface AddTeamMemberFormProps {
+interface AddPersonFormProps {
   isOpen: boolean
   onClose: () => void
 }
 
-export function AddTeamMemberForm({ isOpen, onClose }: AddTeamMemberFormProps) {
-  const { addTeamMember } = useKanbanStore()
+export function AddPersonForm({ isOpen, onClose }: AddPersonFormProps) {
+  const { addPerson } = useKanbanStore()
   
   const [formData, setFormData] = useState({
     name: '',
-    title: '',
-    role: '',
-    email: '',
-    color: '#3b82f6'
+    color: '#ef4444'
   })
   
   const [errors, setErrors] = useState<Record<string, string>>({})
   
   const predefinedColors = [
-    '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
-    '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'
+    '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e',
+    '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899',
+    '#f43f5e', '#14b8a6', '#0ea5e9', '#7c3aed', '#be185d', '#f97316'
   ]
   
   const validateForm = () => {
@@ -32,14 +30,6 @@ export function AddTeamMemberForm({ isOpen, onClose }: AddTeamMemberFormProps) {
     
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required'
-    }
-    
-    if (!formData.title.trim()) {
-      newErrors.title = 'Job title is required'
-    }
-    
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address'
     }
     
     setErrors(newErrors)
@@ -51,21 +41,15 @@ export function AddTeamMemberForm({ isOpen, onClose }: AddTeamMemberFormProps) {
     
     if (!validateForm()) return
     
-    addTeamMember({
+    addPerson({
       name: formData.name.trim(),
-      title: formData.title.trim(),
-      role: formData.role.trim() || undefined,
-      email: formData.email.trim() || undefined,
       color: formData.color
     })
     
     // Reset form
     setFormData({
       name: '',
-      title: '',
-      role: '',
-      email: '',
-      color: '#3b82f6'
+      color: '#ef4444'
     })
     setErrors({})
     onClose()
@@ -85,7 +69,7 @@ export function AddTeamMemberForm({ isOpen, onClose }: AddTeamMemberFormProps) {
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Add Team Member</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Add Person to Follow-up</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -100,7 +84,7 @@ export function AddTeamMemberForm({ isOpen, onClose }: AddTeamMemberFormProps) {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <User className="w-4 h-4 inline mr-2" />
-              Full Name *
+              Person Name *
             </label>
             <input
               type="text"
@@ -109,64 +93,10 @@ export function AddTeamMemberForm({ isOpen, onClose }: AddTeamMemberFormProps) {
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.name ? 'border-red-300' : 'border-gray-300'
               }`}
-              placeholder="Enter full name"
+              placeholder="Enter person's name"
             />
             {errors.name && (
               <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-            )}
-          </div>
-          
-          {/* Job Title Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Briefcase className="w-4 h-4 inline mr-2" />
-              Job Title *
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.title ? 'border-red-300' : 'border-gray-300'
-              }`}
-              placeholder="e.g., Senior Developer, Product Manager"
-            />
-            {errors.title && (
-              <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-            )}
-          </div>
-          
-          {/* Role Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Role (Optional)
-            </label>
-            <input
-              type="text"
-              value={formData.role}
-              onChange={(e) => handleInputChange('role', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Frontend, Backend, Design, QA"
-            />
-          </div>
-          
-          {/* Email Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Mail className="w-4 h-4 inline mr-2" />
-              Email (Optional)
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.email ? 'border-red-300' : 'border-gray-300'
-              }`}
-              placeholder="team@company.com"
-            />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
             )}
           </div>
           
@@ -176,7 +106,7 @@ export function AddTeamMemberForm({ isOpen, onClose }: AddTeamMemberFormProps) {
               <Palette className="w-4 h-4 inline mr-2" />
               Profile Color
             </label>
-            <div className="grid grid-cols-5 gap-3">
+            <div className="grid grid-cols-6 gap-3">
               {predefinedColors.map((color) => (
                 <button
                   key={color}
@@ -198,7 +128,7 @@ export function AddTeamMemberForm({ isOpen, onClose }: AddTeamMemberFormProps) {
               ))}
             </div>
             <div className="mt-2 text-xs text-gray-500">
-              This color will be used for the team member's profile and task assignments
+              This color will be used to identify the person in the follow-up column
             </div>
           </div>
           
@@ -216,7 +146,7 @@ export function AddTeamMemberForm({ isOpen, onClose }: AddTeamMemberFormProps) {
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              Add Member
+              Add Person
             </button>
           </div>
         </form>
