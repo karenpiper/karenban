@@ -30,6 +30,11 @@ import { Header } from "@/components/Header"
 import { ProjectCard } from "@/components/ProjectCard"
 import { ProjectForm } from "@/components/ProjectForm"
 import type { Task, Project } from "../types"
+import { GlassCard } from "@/components/GlassCard"
+import { TaskColumn } from "@/components/TaskColumn"
+import { TaskCategory } from "@/components/TaskCategory"
+import { TaskCard } from "@/components/TaskCard"
+import { ProjectView } from "@/components/ProjectView"
 
 /*
  * IMPORTANT: The "Delegated" column and "Assignees" view are connected:
@@ -612,292 +617,381 @@ export default function HomePage() {
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="flex h-screen">
         {/* Sidebar */}
-        <Sidebar />
+        <Sidebar
+          isCollapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          onShowTaskForm={() => setShowTaskForm(true)}
+          onShowProjectForm={() => setShowProjectForm(true)}
+        />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
-          <Header />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header */}
+          <Header
+            tasks={tasks}
+            projects={projects}
+            searchFilter={searchFilter}
+            priorityFilter={priorityFilter}
+            onSearchChange={setSearchFilter}
+            onPriorityFilterChange={setPriorityFilter}
+            onViewChange={setCurrentView}
+            currentView={currentView}
+            autoMove={autoMove}
+            onAutoMoveToggle={() => setAutoMove(!autoMove)}
+          />
 
-          <div className="flex-1 p-4 pt-0">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setCurrentView("today")}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    currentView === "today" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  Today
-                </button>
-                <button
-                  onClick={() => setCurrentView("thisWeek")}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    currentView === "thisWeek"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  This Week
-                </button>
-                <button
-                  onClick={() => setCurrentView("assignees")}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    currentView === "assignees"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  Assignees
-                </button>
-                <button
-                  onClick={() => setCurrentView("projects")}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    currentView === "projects"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <FolderOpen className="w-3 h-3 mr-2" />
-                  Projects
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search tasks, descriptions, or tags..."
-                  className="pl-10 bg-white border-gray-200"
-                  value={searchFilter}
-                  onChange={(e) => setSearchFilter(e.target.value)}
-                />
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2 bg-transparent">
-                    <Filter className="w-4 h-4" />
-                    {priorityFilter === "all" ? "All Priorities" : priorityFilter}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setPriorityFilter("all")}>All Priorities</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPriorityFilter("high")}>High Priority</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPriorityFilter("medium")}>Medium Priority</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPriorityFilter("low")}>Low Priority</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            <div className={`flex-1 ${currentView === "thisWeek" ? "bg-gray-50" : "p-4 pt-0"}`}>
-              {/* Projects View */}
-              {currentView === "projects" && (
-                <div className="space-y-6">
-                  {/* Projects Header */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900">Projects</h2>
-                      <p className="text-gray-600">Manage your projects and track progress</p>
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-auto p-6">
+            {/* Placeholder Welcome Section */}
+            {tasks.length === 0 && projects.length === 0 && (
+              <div className="max-w-4xl mx-auto space-y-6">
+                <GlassCard variant="elevated" padding="xl" className="text-center">
+                  <div className="space-y-4">
+                    <div className="h-20 w-20 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <span className="text-white text-2xl font-bold">K</span>
                     </div>
-                    <Button
-                      onClick={() => setShowProjectForm(true)}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      New Project
-                    </Button>
-                  </div>
-
-                  {/* Projects Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {projects.map((project) => (
-                      <ProjectCard
-                        key={project.id}
-                        project={project}
-                        onEdit={handleEditProject}
-                        onDelete={handleDeleteProject}
-                        onClick={(project) => setSelectedProject(project.id)}
-                      />
-                    ))}
-                  </div>
-
-                  {projects.length === 0 && (
-                    <div className="text-center py-12">
-                      <FolderOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No projects yet</h3>
-                      <p className="text-gray-600 mb-4">Create your first project to get started</p>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                      Welcome to KarenBan
+                    </h1>
+                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                      Your beautiful, glass-morphic task management system. Start by creating your first task or project to get organized.
+                    </p>
+                    <div className="flex items-center justify-center space-x-4">
                       <Button
-                        onClick={() => setShowProjectForm(true)}
-                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={() => setShowTaskForm(true)}
+                        className="glass-button bg-blue-500/20 border-blue-500/30 text-blue-700 hover:bg-blue-500/30 px-6 py-3"
                       >
                         <Plus className="w-4 h-4 mr-2" />
-                        Create Project
+                        Create First Task
+                      </Button>
+                      <Button
+                        onClick={() => setShowProjectForm(true)}
+                        variant="outline"
+                        className="glass-button-dark bg-white/20 border-white/30 text-gray-700 hover:bg-white/30 px-6 py-3"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        New Project
                       </Button>
                     </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                </GlassCard>
 
-              {/* Other Views */}
-              {currentView !== "projects" && (
-                <>
-                  {currentView === "assignees" && selectedAssignee ? (
-                    <div className="h-full flex flex-col p-6">
-                      {/* Header with back button */}
-                      <div className="flex items-center gap-4 mb-6">
-                        <Button variant="ghost" onClick={() => setSelectedAssignee(null)} className="flex items-center gap-2">
-                          <ArrowLeft className="w-4 h-4" />
-                          Back to Assignees
-                        </Button>
-                        <h2 className="text-xl font-semibold text-gray-900">
-                          {teamMembers.find((m) => m.id === selectedAssignee)?.title || "Assignee"}
-                        </h2>
+                {/* Feature Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <GlassCard variant="subtle" padding="lg" className="text-center">
+                    <div className="space-y-3">
+                      <div className="h-12 w-12 mx-auto rounded-xl bg-blue-500/20 flex items-center justify-center">
+                        <Plus className="w-6 h-6 text-blue-600" />
                       </div>
+                      <h3 className="text-lg font-semibold text-gray-900">Quick Task Creation</h3>
+                      <p className="text-sm text-gray-600">
+                        Add tasks with priorities, due dates, and categories in seconds
+                      </p>
+                    </div>
+                  </GlassCard>
 
-                      {/* Detail view layout */}
-                      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Tasks card on the left */}
-                        <div className="bg-white rounded-lg p-6 shadow-sm">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tasks</h3>
-                          <div className="space-y-3">
-                            {tasks
-                              .filter((task) => task.category === selectedAssignee)
-                              .sort((a, b) => {
-                                const priorityOrder = { high: 3, medium: 2, low: 1 }
-                                return priorityOrder[b.priority] - priorityOrder[a.priority]
-                              })
-                              .map((task) => (
-                                <div
-                                  key={task.id}
-                                  className={`bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer border-l-4 ${getPriorityColor(task.priority)}`}
-                                  draggable
-                                  onDragStart={(e) => handleDragStart(e, task)}
-                                >
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                      <h4 className="font-medium text-gray-900 mb-1">{task.title}</h4>
-                                      {task.description && <p className="text-sm text-gray-600 mb-2">{task.description}</p>}
-                                      {task.notes && <p className="text-sm text-gray-600 mb-2">{task.notes}</p>}
-                                      <div className="flex items-center gap-2">
-                                        <span
-                                          className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityBadgeColor(task.priority)}`}
-                                        >
-                                          {task.priority}
-                                        </span>
-                                        <span className="text-xs text-gray-500">{task.status}</span>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center gap-1 ml-2">
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleEditTask(task)}
-                                        className="h-8 w-8 p-0 hover:bg-gray-200"
-                                      >
-                                        <Edit2 className="w-3 h-3" />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleDeleteTask(task.id)}
-                                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                      >
-                                        <X className="w-3 h-3" />
-                                      </Button>
-                                    </div>
-                                  </div>
+                  <GlassCard variant="subtle" padding="lg" className="text-center">
+                    <div className="space-y-3">
+                      <div className="h-12 w-12 mx-auto rounded-xl bg-purple-500/20 flex items-center justify-center">
+                        <User className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">Team Collaboration</h3>
+                      <p className="text-sm text-gray-600">
+                        Delegate tasks and track progress across your team
+                      </p>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard variant="subtle" padding="lg" className="text-center">
+                    <div className="space-y-3">
+                      <div className="h-12 w-12 mx-auto rounded-xl bg-green-500/20 flex items-center justify-center">
+                        <Edit className="w-6 h-6 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">Project Management</h3>
+                      <p className="text-sm text-gray-600">
+                        Organize tasks into projects with progress tracking
+                      </p>
+                    </div>
+                  </GlassCard>
+                </div>
+
+                {/* Stats Overview */}
+                <GlassCard variant="default" padding="lg">
+                  <div className="text-center space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-900">Getting Started</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">0</div>
+                        <div className="text-sm text-gray-600">Tasks</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">0</div>
+                        <div className="text-sm text-gray-600">Projects</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">0</div>
+                        <div className="text-sm text-gray-600">Completed</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-600">0</div>
+                        <div className="text-sm text-gray-600">In Progress</div>
+                      </div>
+                    </div>
+                  </div>
+                </GlassCard>
+              </div>
+            )}
+
+            {/* Existing Content */}
+            {tasks.length > 0 || projects.length > 0 ? (
+              <>
+                {/* Projects View */}
+                {currentView === "projects" && (
+                  <ProjectView
+                    projects={projects}
+                    onEditProject={handleEditProject}
+                    onDeleteProject={handleDeleteProject}
+                    onShowProjectForm={() => setShowProjectForm(true)}
+                  />
+                )}
+
+                {/* Other Views */}
+                {currentView !== "projects" && (
+                  <div className={`${
+                    currentView === "thisWeek" 
+                      ? "flex overflow-x-auto space-x-4 pb-4" 
+                      : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
+                  }`}>
+                    {columns.map((column) => (
+                      <div
+                        key={column.id}
+                        className={`glass-card bg-white/20 backdrop-blur-lg border-white/30 rounded-2xl shadow-2xl ${
+                          currentView === "thisWeek" ? "min-w-64 flex-shrink-0" : ""
+                        } ${
+                          currentView === "assignees" && column.id !== "unassigned"
+                            ? "cursor-pointer hover:shadow-2xl transition-all duration-300"
+                            : ""
+                        }`}
+                        onDragOver={handleDragOver}
+                        onDragEnter={(e) => handleDragEnter(e, column.id)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, column.id)}
+                        onClick={() => {
+                          if (currentView === "assignees" && column.id !== "unassigned") {
+                            setSelectedAssignee(column.id)
+                          }
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2.5 h-2.5 rounded-full ${column.color}`}></div>
+                            <h3 className="font-semibold text-gray-900 text-sm">{column.title}</h3>
+                            <span className="glass-button bg-white/30 border-white/40 text-gray-700 text-xs px-1.5 py-0.5 rounded-full">
+                              {getTasksByStatus(column.id as Task["status"]).length}
+                            </span>
+                          </div>
+                          {column.id === "delegated" ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShowAddMember(true)
+                              }}
+                              className="glass-button h-6 w-6 p-0 hover:bg-white/30"
+                            >
+                              <User className="w-3 h-3" />
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setFormData((prev) => ({ ...prev, status: column.id as Task["status"] }))
+                                setShowTaskForm(true)
+                              }}
+                              className="glass-button h-6 w-6 p-0 hover:bg-white/30"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          {getTasksByStatus(column.id as Task["status"]).map((task) => (
+                            <div
+                              key={task.id}
+                              className={`glass-card bg-white/30 backdrop-blur-md border-white/40 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-l-4 cursor-move ${getPriorityColor(task.priority)} ${
+                                draggedTask === task.id ? "opacity-50 rotate-2 scale-105" : ""
+                              }`}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, task)}
+                              onDragEnd={handleDragEnd}
+                            >
+                              <div className="flex justify-between items-start mb-1">
+                                <h4 className="font-medium text-xs text-gray-900">{task.title}</h4>
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEditTask(task)}
+                                    className="glass-button h-5 w-5 p-0 hover:bg-white/30"
+                                  >
+                                    <Edit className="w-2.5 h-2.5" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleDeleteTask(task.id)}
+                                    className="glass-button h-5 w-5 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <X className="w-2.5 h-2.5" />
+                                  </Button>
                                 </div>
-                              ))}
-                            {tasks.filter((task) => task.category === selectedAssignee).length === 0 && (
-                              <p className="text-gray-500 text-center py-8">No tasks assigned</p>
+                              </div>
+                              {task.description && <p className="text-xs text-gray-600 mb-2">{task.description}</p>}
+                              {task.notes && <p className="text-xs text-gray-600 mb-2">{task.notes}</p>}
+                              <div className="flex items-center justify-between">
+                                {task.category && (
+                                  <span className="inline-block px-1.5 py-0.5 text-xs rounded uppercase font-medium bg-blue-100 text-blue-800">
+                                    {TASK_CATEGORIES.find((cat) => cat.id === task.category)?.title || task.category}
+                                  </span>
+                                )}
+                                <span className={`text-xs px-1.5 py-0.5 rounded ${getPriorityBadgeColor(task.priority)}`}>
+                                  {task.priority}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+
+                          <div className="border-t border-white/30 pt-2 mt-2">
+                            {column.id === "delegated" ? (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setShowAddMember(true)
+                                }}
+                                className="w-full glass-button text-gray-600 hover:text-gray-900 text-xs h-6"
+                              >
+                                <User className="w-3 h-3 mr-1" />
+                                Add Person
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    status: column.id as Task["status"],
+                                    category: undefined,
+                                  }))
+                                  setShowTaskForm(true)
+                                }}
+                                className="w-full glass-button text-gray-600 hover:text-gray-900 text-xs h-6"
+                              >
+                                <Plus className="w-3 h-3 mr-2" />
+                                Add Task
+                              </Button>
                             )}
                           </div>
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                        {/* Notes on the right */}
-                        <div className="bg-white rounded-lg p-6 shadow-sm">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Notes</h3>
-                          <div className="space-y-4">
-                            {/* Add note form */}
-                            <div className="space-y-2">
-                              <textarea
-                                placeholder="Add a note..."
-                                className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                rows={3}
-                                value={newNote}
-                                onChange={(e) => setNewNote(e.target.value)}
-                              />
-                              <Button
-                                onClick={() => addNoteForMember(selectedAssignee)}
-                                disabled={!newNote.trim()}
-                                className="w-full"
-                              >
-                                Add Note
-                              </Button>
+                {/* Assignees View */}
+                {currentView === "assignees" && !selectedAssignee && (
+                  <div className="h-full flex flex-col p-6">
+                    {/* Header with back button */}
+                    <div className="flex items-center gap-4 mb-6">
+                      <Button variant="ghost" onClick={() => setCurrentView("today")} className="glass-button flex items-center gap-2">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Today
+                      </Button>
+                      <h2 className="text-xl font-semibold text-gray-900">Assignees</h2>
+                    </div>
+
+                    {/* Assignees Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {assigneesColumns.map((column) => (
+                        <div
+                          key={column.id}
+                          className={`glass-card bg-white/20 backdrop-blur-lg border-white/30 rounded-2xl shadow-2xl ${
+                            column.id === "unassigned"
+                              ? "cursor-pointer hover:shadow-2xl transition-all duration-300"
+                              : "cursor-pointer hover:shadow-2xl transition-all duration-300"
+                          }`}
+                          onClick={() => setSelectedAssignee(column.id)}
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-3 h-3 rounded-full ${column.color}`}></div>
+                              <h3 className="font-semibold text-gray-900">{column.title}</h3>
+                              <span className="glass-button bg-white/30 border-white/40 text-gray-700 text-xs px-2 py-1 rounded-full">
+                                {getTasksByStatus(column.id as Task["status"]).length}
+                              </span>
                             </div>
+                          </div>
 
-                            {/* Notes list */}
-                            <div className="space-y-3">
-                              {(teamMemberNotes[selectedAssignee] || []).map((note) => (
-                                <div key={note.id} className="bg-gray-50 rounded-lg p-3">
-                                  <p className="text-gray-900 mb-2">{note.text}</p>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-500">{new Date(note.date).toLocaleString()}</span>
+                          <div className="space-y-3">
+                            {getTasksByStatus(column.id as Task["status"]).map((task) => (
+                              <div
+                                key={task.id}
+                                className={`glass-card bg-white/30 backdrop-blur-md border-white/40 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-l-4 cursor-move ${getPriorityColor(task.priority)} ${
+                                  draggedTask === task.id ? "opacity-50 rotate-2 scale-105" : ""
+                                }`}
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, task)}
+                                onDragEnd={handleDragEnd}
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <h4 className="font-medium text-sm text-gray-900">{task.title}</h4>
+                                  <div className="flex gap-1">
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      onClick={() => deleteNote(selectedAssignee, note.id)}
-                                      className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                      onClick={() => handleEditTask(task)}
+                                      className="glass-button h-6 w-6 p-0 hover:bg-white/30"
                                     >
-                                      <X className="w-3 h-3" />
+                                      <Edit className="w-3 h-3" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleDeleteTask(task.id)}
+                                      className="glass-button h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
                                     </Button>
                                   </div>
                                 </div>
-                              ))}
-                              {(!teamMemberNotes[selectedAssignee] || teamMemberNotes[selectedAssignee].length === 0) && (
-                                <p className="text-gray-500 text-center py-8">No notes yet</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={`${currentView === "thisWeek" ? "overflow-x-auto h-full bg-gray-50" : ""}`}>
-                      <div className={`${
-                        currentView === "thisWeek"
-                          ? "flex gap-4 p-4 h-full bg-gray-50 min-w-max"
-                          : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
-                      }`}>
-                        {columns.map((column) => (
-                          <div
-                            key={column.id}
-                            className={`bg-white rounded-md p-3 shadow-sm ${currentView === "thisWeek" ? "min-w-64 flex-shrink-0" : ""} ${
-                              currentView === "assignees" && column.id !== "unassigned"
-                                ? "cursor-pointer hover:shadow-md transition-shadow"
-                                : ""
-                            }`}
-                            onDragOver={handleDragOver}
-                            onDragEnter={(e) => handleDragEnter(e, column.id)}
-                            onDragLeave={handleDragLeave}
-                            onDrop={(e) => handleDrop(e, column.id)}
-                            onClick={() => {
-                              if (currentView === "assignees" && column.id !== "unassigned") {
-                                setSelectedAssignee(column.id)
-                              }
-                            }}
-                          >
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                <div className={`w-2.5 h-2.5 rounded-full ${column.color}`}></div>
-                                <h3 className="font-semibold text-gray-900 text-sm">{column.title}</h3>
-                                <span className="bg-gray-200 text-gray-600 text-xs px-1.5 py-0.5 rounded-full">
-                                  {getTasksByStatus(column.id as Task["status"]).length}
-                                </span>
+                                {task.description && <p className="text-xs text-gray-600 mb-3">{task.description}</p>}
+                                {task.notes && <p className="text-xs text-gray-600 mb-3">{task.notes}</p>}
+                                <div className="flex items-center justify-between">
+                                  {task.category && (
+                                    <span className="inline-block px-2 py-1 text-xs rounded uppercase font-medium bg-blue-100 text-blue-800">
+                                      {TASK_CATEGORIES.find((cat) => cat.id === task.category)?.title || task.category}
+                                    </span>
+                                  )}
+                                  <span className={`text-xs px-2 py-1 rounded ${getPriorityBadgeColor(task.priority)}`}>
+                                    {task.priority}
+                                  </span>
+                                </div>
                               </div>
+                            ))}
+
+                            <div className="border-t border-white/30 pt-3 mt-3">
                               {column.id === "delegated" ? (
                                 <Button
                                   size="sm"
@@ -906,9 +1000,10 @@ export default function HomePage() {
                                     e.stopPropagation()
                                     setShowAddMember(true)
                                   }}
-                                  className="h-6 w-6 p-0 hover:bg-gray-200"
+                                  className="w-full glass-button text-gray-600 hover:text-gray-900"
                                 >
-                                  <User className="w-3 h-3" />
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Add Person
                                 </Button>
                               ) : (
                                 <Button
@@ -916,229 +1011,29 @@ export default function HomePage() {
                                   variant="ghost"
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    setFormData((prev) => ({ ...prev, status: column.id as Task["status"] }))
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      status: column.id as Task["status"],
+                                      category: undefined,
+                                    }))
                                     setShowTaskForm(true)
                                   }}
-                                  className="h-6 w-6 p-0 hover:bg-gray-200"
+                                  className="w-full glass-button text-gray-600 hover:text-gray-900"
                                 >
-                                  <Plus className="w-3 h-3" />
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Add Task
                                 </Button>
                               )}
                             </div>
-
-                            <div className="space-y-2">
-                              {getTasksByStatus(column.id as Task["status"]).map((task) => (
-                                <div
-                                  key={task.id}
-                                  className={`bg-white border border-gray-200 rounded-md p-2 shadow-sm hover:shadow-md transition-all duration-200 border-l-4 cursor-move ${getPriorityColor(task.priority)} ${
-                                    draggedTask === task.id ? "opacity-50 rotate-2 scale-105" : ""
-                                  }`}
-                                  draggable
-                                  onDragStart={(e) => handleDragStart(e, task)}
-                                  onDragEnd={handleDragEnd}
-                                >
-                                  <div className="flex justify-between items-start mb-1">
-                                    <h4 className="font-medium text-xs text-gray-900">{task.title}</h4>
-                                    <div className="flex gap-1">
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleEditTask(task)}
-                                        className="h-5 w-5 p-0 hover:bg-gray-100"
-                                      >
-                                        <Edit className="w-2.5 h-2.5" />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleDeleteTask(task.id)}
-                                        className="h-5 w-5 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                      >
-                                        <Trash2 className="w-2.5 h-2.5" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                  {task.description && <p className="text-xs text-gray-600 mb-2">{task.description}</p>}
-                                  {task.notes && <p className="text-xs text-gray-600 mb-2">{task.notes}</p>}
-                                  <div className="flex items-center justify-between">
-                                    {task.category && (
-                                      <span className="inline-block px-1.5 py-0.5 text-xs rounded uppercase font-medium bg-blue-100 text-blue-800">
-                                        {TASK_CATEGORIES.find((cat) => cat.id === task.category)?.title || task.category}
-                                      </span>
-                                    )}
-                                    <span className={`text-xs px-1.5 py-0.5 rounded ${getPriorityBadgeColor(task.priority)}`}>
-                                      {task.priority}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-
-                              <div className="border-t pt-2 mt-2">
-                                {column.id === "delegated" ? (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setShowAddMember(true)
-                                    }}
-                                    className="w-full text-gray-600 hover:text-gray-900 text-xs h-6"
-                                  >
-                                    <User className="w-3 h-3 mr-1" />
-                                    Add Person
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setFormData((prev) => ({
-                                        ...prev,
-                                        status: column.id as Task["status"],
-                                        category: undefined,
-                                      }))
-                                      setShowTaskForm(true)
-                                    }}
-                                    className="w-full text-gray-600 hover:text-gray-900 text-xs h-6"
-                                  >
-                                    <Plus className="w-3 h-3 mr-2" />
-                                    Add Task
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
-
-                  {/* Assignees View */}
-                  {currentView === "assignees" && !selectedAssignee && (
-                    <div className="h-full flex flex-col p-6">
-                      {/* Header with back button */}
-                      <div className="flex items-center gap-4 mb-6">
-                        <Button variant="ghost" onClick={() => setCurrentView("today")} className="flex items-center gap-2">
-                          <ArrowLeft className="w-4 h-4" />
-                          Back to Today
-                        </Button>
-                        <h2 className="text-xl font-semibold text-gray-900">Assignees</h2>
-                      </div>
-
-                      {/* Assignees Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {assigneesColumns.map((column) => (
-                          <div
-                            key={column.id}
-                            className={`bg-white rounded-lg p-4 shadow-sm ${
-                              column.id === "unassigned"
-                                ? "cursor-pointer hover:shadow-md transition-shadow"
-                                : "cursor-pointer hover:shadow-md transition-shadow"
-                            }`}
-                            onClick={() => setSelectedAssignee(column.id)}
-                          >
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center gap-2">
-                                <div className={`w-3 h-3 rounded-full ${column.color}`}></div>
-                                <h3 className="font-semibold text-gray-900">{column.title}</h3>
-                                <span className="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded-full">
-                                  {getTasksByStatus(column.id as Task["status"]).length}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="space-y-3">
-                              {getTasksByStatus(column.id as Task["status"]).map((task) => (
-                                <div
-                                  key={task.id}
-                                  className={`bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 border-l-4 cursor-move ${getPriorityColor(task.priority)} ${
-                                    draggedTask === task.id ? "opacity-50 rotate-2 scale-105" : ""
-                                  }`}
-                                  draggable
-                                  onDragStart={(e) => handleDragStart(e, task)}
-                                  onDragEnd={handleDragEnd}
-                                >
-                                  <div className="flex justify-between items-start mb-2">
-                                    <h4 className="font-medium text-sm text-gray-900">{task.title}</h4>
-                                    <div className="flex gap-1">
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleEditTask(task)}
-                                        className="h-6 w-6 p-0 hover:bg-gray-100"
-                                      >
-                                        <Edit className="w-3 h-3" />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleDeleteTask(task.id)}
-                                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                  {task.description && <p className="text-xs text-gray-600 mb-3">{task.description}</p>}
-                                  {task.notes && <p className="text-xs text-gray-600 mb-3">{task.notes}</p>}
-                                  <div className="flex items-center justify-between">
-                                    {task.category && (
-                                      <span className="inline-block px-2 py-1 text-xs rounded uppercase font-medium bg-blue-100 text-blue-800">
-                                        {TASK_CATEGORIES.find((cat) => cat.id === task.category)?.title || task.category}
-                                      </span>
-                                    )}
-                                    <span className={`text-xs px-2 py-1 rounded ${getPriorityBadgeColor(task.priority)}`}>
-                                      {task.priority}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-
-                              <div className="border-t pt-3 mt-3">
-                                {column.id === "delegated" ? (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setShowAddMember(true)
-                                    }}
-                                    className="w-full text-gray-600 hover:text-gray-900"
-                                  >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Add Person
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setFormData((prev) => ({
-                                        ...prev,
-                                        status: column.id as Task["status"],
-                                        category: undefined,
-                                      }))
-                                      setShowTaskForm(true)
-                                    }}
-                                    className="w-full text-gray-600 hover:text-gray-900"
-                                  >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Add Task
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
+                  </div>
+                )}
+              </>
+            )}
+          </main>
         </div>
       </div>
 
@@ -1280,6 +1175,6 @@ export default function HomePage() {
           />
         </div>
       )}
-    </>
+    </div>
   )
 }
