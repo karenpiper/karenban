@@ -125,7 +125,35 @@ export default function HomePage() {
     const columnTasks = getTasksByStatus(column.id as Task["status"])
     
     return (
-      <div key={column.id} className="glass-column min-w-[240px] p-3">
+      <div 
+        key={column.id} 
+        style={{
+          minWidth: '240px',
+          padding: '12px',
+          backgroundColor: 'transparent',
+          border: 'none',
+          boxShadow: 'none'
+        }}
+        onDragOver={(e) => {
+          e.preventDefault()
+          e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.02)'
+        }}
+        onDragLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent'
+        }}
+        onDrop={(e) => {
+          e.preventDefault()
+          e.currentTarget.style.backgroundColor = 'transparent'
+          const taskId = e.dataTransfer.getData('text/plain')
+          if (taskId) {
+            setTasks(prev => prev.map(task => 
+              task.id === taskId 
+                ? { ...task, status: column.id as Task["status"] }
+                : task
+            ))
+          }
+        }}
+      >
         <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{
@@ -157,7 +185,35 @@ export default function HomePage() {
           {columnTasks.map((task) => (
             <div
               key={task.id}
-              className="glass-card p-2.5 mb-1.5 cursor-pointer transition-all duration-200 hover:glass-card-hover"
+              style={{
+                padding: '10px',
+                marginBottom: '6px',
+                cursor: 'grab',
+                transition: 'all 0.2s ease',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '16px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.12)'
+                e.currentTarget.style.transform = 'translateY(-2px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)'
+                e.currentTarget.style.transform = 'translateY(0)'
+              }}
+              draggable={true}
+              onDragStart={(e) => {
+                e.dataTransfer.setData('text/plain', task.id)
+                e.currentTarget.style.opacity = '0.5'
+              }}
+              onDragEnd={(e) => {
+                e.currentTarget.style.opacity = '1'
+              }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
                 <h4 style={{ fontSize: '13px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
@@ -625,8 +681,8 @@ export default function HomePage() {
           {/* Add Column Button */}
           <div style={{
             minWidth: '240px',
-            backgroundColor: 'white',
-            border: '2px dashed #d1d5db',
+            backgroundColor: 'transparent',
+            border: 'none',
             borderRadius: '16px',
             padding: '24px',
             display: 'flex',
@@ -638,12 +694,10 @@ export default function HomePage() {
             marginTop: '40px'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#8b5cf6'
-            e.currentTarget.style.backgroundColor = '#faf5ff'
+            e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.02)'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#d1d5db'
-            e.currentTarget.style.backgroundColor = 'white'
+            e.currentTarget.style.backgroundColor = 'transparent'
           }}
           >
             <div style={{ fontSize: '24px', color: '#9ca3af', marginBottom: '8px' }}>+</div>
