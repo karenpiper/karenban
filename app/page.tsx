@@ -927,6 +927,47 @@ export default function HomePage() {
                             </div>
 
                             <div className="space-y-2">
+                              {/* Show pre-baked categories for day columns */}
+                              {column.hasCategories && (
+                                <div className="space-y-3 mb-4">
+                                  {/* STANDING category */}
+                                  <div className="space-y-2">
+                                    <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wider">STANDING</h4>
+                                    <button className="w-full py-2 text-sm text-gray-600 bg-orange-50 hover:bg-orange-100 rounded-md border border-orange-200 transition-colors">
+                                      <Plus className="w-4 h-4 inline mr-2" />
+                                      Add Standing Task
+                                    </button>
+                                  </div>
+                                  
+                                  {/* COMMS category */}
+                                  <div className="space-y-2">
+                                    <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wider">COMMS</h4>
+                                    <button className="w-full py-2 text-sm text-gray-600 bg-blue-50 hover:bg-blue-100 rounded-md border border-blue-200 transition-colors">
+                                      <Plus className="w-4 h-4 inline mr-2" />
+                                      Add Comms Task
+                                    </button>
+                                  </div>
+                                  
+                                  {/* BIG TASKS category */}
+                                  <div className="space-y-2">
+                                    <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wider">BIG TASKS</h4>
+                                    <button className="w-full py-2 text-sm text-gray-600 bg-purple-50 hover:bg-purple-100 rounded-md border border-purple-200 transition-colors">
+                                      <Plus className="w-4 h-4 inline mr-2" />
+                                      Add Big Task
+                                    </button>
+                                  </div>
+                                  
+                                  {/* DONE category */}
+                                  <div className="space-y-2">
+                                    <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wider">DONE</h4>
+                                    <button className="w-full py-2 text-sm text-gray-600 bg-green-50 hover:bg-green-100 rounded-md border border-green-200 transition-colors">
+                                      <CheckCircle className="w-4 h-4 inline mr-2" />
+                                      View Completed
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+
                               {/* Show team members as categories for Follow-up column */}
                               {column.hasTeamMembers && (
                                 <div className="space-y-3 mb-4">
