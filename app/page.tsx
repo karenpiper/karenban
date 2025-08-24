@@ -15,6 +15,29 @@ interface Task {
   personId?: string
   createdAt: Date
   notes?: string
+  // Time tracking fields
+  estimatedHours?: number
+  actualHours?: number
+  timeEntries: TimeEntry[]
+  isTimerRunning?: boolean
+  timerStartTime?: Date
+  // Template and recurring fields
+  isTemplate?: boolean
+  templateId?: string
+  isRecurring?: boolean
+  recurringPattern?: 'daily' | 'weekly' | 'monthly' | 'custom'
+  recurringInterval?: number
+  nextDueDate?: Date
+  lastCompletedDate?: Date
+}
+
+interface TimeEntry {
+  id: string
+  startTime: Date
+  endTime?: Date
+  duration?: number // in minutes
+  description?: string
+  isActive?: boolean
 }
 
 interface Project {
@@ -49,6 +72,8 @@ export default function HomePage() {
   ])
   const [currentView, setCurrentView] = useState<"today" | "thisWeek" | "assignees" | "projects" | "admin">("today")
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [isDarkTheme, setIsDarkTheme] = useState(false)
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false)
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -69,6 +94,11 @@ export default function HomePage() {
     if (savedPeople) {
       setPeople(JSON.parse(savedPeople))
     }
+    
+    const savedTheme = localStorage.getItem("theme")
+    if (savedTheme) {
+      setIsDarkTheme(JSON.parse(savedTheme))
+    }
   }, [])
 
   // Save data to localStorage when it changes
@@ -87,6 +117,43 @@ export default function HomePage() {
   useEffect(() => {
     localStorage.setItem("people", JSON.stringify(people))
   }, [people])
+
+  useEffect(() => {
+    localStorage.setItem("theme", JSON.stringify(isDarkTheme))
+  }, [isDarkTheme])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + K: Quick add task
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        // Add task to current view's first column
+        const firstColumn = todayColumns[0]
+        addTask(firstColumn.id)
+      }
+      
+      // Ctrl/Cmd + T: Toggle theme
+      if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault()
+        setIsDarkTheme(prev => !prev)
+      }
+      
+      // Ctrl/Cmd + /: Show keyboard shortcuts
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault()
+        setShowKeyboardShortcuts(prev => !prev)
+      }
+      
+      // Escape: Close modals/shortcuts
+      if (e.key === 'Escape') {
+        setShowKeyboardShortcuts(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // Get current day name
   const getCurrentDayName = () => {
@@ -134,6 +201,10 @@ export default function HomePage() {
       personId: personId || undefined,
       priority: "medium",
       createdAt: new Date(),
+      timeEntries: [],
+      isTimerRunning: false,
+      isTemplate: false,
+      isRecurring: false,
     }
     setTasks(prev => [...prev, newTask])
   }
@@ -341,6 +412,65 @@ export default function HomePage() {
                       }}>
                         {task.priority}
                       </span>
+                      
+                      {/* Time Tracking */}
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '4px', 
+                        marginTop: '4px',
+                        fontSize: '9px'
+                      }}>
+                        {/* Timer Button */}
+                        <button
+                          onClick={() => task.isTimerRunning ? stopTimer(task.id) : startTimer(task.id)}
+                          style={{
+                            padding: '2px 4px',
+                            backgroundColor: task.isTimerRunning ? '#ef4444' : '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '8px',
+                            fontWeight: '500'
+                          }}
+                          title={task.isTimerRunning ? 'Stop timer' : 'Start timer'}
+                        >
+                          {task.isTimerRunning ? '⏹️' : '▶️'}
+                        </button>
+                        
+                        {/* Time Display */}
+                        {(task.estimatedHours || task.actualHours) && (
+                          <span style={{ color: '#6b7280' }}>
+                            {task.actualHours ? `${task.actualHours.toFixed(1)}h` : ''}
+                            {task.estimatedHours && task.actualHours ? '/' : ''}
+                            {task.estimatedHours ? `${task.estimatedHours}h` : ''}
+                          </span>
+                        )}
+                        
+                        {/* Quick Time Entry */}
+                        <button
+                          onClick={() => {
+                            const hours = prompt('Enter hours:', '0.5')
+                            if (hours && !isNaN(parseFloat(hours))) {
+                              addTimeEntry(task.id, parseFloat(hours))
+                            }
+                          }}
+                          style={{
+                            padding: '2px 4px',
+                            backgroundColor: '#3b82f6',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '8px',
+                            fontWeight: '500'
+                          }}
+                          title="Add time entry"
+                        >
+                          ⏱️
+                        </button>
+                      </div>
                     </div>
                   ))}
                   
@@ -1047,6 +1177,299 @@ export default function HomePage() {
     ))
   }
 
+  // Time tracking functions
+  const startTimer = (taskId: string) => {
+    setTasks(prev => prev.map(task => {
+      if (task.id === taskId) {
+        return {
+          ...task,
+          isTimerRunning: true,
+          timerStartTime: new Date(),
+          timeEntries: [
+            ...task.timeEntries,
+            {
+              id: Date.now().toString(),
+              startTime: new Date(),
+              isActive: true,
+              description: 'Active session'
+            }
+          ]
+        }
+      }
+      return task
+    }))
+  }
+
+  const stopTimer = (taskId: string) => {
+    setTasks(prev => prev.map(task => {
+      if (task.id === taskId) {
+        const activeEntry = task.timeEntries.find(entry => entry.isActive)
+        if (activeEntry) {
+          const endTime = new Date()
+          const duration = Math.round((endTime.getTime() - activeEntry.startTime.getTime()) / (1000 * 60)) // minutes
+          
+          return {
+            ...task,
+            isTimerRunning: false,
+            timerStartTime: undefined,
+            timeEntries: task.timeEntries.map(entry => 
+              entry.isActive 
+                ? { ...entry, endTime, duration, isActive: false }
+                : entry
+            ),
+            actualHours: (task.actualHours || 0) + (duration / 60)
+          }
+        }
+      }
+      return task
+    }))
+  }
+
+  const addTimeEntry = (taskId: string, hours: number, description?: string) => {
+    setTasks(prev => prev.map(task => {
+      if (task.id === taskId) {
+        return {
+          ...task,
+          actualHours: (task.actualHours || 0) + hours,
+          timeEntries: [
+            ...task.timeEntries,
+            {
+              id: Date.now().toString(),
+              startTime: new Date(),
+              endTime: new Date(),
+              duration: hours * 60, // convert to minutes
+              description: description || 'Manual entry'
+            }
+          ]
+        }
+      }
+      return task
+    }))
+  }
+
+  const updateEstimatedHours = (taskId: string, hours: number) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId ? { ...task, estimatedHours: hours } : task
+    ))
+  }
+
+  // Task template and recurring functions
+  const createTaskTemplate = (task: Task) => {
+    const template: Task = {
+      ...task,
+      id: `template-${Date.now()}`,
+      isTemplate: true,
+      isRecurring: false,
+      timeEntries: [],
+      isTimerRunning: false,
+      timerStartTime: undefined,
+      createdAt: new Date()
+    }
+    setTasks(prev => [...prev, template])
+  }
+
+  const createTaskFromTemplate = (templateId: string, columnId: string) => {
+    const template = tasks.find(t => t.id === templateId)
+    if (template) {
+      const newTask: Task = {
+        ...template,
+        id: Date.now().toString(),
+        isTemplate: false,
+        status: columnId as Task["status"],
+        timeEntries: [],
+        isTimerRunning: false,
+        timerStartTime: undefined,
+        createdAt: new Date()
+      }
+      setTasks(prev => [...prev, newTask])
+    }
+  }
+
+  const createRecurringTask = (task: Task, pattern: 'daily' | 'weekly' | 'monthly', interval: number = 1) => {
+    const recurringTask: Task = {
+      ...task,
+      id: Date.now().toString(),
+      isRecurring: true,
+      recurringPattern: pattern,
+      recurringInterval: interval,
+      nextDueDate: new Date(),
+      timeEntries: [],
+      isTimerRunning: false,
+      timerStartTime: undefined,
+      createdAt: new Date()
+    }
+    setTasks(prev => [...prev, recurringTask])
+  }
+
+  const completeRecurringTask = (taskId: string) => {
+    setTasks(prev => prev.map(task => {
+      if (task.id === taskId && task.isRecurring) {
+        const now = new Date()
+        let nextDue = new Date(now)
+        
+        switch (task.recurringPattern) {
+          case 'daily':
+            nextDue.setDate(now.getDate() + (task.recurringInterval || 1))
+            break
+          case 'weekly':
+            nextDue.setDate(now.getDate() + (7 * (task.recurringInterval || 1)))
+            break
+          case 'monthly':
+            nextDue.setMonth(now.getMonth() + (task.recurringInterval || 1))
+            break
+        }
+        
+        return {
+          ...task,
+          lastCompletedDate: now,
+          nextDueDate: nextDue,
+          status: 'later' as Task["status"]
+        }
+      }
+      return task
+    }))
+  }
+
+  const renderKeyboardShortcuts = () => (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    }}>
+      <div style={{
+        backgroundColor: isDarkTheme ? '#1f2937' : 'white',
+        padding: '24px',
+        borderRadius: '12px',
+        maxWidth: '500px',
+        width: '90%',
+        maxHeight: '80vh',
+        overflowY: 'auto',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '20px'
+        }}>
+          <h2 style={{
+            fontSize: '20px',
+            fontWeight: '600',
+            color: isDarkTheme ? 'white' : '#111827'
+          }}>
+            Keyboard Shortcuts
+          </h2>
+          <button
+            onClick={() => setShowKeyboardShortcuts(false)}
+            style={{
+              fontSize: '18px',
+              color: isDarkTheme ? '#9ca3af' : '#6b7280',
+              cursor: 'pointer',
+              border: 'none',
+              background: 'none',
+              padding: '4px'
+            }}
+          >
+            ×
+          </button>
+        </div>
+        
+        <div style={{ display: 'grid', gap: '16px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px',
+            backgroundColor: isDarkTheme ? '#374151' : '#f9fafb',
+            borderRadius: '8px'
+          }}>
+            <span style={{ color: isDarkTheme ? 'white' : '#111827' }}>Quick Add Task</span>
+            <kbd style={{
+              backgroundColor: isDarkTheme ? '#4b5563' : '#e5e7eb',
+              color: isDarkTheme ? 'white' : '#111827',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontFamily: 'monospace'
+            }}>
+              {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+K
+            </kbd>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px',
+            backgroundColor: isDarkTheme ? '#374151' : '#f9fafb',
+            borderRadius: '8px'
+          }}>
+            <span style={{ color: isDarkTheme ? 'white' : '#111827' }}>Toggle Theme</span>
+            <kbd style={{
+              backgroundColor: isDarkTheme ? '#4b5563' : '#e5e7eb',
+              color: isDarkTheme ? 'white' : '#111827',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontFamily: 'monospace'
+            }}>
+              {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+T
+            </kbd>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px',
+            backgroundColor: isDarkTheme ? '#374151' : '#f9fafb',
+            borderRadius: '8px'
+          }}>
+            <span style={{ color: isDarkTheme ? 'white' : '#111827' }}>Show Shortcuts</span>
+            <kbd style={{
+              backgroundColor: isDarkTheme ? '#4b5563' : '#e5e7eb',
+              color: isDarkTheme ? 'white' : '#111827',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontFamily: 'monospace'
+            }}>
+              {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+/
+            </kbd>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px',
+            backgroundColor: isDarkTheme ? '#374151' : '#f9fafb',
+            borderRadius: '8px'
+          }}>
+            <span style={{ color: isDarkTheme ? 'white' : '#111827' }}>Close/Exit</span>
+            <kbd style={{
+              backgroundColor: isDarkTheme ? '#4b5563' : '#e5e7eb',
+              color: isDarkTheme ? 'white' : '#111827',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontFamily: 'monospace'
+            }}>
+              Esc
+            </kbd>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
   const renderAdminView = () => (
     <div className="p-4 custom-scrollbar overflow-auto">
       <div className="mb-4">
@@ -1650,6 +2073,52 @@ export default function HomePage() {
               }}>
                 Auto-move
               </button>
+              
+              {/* Theme Toggle */}
+              <button
+                onClick={() => setIsDarkTheme(prev => !prev)}
+                style={{
+                  padding: '8px',
+                  backgroundColor: isDarkTheme ? '#374151' : '#f3f4f6',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  fontSize: '16px',
+                  color: isDarkTheme ? 'white' : '#374151',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                title={`Switch to ${isDarkTheme ? 'light' : 'dark'} theme`}
+              >
+                {isDarkTheme ? '☀️' : '🌙'}
+              </button>
+              
+              {/* Keyboard Shortcuts */}
+              <button
+                onClick={() => setShowKeyboardShortcuts(true)}
+                style={{
+                  padding: '8px',
+                  backgroundColor: '#f3f4f6',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  color: '#374151',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                title="Keyboard shortcuts (Ctrl+/)"
+              >
+                ⌨️
+              </button>
             </div>
           </header>
 
@@ -1657,6 +2126,9 @@ export default function HomePage() {
           {renderMainContent()}
         </div>
       </div>
+      
+      {/* Keyboard Shortcuts Modal */}
+      {showKeyboardShortcuts && renderKeyboardShortcuts()}
     </div>
   )
 }
