@@ -1,0 +1,150 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  priority    TaskPriority
+  status      TaskStatus
+  columnId    String
+  categoryId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  completedAt DateTime?
+  dueDate     DateTime?
+  tags        String   // JSON string of tags
+  estimatedHours Float?
+  actualHours   Float?
+  assignedTo   String?
+
+  // Relations
+  column   Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([columnId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([priority])
+}
+
+model Category {
+  id              String  @id @default(cuid())
+  name            String
+  columnId        String
+  color           String
+  isCollapsed     Boolean @default(false)
+  order           Int
+  taskCount       Int     @default(0)
+  completedCount  Int     @default(0)
+  isPerson        Boolean @default(false)
+  personName      String?
+
+  // Relations
+  column Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  tasks  Task[]
+
+  @@index([columnId])
+  @@index([order])
+}
+
+model Column {
+  id                     String  @id @default(cuid())
+  name                   String
+  order                  Int
+  color                  String
+  maxTasks               Int?
+  allowsDynamicCategories Boolean @default(false)
+
+  // Relations
+  categories Category[]
+  tasks      Task[]
+
+  @@index([order])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  icon        String
+  color       String
+  isUnlocked  Boolean  @default(false)
+  progress    Int
+  maxProgress Int
+  unlockedAt  DateTime?
+  type        AchievementType
+
+  @@index([type])
+  @@index([isUnlocked])
+}
+
+model DailyStats {
+  id                String @id @default(cuid())
+  date              String // YYYY-MM-DD format
+  tasksCompleted    Int
+  tasksCreated      Int
+  focusTimeMinutes  Int
+  completionRate    Int
+  streakDay         Int
+  startTime         String? // First task completion time
+  endTime           String? // Last task completion time
+
+  @@unique([date])
+  @@index([date])
+}
+
+model UserStats {
+  id                    String @id @default("user")
+  totalTasksCompleted   Int    @default(0)
+  totalFocusHours       Float  @default(0)
+  currentStreak         Int    @default(0)
+  longestStreak         Int    @default(0)
+  averageCompletionRate Float  @default(0)
+  totalAchievements     Int    @default(0)
+  lastActiveDate        String
+
+  // Relations
+  dailyStats DailyStats[]
+}
+
+model Settings {
+  id                String @id @default("settings")
+  theme             String @default("auto") // "light" | "dark" | "auto"
+  enableAnimations  Boolean @default(true)
+  enableNotifications Boolean @default(true)
+  workingHoursStart String @default("09:00")
+  workingHoursEnd   String @default("17:00")
+  dailyGoal         Int    @default(8)
+}
+
+enum TaskPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  blocked
+  done
+}
+
+enum AchievementType {
+  streak
+  completion
+  focus
+  consistency
+  milestone
+} 

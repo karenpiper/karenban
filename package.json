@@ -6,7 +6,14 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx lib/seed-database.ts",
+    "db:reset": "prisma db push --force-reset && tsx lib/seed-database.ts",
+    "supabase:seed": "tsx lib/supabase-seeder.ts",
+    "supabase:studio": "echo 'Open https://supabase.com/dashboard to view your database'"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
@@ -73,5 +80,8 @@
     "tailwindcss": "^4.1.9",
     "tw-animate-css": "1.3.3",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "tsx lib/seed-database.ts"
   }
 }

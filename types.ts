@@ -1,5 +1,34 @@
 export type TaskPriority = "low" | "medium" | "high" | "urgent"
-export type TaskStatus = "todo" | "in-progress" | "blocked" | "done"
+export type TaskStatus = 
+  | "todo" 
+  | "in-progress" 
+  | "blocked" 
+  | "done"
+  | "uncategorized"
+  | "today"
+  | "delegated"
+  | "later"
+  | "completed"
+  | "saturday"
+  | "sunday"
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+
+export interface Project {
+  id: string
+  name: string
+  description?: string
+  color: string
+  status: "active" | "completed" | "on-hold"
+  createdAt: Date
+  updatedAt: Date
+  dueDate?: Date
+  progress: number // 0-100
+  totalTasks: number
+  completedTasks: number
+}
 
 export interface Task {
   id: string
@@ -7,16 +36,19 @@ export interface Task {
   description?: string
   priority: TaskPriority
   status: TaskStatus
-  columnId: string
-  categoryId: string
+  columnId?: string
+  categoryId?: string
+  projectId?: string // Optional project assignment
   createdAt: Date
-  updatedAt: Date
+  updatedAt?: Date
   completedAt?: Date
   dueDate?: Date
-  tags: string[]
+  tags?: string[]
   estimatedHours?: number
   actualHours?: number
   assignedTo?: string // For blocked tasks - person name
+  notes?: string
+  category?: string
 }
 
 export interface Category {
@@ -82,6 +114,7 @@ export interface UserStats {
 export interface AppState {
   columns: Column[]
   tasks: Task[]
+  projects: Project[]
   achievements: Achievement[]
   userStats: UserStats
   settings: {

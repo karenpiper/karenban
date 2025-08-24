@@ -37,16 +37,6 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-
-  /* Added glassmorphism design tokens */
-  --glass-white-10: rgba(255, 255, 255, 0.1);
-  --glass-white-20: rgba(255, 255, 255, 0.2);
-  --glass-white-30: rgba(255, 255, 255, 0.3);
-  --glass-white-40: rgba(255, 255, 255, 0.4);
-  --glass-border: rgba(255, 255, 255, 0.3);
-  --glass-border-hover: rgba(255, 255, 255, 0.5);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --glass-shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
 .dark {
@@ -82,16 +72,6 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
-
-  /* Dark mode glassmorphism tokens */
-  --glass-white-10: rgba(255, 255, 255, 0.05);
-  --glass-white-20: rgba(255, 255, 255, 0.1);
-  --glass-white-30: rgba(255, 255, 255, 0.15);
-  --glass-white-40: rgba(255, 255, 255, 0.2);
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --glass-border-hover: rgba(255, 255, 255, 0.25);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --glass-shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
@@ -139,33 +119,8 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Added gradient background for glassmorphism */
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Clean background for the new design */
+    background: #f9fafb;
     min-height: 100vh;
-  }
-}
-
-/* Added glassmorphism utility classes */
-@layer utilities {
-  .glass-panel {
-    background: var(--glass-white-20);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-  }
-
-  .glass-panel-hover:hover {
-    background: var(--glass-white-30);
-    border-color: var(--glass-border-hover);
-    box-shadow: var(--glass-shadow-lg);
-  }
-
-  .glass-card {
-    background: var(--glass-white-30);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
   }
 }

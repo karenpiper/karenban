@@ -1,57 +1,65 @@
 "use client"
 
-import { Search, Bell, Settings, User } from "lucide-react"
+import { Search, Filter, Calendar, ToggleLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function Header() {
   return (
-    <header className="glass-panel rounded-2xl p-4 mb-6 transition-all duration-200 glass-panel-hover">
-      <div className="flex items-center justify-between">
-        {/* Logo and Title */}
+    <header className="bg-white p-4 mb-4">
+      <div className="space-y-3">
+        {/* Title and Subtitle */}
+        <div>
+          <h1 className="text-xl font-bold text-gray-900 mb-1">Task Board</h1>
+          <p className="text-sm text-gray-600">Focus on now and later.</p>
+        </div>
+
+        {/* Search and Filters */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
-            <div className="w-4 h-4 bg-white rounded-sm opacity-90" />
+          {/* Search Bar */}
+          <div className="flex-1 max-w-md">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search tasks, descriptions, or tags..."
+                className="pl-10 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 focus:ring-blue-500 text-sm"
+              />
+            </div>
           </div>
-          <h1 className="text-xl font-semibold text-white">KarenBan</h1>
-        </div>
 
-        {/* Search Bar */}
-        <div className="flex-1 max-w-md mx-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 w-4 h-4" />
-            <Input
-              placeholder="Search tasks..."
-              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white/20 focus:border-white/40 transition-all duration-200"
-            />
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex items-center gap-2">
+          {/* Filter Buttons */}
           <Button
-            variant="ghost"
-            size="icon"
-            className="text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
+            variant="outline"
+            className="border-gray-200 text-gray-700 hover:bg-gray-50 text-sm px-3 py-1 h-8"
           >
-            <Bell className="w-5 h-5" />
+            <Filter className="w-3 h-3 mr-1" />
+            All Priority
           </Button>
           <Button
-            variant="ghost"
-            size="icon"
-            className="text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
+            variant="outline"
+            className="border-gray-200 text-gray-700 hover:bg-gray-50 text-sm px-3 py-1 h-8"
           >
-            <Settings className="w-5 h-5" />
+            <Calendar className="w-3 h-3 mr-1" />
+            All Assignees
           </Button>
-          <Avatar className="w-8 h-8 border-2 border-white/30">
-            <AvatarImage src="/diverse-user-avatars.png" />
-            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-purple-500 text-white text-sm">
-              <User className="w-4 h-4" />
-            </AvatarFallback>
-          </Avatar>
+          <Button
+            variant="outline"
+            className="border-gray-200 text-gray-700 hover:bg-gray-50 text-sm px-3 py-1 h-8"
+          >
+            This Week
+          </Button>
+
+          {/* Auto-move Toggle */}
+          <Button
+            variant="outline"
+            className="border-gray-200 text-gray-700 hover:bg-gray-50 text-sm px-3 py-1 h-8"
+          >
+            <ToggleLeft className="w-3 h-3 mr-1" />
+            Auto-move completed
+          </Button>
         </div>
       </div>
     </header>
   )
 }
+

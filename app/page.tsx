@@ -22,32 +22,25 @@ import {
   X,
   ArrowLeft,
   Edit2,
+  FolderOpen,
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Sidebar } from "@/components/Sidebar"
+import { Header } from "@/components/Header"
+import { ProjectCard } from "@/components/ProjectCard"
+import { ProjectForm } from "@/components/ProjectForm"
+import type { Task, Project } from "../types"
 
-interface Task {
-  id: string
-  title: string
-  description: string
-  status:
-    | "uncategorized"
-    | "today"
-    | "delegated"
-    | "later"
-    | "completed"
-    | "saturday"
-    | "sunday"
-    | "monday"
-    | "tuesday"
-    | "wednesday"
-    | "thursday"
-  category?: string
-  priority: "low" | "medium" | "high"
-  createdAt: Date
-  notes?: string
-}
+/*
+ * IMPORTANT: The "Delegated" column and "Assignees" view are connected:
+ * - The "Delegated" column shows tasks organized by person (each category is a person)
+ * - The "Assignees" view shows the same data broken out by person for detailed management
+ * - When you add a person to the Delegated column, they appear in both views
+ * - Tasks in the Delegated column must be assigned to a specific person
+ */
 
 const STORAGE_KEY = "karenban-tasks"
+const PROJECTS_STORAGE_KEY = "karenban-projects"
 
 const loadTasks = (): Task[] => {
   if (typeof window === "undefined") return []
@@ -58,6 +51,8 @@ const loadTasks = (): Task[] => {
       return parsed.map((task: any) => ({
         ...task,
         createdAt: new Date(task.createdAt),
+        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+        completedAt: task.completedAt ? new Date(task.completedAt) : undefined,
       }))
     }
   } catch (error) {
@@ -72,6 +67,34 @@ const saveTasks = (tasks: Task[]) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
   } catch (error) {
     console.error("Failed to save tasks:", error)
+  }
+}
+
+const loadProjects = (): Project[] => {
+  if (typeof window === "undefined") return []
+  try {
+    const stored = localStorage.getItem(PROJECTS_STORAGE_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      return parsed.map((project: any) => ({
+        ...project,
+        createdAt: new Date(project.createdAt),
+        updatedAt: new Date(project.updatedAt),
+        dueDate: project.dueDate ? new Date(project.dueDate) : undefined,
+      }))
+    }
+  } catch (error) {
+    console.error("Failed to load projects:", error)
+  }
+  return []
+}
+
+const saveProjects = (projects: Project[]) => {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects))
+  } catch (error) {
+    console.error("Failed to save projects:", error)
   }
 }
 
@@ -124,18 +147,22 @@ const TASK_CATEGORIES = [
 
 export default function HomePage() {
   const [tasks, setTasks] = useState<Task[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showTaskForm, setShowTaskForm] = useState(false)
+  const [showProjectForm, setShowProjectForm] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [draggedTask, setDraggedTask] = useState<string | null>(null)
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
   const [dragOverCategory, setDragOverCategory] = useState<string | null>(null)
   const [teamMembers, setTeamMembers] = useState<{ id: string; title: string; color: string }[]>([])
   const [showAddMember, setShowAddMember] = useState(false)
   const [newMemberName, setNewMemberName] = useState("")
-  const [currentView, setCurrentView] = useState<"today" | "thisWeek" | "assignees">("today")
+  const [currentView, setCurrentView] = useState<"today" | "thisWeek" | "assignees" | "projects">("today")
   const [searchFilter, setSearchFilter] = useState("")
   const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all")
+  const [selectedProject, setSelectedProject] = useState<string | null>(null)
 
   const [teamMemberNotes, setTeamMemberNotes] = useState<{
     [memberId: string]: { id: string; text: string; date: string }[]
@@ -146,7 +173,9 @@ export default function HomePage() {
 
   useEffect(() => {
     const loadedTasks = loadTasks()
+    const loadedProjects = loadProjects()
     setTasks(loadedTasks)
+    setProjects(loadedProjects)
 
     const savedNotes = localStorage.getItem("teamMemberNotes")
     if (savedNotes) {
@@ -162,6 +191,12 @@ export default function HomePage() {
       saveTasks(tasks)
     }
   }, [tasks, isLoading])
+
+  useEffect(() => {
+    if (!isLoading) {
+      saveProjects(projects)
+    }
+  }, [projects, isLoading])
 
   useEffect(() => {
     const savedTeamMembers = localStorage.getItem("team-members")
@@ -183,6 +218,7 @@ export default function HomePage() {
     category: "",
     priority: "medium" as Task["priority"],
     notes: "",
+    projectId: "",
   })
 
   const todayColumns = [
@@ -225,6 +261,62 @@ export default function HomePage() {
   const delegatedTasks = tasks.filter((task) => task.status === "delegated").length
   const unassignedTasks = tasks.filter((task) => task.status === "uncategorized").length
 
+  // Project management functions
+  const handleCreateProject = (projectData: Omit<Project, "id" | "createdAt" | "updatedAt" | "totalTasks" | "completedTasks">) => {
+    const newProject: Project = {
+      id: Date.now().toString(),
+      ...projectData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      totalTasks: 0,
+      completedTasks: 0,
+    }
+    setProjects(prev => [...prev, newProject])
+    setShowProjectForm(false)
+  }
+
+  const handleUpdateProject = (projectData: Omit<Project, "id" | "createdAt" | "updatedAt" | "totalTasks" | "completedTasks">) => {
+    if (!editingProject) return
+    setProjects(prev => prev.map(project => 
+      project.id === editingProject.id 
+        ? { ...project, ...projectData, updatedAt: new Date() }
+        : project
+    ))
+    setShowProjectForm(false)
+    setEditingProject(null)
+  }
+
+  const handleDeleteProject = (projectId: string) => {
+    // Remove project from tasks
+    setTasks(prev => prev.map(task => 
+      task.projectId === projectId ? { ...task, projectId: undefined } : task
+    ))
+    // Delete project
+    setProjects(prev => prev.filter(project => project.id !== projectId))
+  }
+
+  const handleEditProject = (project: Project) => {
+    setEditingProject(project)
+    setShowProjectForm(true)
+  }
+
+  // Update project progress when tasks change
+  useEffect(() => {
+    setProjects(prev => prev.map(project => {
+      const projectTasks = tasks.filter(task => task.projectId === project.id)
+      const completedTasks = projectTasks.filter(task => task.status === "completed").length
+      const totalTasks = projectTasks.length
+      const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+      
+      return {
+        ...project,
+        totalTasks,
+        completedTasks,
+        progress
+      }
+    }))
+  }, [tasks])
+
   const handleCreateTask = () => {
     console.log("[v0] Creating new task", formData)
     const newTask: Task = {
@@ -234,9 +326,17 @@ export default function HomePage() {
       status: formData.status,
       category: formData.category || undefined,
       priority: formData.priority,
+      projectId: formData.projectId || undefined,
       createdAt: new Date(),
       notes: formData.notes || undefined,
     }
+    
+    // If creating a delegated task, ensure it has a category (person)
+    if (formData.status === "delegated" && !formData.category) {
+      console.log("[v0] Delegated tasks must be assigned to a person")
+      return
+    }
+    
     setTasks((prev) => [...prev, newTask])
     resetForm()
   }
@@ -263,6 +363,7 @@ export default function HomePage() {
       category: task.category || "",
       priority: task.priority,
       notes: task.notes || "",
+      projectId: task.projectId || "",
     })
     setShowTaskForm(true)
   }
@@ -385,9 +486,24 @@ export default function HomePage() {
       category: "",
       priority: "medium",
       notes: "",
+      projectId: "",
     })
     setShowTaskForm(false)
     setEditingTask(null)
+  }
+
+  // Helper function to get available categories based on status
+  const getAvailableCategories = (status: Task["status"]) => {
+    if (status === "today") {
+      return TASK_CATEGORIES
+    } else if (status === "delegated") {
+      return teamMembers.map(member => ({
+        id: member.id,
+        title: member.title,
+        color: member.color
+      }))
+    }
+    return []
   }
 
   const filteredTasks = tasks.filter((task) => {
@@ -499,82 +615,18 @@ export default function HomePage() {
     <>
       <div className="min-h-screen bg-gray-50 flex">
         {/* Sidebar */}
-        <div className="w-64 bg-slate-800 text-white p-6 flex flex-col">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Home className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="font-semibold text-lg">Task Manager</h1>
-              <p className="text-sm text-slate-400">Friday Aug 22</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="text-center">
-              <div className="text-2xl font-bold">{totalTasks}</div>
-              <div className="text-xs text-slate-400">Total Tasks</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold">{dueTodayTasks}</div>
-              <div className="text-xs text-slate-400">Due Today</div>
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <h3 className="text-sm font-medium text-slate-400 mb-4 uppercase tracking-wider">Status</h3>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm">
-                <CheckCircle className="w-4 h-4" />
-                <span className="flex-1">T+1 Complete</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm bg-slate-700 rounded-lg px-3 py-2">
-                <Clock className="w-4 h-4" />
-                <span className="flex-1">Today</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <User className="w-4 h-4" />
-                <span className="flex-1">Unassigned</span>
-                <span className="bg-slate-600 text-xs px-2 py-1 rounded">{unassignedTasks}</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <AlertTriangle className="w-4 h-4" />
-                <span className="flex-1">Delegated</span>
-                <span className="bg-slate-600 text-xs px-2 py-1 rounded">{delegatedTasks}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <h3 className="text-sm font-medium text-slate-400 mb-4 uppercase tracking-wider">Views</h3>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 text-sm bg-blue-600 rounded-lg px-3 py-2">
-                <Clock className="w-4 h-4" />
-                <span>Today</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm px-3 py-2 hover:bg-slate-700 rounded-lg cursor-pointer">
-                <Calendar className="w-4 h-4" />
-                <span>My calendar</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm px-3 py-2 hover:bg-slate-700 rounded-lg cursor-pointer">
-                <BarChart3 className="w-4 h-4" />
-                <span>Analytics</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Sidebar />
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col">
-          <div className="p-6 pb-0">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-1">Task Board</h1>
-            <p className="text-gray-600 mb-6">Focus on now and later</p>
+          <Header />
 
-            <div className="flex items-center gap-4 mb-6">
+          <div className="flex-1 p-4 pt-0">
+            <div className="flex items-center gap-3 mb-4">
               <div className="flex bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setCurrentView("today")}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     currentView === "today" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
@@ -582,7 +634,7 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={() => setCurrentView("thisWeek")}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     currentView === "thisWeek"
                       ? "bg-white text-gray-900 shadow-sm"
                       : "text-gray-600 hover:text-gray-900"
@@ -592,7 +644,7 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={() => setCurrentView("assignees")}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     currentView === "assignees"
                       ? "bg-white text-gray-900 shadow-sm"
                       : "text-gray-600 hover:text-gray-900"
@@ -600,10 +652,21 @@ export default function HomePage() {
                 >
                   Assignees
                 </button>
+                <button
+                  onClick={() => setCurrentView("projects")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    currentView === "projects"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <FolderOpen className="w-3 h-3 mr-2" />
+                  Projects
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-3 mb-4">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
@@ -628,255 +691,456 @@ export default function HomePage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          </div>
 
-          <div className={`flex-1 ${currentView === "thisWeek" ? "bg-gray-50" : "p-6 pt-0"}`}>
-            {currentView === "assignees" && selectedAssignee ? (
-              <div className="h-full flex flex-col p-6">
-                {/* Header with back button */}
-                <div className="flex items-center gap-4 mb-6">
-                  <Button variant="ghost" onClick={() => setSelectedAssignee(null)} className="flex items-center gap-2">
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Assignees
-                  </Button>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {teamMembers.find((m) => m.id === selectedAssignee)?.title || "Assignee"}
-                  </h2>
-                </div>
-
-                {/* Detail view layout */}
-                <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Tasks card on the left */}
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Tasks</h3>
-                    <div className="space-y-3">
-                      {tasks
-                        .filter((task) => task.category === selectedAssignee)
-                        .sort((a, b) => {
-                          const priorityOrder = { high: 3, medium: 2, low: 1 }
-                          return priorityOrder[b.priority] - priorityOrder[a.priority]
-                        })
-                        .map((task) => (
-                          <div
-                            key={task.id}
-                            className={`bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer border-l-4 ${getPriorityColor(task.priority)}`}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, task)}
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-900 mb-1">{task.title}</h4>
-                                {task.description && <p className="text-sm text-gray-600 mb-2">{task.description}</p>}
-                                {task.notes && <p className="text-sm text-gray-600 mb-2">{task.notes}</p>}
-                                <div className="flex items-center gap-2">
-                                  <span
-                                    className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityBadgeColor(task.priority)}`}
-                                  >
-                                    {task.priority}
-                                  </span>
-                                  <span className="text-xs text-gray-500">{task.status}</span>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1 ml-2">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleEditTask(task)}
-                                  className="h-8 w-8 p-0 hover:bg-gray-200"
-                                >
-                                  <Edit2 className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleDeleteTask(task.id)}
-                                  className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      {tasks.filter((task) => task.category === selectedAssignee).length === 0 && (
-                        <p className="text-gray-500 text-center py-8">No tasks assigned</p>
-                      )}
+            <div className={`flex-1 ${currentView === "thisWeek" ? "bg-gray-50" : "p-4 pt-0"}`}>
+              {/* Projects View */}
+              {currentView === "projects" && (
+                <div className="space-y-6">
+                  {/* Projects Header */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">Projects</h2>
+                      <p className="text-gray-600">Manage your projects and track progress</p>
                     </div>
+                    <Button
+                      onClick={() => setShowProjectForm(true)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      New Project
+                    </Button>
                   </div>
 
-                  {/* Notes on the right */}
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Notes</h3>
-                    <div className="space-y-4">
-                      {/* Add note form */}
-                      <div className="space-y-2">
-                        <textarea
-                          placeholder="Add a note..."
-                          className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          rows={3}
-                          value={newNote}
-                          onChange={(e) => setNewNote(e.target.value)}
-                        />
-                        <Button
-                          onClick={() => addNoteForMember(selectedAssignee)}
-                          disabled={!newNote.trim()}
-                          className="w-full"
-                        >
-                          Add Note
+                  {/* Projects Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {projects.map((project) => (
+                      <ProjectCard
+                        key={project.id}
+                        project={project}
+                        onEdit={handleEditProject}
+                        onDelete={handleDeleteProject}
+                        onClick={(project) => setSelectedProject(project.id)}
+                      />
+                    ))}
+                  </div>
+
+                  {projects.length === 0 && (
+                    <div className="text-center py-12">
+                      <FolderOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No projects yet</h3>
+                      <p className="text-gray-600 mb-4">Create your first project to get started</p>
+                      <Button
+                        onClick={() => setShowProjectForm(true)}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Project
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Other Views */}
+              {currentView !== "projects" && (
+                <>
+                  {currentView === "assignees" && selectedAssignee ? (
+                    <div className="h-full flex flex-col p-6">
+                      {/* Header with back button */}
+                      <div className="flex items-center gap-4 mb-6">
+                        <Button variant="ghost" onClick={() => setSelectedAssignee(null)} className="flex items-center gap-2">
+                          <ArrowLeft className="w-4 h-4" />
+                          Back to Assignees
                         </Button>
+                        <h2 className="text-xl font-semibold text-gray-900">
+                          {teamMembers.find((m) => m.id === selectedAssignee)?.title || "Assignee"}
+                        </h2>
                       </div>
 
-                      {/* Notes list */}
-                      <div className="space-y-3">
-                        {(teamMemberNotes[selectedAssignee] || []).map((note) => (
-                          <div key={note.id} className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-gray-900 mb-2">{note.text}</p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-gray-500">{new Date(note.date).toLocaleString()}</span>
+                      {/* Detail view layout */}
+                      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Tasks card on the left */}
+                        <div className="bg-white rounded-lg p-6 shadow-sm">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tasks</h3>
+                          <div className="space-y-3">
+                            {tasks
+                              .filter((task) => task.category === selectedAssignee)
+                              .sort((a, b) => {
+                                const priorityOrder = { high: 3, medium: 2, low: 1 }
+                                return priorityOrder[b.priority] - priorityOrder[a.priority]
+                              })
+                              .map((task) => (
+                                <div
+                                  key={task.id}
+                                  className={`bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer border-l-4 ${getPriorityColor(task.priority)}`}
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, task)}
+                                >
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <h4 className="font-medium text-gray-900 mb-1">{task.title}</h4>
+                                      {task.description && <p className="text-sm text-gray-600 mb-2">{task.description}</p>}
+                                      {task.notes && <p className="text-sm text-gray-600 mb-2">{task.notes}</p>}
+                                      <div className="flex items-center gap-2">
+                                        <span
+                                          className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityBadgeColor(task.priority)}`}
+                                        >
+                                          {task.priority}
+                                        </span>
+                                        <span className="text-xs text-gray-500">{task.status}</span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-1 ml-2">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleEditTask(task)}
+                                        className="h-8 w-8 p-0 hover:bg-gray-200"
+                                      >
+                                        <Edit2 className="w-3 h-3" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleDeleteTask(task.id)}
+                                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            {tasks.filter((task) => task.category === selectedAssignee).length === 0 && (
+                              <p className="text-gray-500 text-center py-8">No tasks assigned</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Notes on the right */}
+                        <div className="bg-white rounded-lg p-6 shadow-sm">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Notes</h3>
+                          <div className="space-y-4">
+                            {/* Add note form */}
+                            <div className="space-y-2">
+                              <textarea
+                                placeholder="Add a note..."
+                                className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                rows={3}
+                                value={newNote}
+                                onChange={(e) => setNewNote(e.target.value)}
+                              />
+                              <Button
+                                onClick={() => addNoteForMember(selectedAssignee)}
+                                disabled={!newNote.trim()}
+                                className="w-full"
+                              >
+                                Add Note
+                              </Button>
+                            </div>
+
+                            {/* Notes list */}
+                            <div className="space-y-3">
+                              {(teamMemberNotes[selectedAssignee] || []).map((note) => (
+                                <div key={note.id} className="bg-gray-50 rounded-lg p-3">
+                                  <p className="text-gray-900 mb-2">{note.text}</p>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-gray-500">{new Date(note.date).toLocaleString()}</span>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => deleteNote(selectedAssignee, note.id)}
+                                      className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                              {(!teamMemberNotes[selectedAssignee] || teamMemberNotes[selectedAssignee].length === 0) && (
+                                <p className="text-gray-500 text-center py-8">No notes yet</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`${currentView === "thisWeek" ? "overflow-x-auto h-full bg-gray-50" : ""}`}>
+                  <div className={`${
+                    currentView === "thisWeek"
+                      ? "flex gap-4 p-4 h-full bg-gray-50 min-w-max"
+                      : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
+                  }`}>
+                    {columns.map((column) => (
+                      <div
+                        key={column.id}
+                        className={`bg-white rounded-md p-3 shadow-sm ${currentView === "thisWeek" ? "min-w-64 flex-shrink-0" : ""} ${
+                          currentView === "assignees" && column.id !== "unassigned"
+                            ? "cursor-pointer hover:shadow-md transition-shadow"
+                            : ""
+                        }`}
+                        onDragOver={handleDragOver}
+                        onDragEnter={(e) => handleDragEnter(e, column.id)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, column.id)}
+                        onClick={() => {
+                          if (currentView === "assignees" && column.id !== "unassigned") {
+                            setSelectedAssignee(column.id)
+                          }
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2.5 h-2.5 rounded-full ${column.color}`}></div>
+                            <h3 className="font-semibold text-gray-900 text-sm">{column.title}</h3>
+                            <span className="bg-gray-200 text-gray-600 text-xs px-1.5 py-0.5 rounded-full">
+                              {getTasksByStatus(column.id as Task["status"]).length}
+                            </span>
+                          </div>
+                          {column.id === "delegated" ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShowAddMember(true)
+                              }}
+                              className="h-6 w-6 p-0 hover:bg-gray-200"
+                            >
+                              <User className="w-3 h-3" />
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setFormData((prev) => ({ ...prev, status: column.id as Task["status"] }))
+                                setShowTaskForm(true)
+                              }}
+                              className="h-6 w-6 p-0 hover:bg-gray-200"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          {getTasksByStatus(column.id as Task["status"]).map((task) => (
+                            <div
+                              key={task.id}
+                              className={`bg-white border border-gray-200 rounded-md p-2 shadow-sm hover:shadow-md transition-all duration-200 border-l-4 cursor-move ${getPriorityColor(task.priority)} ${
+                                draggedTask === task.id ? "opacity-50 rotate-2 scale-105" : ""
+                              }`}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, task)}
+                              onDragEnd={handleDragEnd}
+                            >
+                              <div className="flex justify-between items-start mb-1">
+                                <h4 className="font-medium text-xs text-gray-900">{task.title}</h4>
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEditTask(task)}
+                                    className="h-5 w-5 p-0 hover:bg-gray-100"
+                                  >
+                                    <Edit className="w-2.5 h-2.5" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleDeleteTask(task.id)}
+                                    className="h-5 w-5 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="w-2.5 h-2.5" />
+                                  </Button>
+                                </div>
+                              </div>
+                              {task.description && <p className="text-xs text-gray-600 mb-2">{task.description}</p>}
+                              {task.notes && <p className="text-xs text-gray-600 mb-2">{task.notes}</p>}
+                              <div className="flex items-center justify-between">
+                                {task.category && (
+                                  <span className="inline-block px-1.5 py-0.5 text-xs rounded uppercase font-medium bg-blue-100 text-blue-800">
+                                    {TASK_CATEGORIES.find((cat) => cat.id === task.category)?.title || task.category}
+                                  </span>
+                                )}
+                                <span className={`text-xs px-1.5 py-0.5 rounded ${getPriorityBadgeColor(task.priority)}`}>
+                                  {task.priority}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+
+                          <div className="border-t pt-2 mt-2">
+                            {column.id === "delegated" ? (
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => deleteNote(selectedAssignee, note.id)}
-                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setShowAddMember(true)
+                                }}
+                                className="w-full text-gray-600 hover:text-gray-900 text-xs h-6"
                               >
-                                <X className="w-3 h-3" />
+                                <User className="w-3 h-3 mr-1" />
+                                Add Person
                               </Button>
-                            </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    status: column.id as Task["status"],
+                                    category: undefined,
+                                  }))
+                                  setShowTaskForm(true)
+                                }}
+                                className="w-full text-gray-600 hover:text-gray-900 text-xs h-6"
+                              >
+                                <Plus className="w-3 h-3 mr-2" />
+                                Add Task
+                              </Button>
+                            )}
                           </div>
-                        ))}
-                        {(!teamMemberNotes[selectedAssignee] || teamMemberNotes[selectedAssignee].length === 0) && (
-                          <p className="text-gray-500 text-center py-8">No notes yet</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className={`${currentView === "thisWeek" ? "overflow-x-auto h-full bg-gray-50" : ""}`}>
-                <div
-                  className={`${
-                    currentView === "thisWeek"
-                      ? "flex gap-6 p-6 h-full bg-gray-50 min-w-max"
-                      : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6"
-                  }`}
-                >
-                  {columns.map((column) => (
-                    <div
-                      key={column.id}
-                      className={`bg-white rounded-lg p-4 shadow-sm ${currentView === "thisWeek" ? "min-w-80 flex-shrink-0" : ""} ${
-                        currentView === "assignees" && column.id !== "unassigned"
-                          ? "cursor-pointer hover:shadow-md transition-shadow"
-                          : ""
-                      }`}
-                      onDragOver={handleDragOver}
-                      onDragEnter={(e) => handleDragEnter(e, column.id)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, column.id)}
-                      onClick={() => {
-                        if (currentView === "assignees" && column.id !== "unassigned") {
-                          setSelectedAssignee(column.id)
-                        }
-                      }}
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${column.color}`}></div>
-                          <h3 className="font-semibold text-gray-900">{column.title}</h3>
-                          <span className="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded-full">
-                            {getTasksByStatus(column.id as Task["status"]).length}
-                          </span>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setFormData((prev) => ({ ...prev, status: column.id as Task["status"] }))
-                            setShowTaskForm(true)
-                          }}
-                          className="h-8 w-8 p-0 hover:bg-gray-200"
-                        >
-                          <Plus className="w-4 h-4" />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Assignees View */}
+                  {currentView === "assignees" && !selectedAssignee && (
+                    <div className="h-full flex flex-col p-6">
+                      {/* Header with back button */}
+                      <div className="flex items-center gap-4 mb-6">
+                        <Button variant="ghost" onClick={() => setCurrentView("today")} className="flex items-center gap-2">
+                          <ArrowLeft className="w-4 h-4" />
+                          Back to Today
                         </Button>
+                        <h2 className="text-xl font-semibold text-gray-900">Assignees</h2>
                       </div>
 
-                      <div className="space-y-3">
-                        {getTasksByStatus(column.id as Task["status"]).map((task) => (
+                      {/* Assignees Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {assigneesColumns.map((column) => (
                           <div
-                            key={task.id}
-                            className={`bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 border-l-4 cursor-move ${getPriorityColor(task.priority)} ${
-                              draggedTask === task.id ? "opacity-50 rotate-2 scale-105" : ""
+                            key={column.id}
+                            className={`bg-white rounded-lg p-4 shadow-sm ${
+                              column.id === "unassigned"
+                                ? "cursor-pointer hover:shadow-md transition-shadow"
+                                : "cursor-pointer hover:shadow-md transition-shadow"
                             }`}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, task)}
-                            onDragEnd={handleDragEnd}
+                            onClick={() => setSelectedAssignee(column.id)}
                           >
-                            <div className="flex justify-between items-start mb-2">
-                              <h4 className="font-medium text-sm text-gray-900">{task.title}</h4>
-                              <div className="flex gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleEditTask(task)}
-                                  className="h-6 w-6 p-0 hover:bg-gray-100"
-                                >
-                                  <Edit className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleDeleteTask(task.id)}
-                                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded-full ${column.color}`}></div>
+                                <h3 className="font-semibold text-gray-900">{column.title}</h3>
+                                <span className="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded-full">
+                                  {getTasksByStatus(column.id as Task["status"]).length}
+                                </span>
                               </div>
                             </div>
-                            {task.description && <p className="text-xs text-gray-600 mb-3">{task.description}</p>}
-                            {task.notes && <p className="text-xs text-gray-600 mb-3">{task.notes}</p>}
-                            <div className="flex items-center justify-between">
-                              {task.category && (
-                                <span className="inline-block px-2 py-1 text-xs rounded uppercase font-medium bg-blue-100 text-blue-800">
-                                  {TASK_CATEGORIES.find((cat) => cat.id === task.category)?.title || task.category}
-                                </span>
-                              )}
-                              <span className={`text-xs px-2 py-1 rounded ${getPriorityBadgeColor(task.priority)}`}>
-                                {task.priority}
-                              </span>
+
+                            <div className="space-y-3">
+                              {getTasksByStatus(column.id as Task["status"]).map((task) => (
+                                <div
+                                  key={task.id}
+                                  className={`bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 border-l-4 cursor-move ${getPriorityColor(task.priority)} ${
+                                    draggedTask === task.id ? "opacity-50 rotate-2 scale-105" : ""
+                                  }`}
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, task)}
+                                  onDragEnd={handleDragEnd}
+                                >
+                                  <div className="flex justify-between items-start mb-2">
+                                    <h4 className="font-medium text-sm text-gray-900">{task.title}</h4>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleEditTask(task)}
+                                        className="h-6 w-6 p-0 hover:bg-gray-100"
+                                      >
+                                        <Edit className="w-3 h-3" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleDeleteTask(task.id)}
+                                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  {task.description && <p className="text-xs text-gray-600 mb-3">{task.description}</p>}
+                                  {task.notes && <p className="text-xs text-gray-600 mb-3">{task.notes}</p>}
+                                  <div className="flex items-center justify-between">
+                                    {task.category && (
+                                      <span className="inline-block px-2 py-1 text-xs rounded uppercase font-medium bg-blue-100 text-blue-800">
+                                        {TASK_CATEGORIES.find((cat) => cat.id === task.category)?.title || task.category}
+                                      </span>
+                                    )}
+                                    <span className={`text-xs px-2 py-1 rounded ${getPriorityBadgeColor(task.priority)}`}>
+                                      {task.priority}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+
+                              <div className="border-t pt-3 mt-3">
+                                {column.id === "delegated" ? (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setShowAddMember(true)
+                                    }}
+                                    className="w-full text-gray-600 hover:text-gray-900"
+                                  >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add Person
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        status: column.id as Task["status"],
+                                        category: undefined,
+                                      }))
+                                      setShowTaskForm(true)
+                                    }}
+                                    className="w-full text-gray-600 hover:text-gray-900"
+                                  >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add Task
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
-
-                        <div className="border-t pt-3 mt-3">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setFormData((prev) => ({
-                                ...prev,
-                                status: column.id as Task["status"],
-                                category: undefined,
-                              }))
-                              setShowTaskForm(true)
-                            }}
-                            className="w-full text-gray-600 hover:text-gray-900"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Task
-                          </Button>
-                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Task Form Modal */}
       {showTaskForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl">
@@ -928,18 +1192,30 @@ export default function HomePage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No Category</SelectItem>
-                    {formData.status === "today" &&
-                      TASK_CATEGORIES.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.title}
-                        </SelectItem>
-                      ))}
-                    {formData.status === "delegated" &&
-                      teamMembers.map((member) => (
-                        <SelectItem key={member.id} value={member.id}>
-                          {member.title}
-                        </SelectItem>
-                      ))}
+                    {getAvailableCategories(formData.status).map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={formData.projectId || "none"}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, projectId: value === "none" ? "" : value }))
+                  }
+                >
+                  <SelectTrigger className="border-gray-300">
+                    <SelectValue placeholder="Select project (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Project</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
 
@@ -986,6 +1262,20 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Project Form Modal */}
+      {showProjectForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <ProjectForm
+            project={editingProject}
+            onSave={editingProject ? handleUpdateProject : handleCreateProject}
+            onCancel={() => {
+              setShowProjectForm(false)
+              setEditingProject(null)
+            }}
+          />
         </div>
       )}
     </>
