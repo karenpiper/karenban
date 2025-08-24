@@ -76,8 +76,8 @@ export default function HomePage() {
 
   const todayColumns = [
     { id: "uncategorized", title: "Uncategorized", color: "bg-gray-400" },
-    { id: "today", title: "Today", color: "bg-blue-400" },
-    { id: "delegated", title: "Delegated", color: "bg-red-400" },
+    { id: "today", title: "Friday (Today)", color: "bg-blue-400" },
+    { id: "delegated", title: "Blocked", color: "bg-red-400" },
     { id: "later", title: "Later", color: "bg-purple-400" },
     { id: "completed", title: "Completed", color: "bg-green-400" },
   ]
@@ -204,14 +204,52 @@ export default function HomePage() {
                 </button>
               </div>
               {task.description && (
-                <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '6px' }}>{task.description}</p>
+                <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>{task.description}</p>
               )}
+              
+              {/* Category Tags */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
+                <span style={{
+                  fontSize: '10px',
+                  color: '#ea580c',
+                  backgroundColor: '#fff7ed',
+                  padding: '2px 6px',
+                  borderRadius: '9999px',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
+                  Standing Tasks
+                </span>
+                <span style={{
+                  fontSize: '10px',
+                  color: '#2563eb',
+                  backgroundColor: '#eff6ff',
+                  padding: '2px 6px',
+                  borderRadius: '9999px',
+                  fontWeight: '500'
+                }}>
+                  Email
+                </span>
+                <span style={{
+                  fontSize: '10px',
+                  color: '#059669',
+                  backgroundColor: '#f0fdf4',
+                  padding: '2px 6px',
+                  borderRadius: '9999px',
+                  fontWeight: '500'
+                }}>
+                  Development
+                </span>
+              </div>
+              
+              {/* Priority Badge */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{
                   padding: '2px 6px',
                   borderRadius: '9999px',
-                  fontSize: '12px',
-                  fontWeight: '500',
+                  fontSize: '11px',
+                  fontWeight: '600',
                   backgroundColor: task.priority === "high" ? '#fef2f2' : 
                                  task.priority === "medium" ? '#fffbeb' : '#f0fdf4',
                   color: task.priority === "high" ? '#dc2626' : 
@@ -221,11 +259,12 @@ export default function HomePage() {
                 </span>
                 {task.projectId && (
                   <span style={{
-                    fontSize: '12px',
-                    color: '#2563eb',
-                    backgroundColor: '#eff6ff',
+                    fontSize: '11px',
+                    color: '#7c3aed',
+                    backgroundColor: '#f3f4f6',
                     padding: '2px 6px',
-                    borderRadius: '9999px'
+                    borderRadius: '9999px',
+                    fontWeight: '500'
                   }}>
                     Project
                   </span>
@@ -235,30 +274,60 @@ export default function HomePage() {
           ))}
         </div>
 
-        <button
-          onClick={() => addTask(column.id)}
-          style={{
-            width: '100%',
-            padding: '8px',
-            fontSize: '13px',
-            color: '#6b7280',
-            backgroundColor: 'transparent',
-            border: '1px dashed rgba(156, 163, 175, 0.6)',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
-            e.currentTarget.style.color = '#111827'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-            e.currentTarget.style.color = '#6b7280'
-          }}
-        >
-          + Add Task
-        </button>
+        {column.id === "delegated" ? (
+          <div style={{ textAlign: 'center', padding: '16px 8px' }}>
+            <button
+              onClick={() => addTask(column.id)}
+              style={{
+                width: '100%',
+                padding: '8px',
+                fontSize: '13px',
+                color: '#6b7280',
+                backgroundColor: 'transparent',
+                border: '1px dashed rgba(156, 163, 175, 0.6)',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
+                e.currentTarget.style.color = '#111827'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.color = '#6b7280'
+              }}
+            >
+              + Add Person
+            </button>
+            <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>No People Added</div>
+          </div>
+        ) : (
+          <button
+            onClick={() => addTask(column.id)}
+            style={{
+              width: '100%',
+              padding: '8px',
+              fontSize: '13px',
+              color: '#6b7280',
+              backgroundColor: 'transparent',
+              border: '1px dashed rgba(156, 163, 175, 0.6)',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
+              e.currentTarget.style.color = '#111827'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = '#6b7280'
+            }}
+          >
+            + Add Task
+          </button>
+        )}
       </div>
     )
   }
@@ -572,8 +641,36 @@ export default function HomePage() {
     
     return (
       <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
-        <div style={{ display: 'flex', gap: '16px', paddingBottom: '16px' }}>
+        <div style={{ display: 'flex', gap: '16px', paddingBottom: '16px', alignItems: 'flex-start' }}>
           {columns.map(renderColumn)}
+          
+          {/* Add Column Button */}
+          <div style={{
+            minWidth: '240px',
+            backgroundColor: 'white',
+            border: '2px dashed #d1d5db',
+            borderRadius: '16px',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            marginTop: '40px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = '#8b5cf6'
+            e.currentTarget.style.backgroundColor = '#faf5ff'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = '#d1d5db'
+            e.currentTarget.style.backgroundColor = 'white'
+          }}
+          >
+            <div style={{ fontSize: '24px', color: '#9ca3af', marginBottom: '8px' }}>+</div>
+            <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>Add Column</div>
+          </div>
         </div>
       </div>
     )
@@ -593,7 +690,9 @@ export default function HomePage() {
           width: sidebarCollapsed ? '56px' : '280px',
           display: 'flex',
           flexDirection: 'column',
-          color: 'white'
+          color: 'white',
+          marginLeft: '-1px',
+          marginTop: '-1px'
         }}>
           {/* Header Section */}
           <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
@@ -776,28 +875,101 @@ export default function HomePage() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Header */}
           <header style={{
-            backdropFilter: 'blur(20px)',
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            padding: '12px 16px'
+            backgroundColor: 'white',
+            borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+            padding: '20px 24px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h1 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827' }}>KarenBan</h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{
-                  fontSize: '13px',
-                  color: '#6b7280',
-                  backgroundColor: 'rgba(255, 255, 255, 0.6)',
-                  padding: '4px 8px',
-                  borderRadius: '9999px'
+            <div style={{ marginBottom: '16px' }}>
+              <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#111827', marginBottom: '4px' }}>Task Board</h1>
+              <p style={{ fontSize: '14px', color: '#6b7280' }}>Focus on now and later</p>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+              {/* Search Bar */}
+              <div style={{ 
+                flex: 1, 
+                maxWidth: '400px',
+                position: 'relative'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: '#f9fafb',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  gap: '8px'
                 }}>
-                  {tasks.length} tasks
-                </span>
-                <Button size="sm" style={{ fontSize: '13px' }}>
-                  <Plus style={{ width: '12px', height: '12px', marginRight: '6px' }} />
-                  Add Task
-                </Button>
+                  <span style={{ fontSize: '16px' }}>🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search tasks, descriptions, or tags..."
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'transparent',
+                      fontSize: '14px',
+                      width: '100%',
+                      color: '#374151'
+                    }}
+                  />
+                </div>
               </div>
+              
+              {/* Filter Buttons */}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#f3f4f6',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  color: '#374151',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}>
+                  All Priority
+                </button>
+                <button style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#f3f4f6',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  color: '#374151',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}>
+                  All Assignees
+                </button>
+                <button style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#f3f4f6',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  color: '#374151',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}>
+                  This Week
+                </button>
+              </div>
+              
+              {/* Auto-move Button */}
+              <button style={{
+                padding: '8px 16px',
+                backgroundColor: '#8b5cf6',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '13px',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontWeight: '500'
+              }}>
+                Auto-move
+              </button>
             </div>
           </header>
 
