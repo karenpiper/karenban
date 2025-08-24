@@ -1,161 +1,316 @@
-# Supabase Setup Guide
+# Supabase Setup Guide for KarenBan
 
-This guide will help you set up Supabase as your backend for the Kanban application.
+This guide will help you set up Supabase with proper client/server separation, cookie-based authentication, and a comprehensive database schema.
 
-## 1. Create a Supabase Project
+## 🚀 Quick Start
 
-1. Go to [supabase.com](https://supabase.com) and sign up/sign in
-2. Click "New Project"
-3. Choose your organization
-4. Enter project details:
-   - **Name**: `karenban` (or your preferred name)
-   - **Database Password**: Generate a strong password
-   - **Region**: Choose closest to your users
-5. Click "Create new project"
-
-## 2. Get Your Project Credentials
-
-1. Go to **Settings** → **API**
-2. Copy your **Project URL** and **anon public key**
-3. Create a `.env.local` file in your project root:
+### 1. Install Dependencies
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your_project_url_here
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+npm install @supabase/supabase-js @supabase/auth-helpers-nextjs
 ```
 
-## 3. Set Up Database Tables
+### 2. Environment Variables
 
-Go to **SQL Editor** in your Supabase dashboard and run these SQL commands:
-
-### Tasks Table
-```sql
-CREATE TABLE tasks (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  title TEXT NOT NULL,
-  description TEXT,
-  status TEXT NOT NULL,
-  category TEXT,
-  priority TEXT NOT NULL,
-  project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE,
-  completed_at TIMESTAMP WITH TIME ZONE,
-  due_date TIMESTAMP WITH TIME ZONE,
-  estimated_hours INTEGER,
-  actual_hours INTEGER,
-  assigned_to TEXT,
-  tags TEXT[],
-  notes TEXT
-);
-
--- Enable Row Level Security
-ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
-
--- Create policies (allow all operations for now)
-CREATE POLICY "Allow all operations" ON tasks FOR ALL USING (true);
-```
-
-### Projects Table
-```sql
-CREATE TABLE projects (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
-  color TEXT NOT NULL,
-  status TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE,
-  due_date TIMESTAMP WITH TIME ZONE,
-  progress INTEGER DEFAULT 0,
-  total_tasks INTEGER DEFAULT 0,
-  completed_tasks INTEGER DEFAULT 0
-);
-
--- Enable Row Level Security
-ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
-
--- Create policies
-CREATE POLICY "Allow all operations" ON projects FOR ALL USING (true);
-```
-
-### Team Members Table
-```sql
-CREATE TABLE team_members (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  title TEXT NOT NULL,
-  color TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Enable Row Level Security
-ALTER TABLE team_members ENABLE ROW LEVEL SECURITY;
-
--- Create policies
-CREATE POLICY "Allow all operations" ON team_members FOR ALL USING (true);
-```
-
-## 4. Insert Sample Data
-
-### Sample Projects
-```sql
-INSERT INTO projects (name, description, color, status, progress, total_tasks, completed_tasks) VALUES
-('Website Redesign', 'Complete overhaul of company website', '#3B82F6', 'active', 65, 12, 8),
-('Mobile App Development', 'Build iOS and Android apps', '#10B981', 'active', 30, 25, 7),
-('Marketing Campaign', 'Q4 marketing push', '#F59E0B', 'on-hold', 0, 8, 0);
-```
-
-### Sample Team Members
-```sql
-INSERT INTO team_members (title, color) VALUES
-('John Doe', '#EF4444'),
-('Jane Smith', '#8B5CF6'),
-('Mike Johnson', '#06B6D4'),
-('Sarah Wilson', '#10B981');
-```
-
-### Sample Tasks
-```sql
-INSERT INTO tasks (title, description, status, category, priority, project_id, due_date, estimated_hours) VALUES
-('Design Homepage', 'Create new homepage layout', 'in-progress', 'Design', 'high', 
- (SELECT id FROM projects WHERE name = 'Website Redesign'), NOW() + INTERVAL '7 days', 8),
-('Setup Database', 'Configure backend database', 'todo', 'Backend', 'medium',
- (SELECT id FROM projects WHERE name = 'Mobile App Development'), NOW() + INTERVAL '3 days', 4),
-('Write Copy', 'Create marketing copy for campaign', 'blocked', 'Content', 'low',
- (SELECT id FROM projects WHERE name = 'Marketing Campaign'), NOW() + INTERVAL '5 days', 6);
-```
-
-## 5. Test Your Setup
-
-1. Start your development server: `npm run dev`
-2. Check the browser console for any Supabase connection errors
-3. Try creating a task or project
-4. Verify data appears in your Supabase dashboard
-
-## 6. Environment Variables for Production
-
-When deploying to production (Vercel, Netlify, etc.), add these environment variables:
+Create a `.env.local` file in your project root:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-## 7. Security Considerations
+**⚠️ Important**: Never expose your service role key on the client side!
 
-- **Row Level Security (RLS)** is enabled by default
-- **Anonymous access** is allowed for now (good for demos)
-- **Production apps** should implement proper authentication
-- **API keys** are public but have limited permissions
+### 3. Database Setup
 
-## 8. Troubleshooting
+1. Go to your Supabase dashboard
+2. Navigate to **SQL Editor**
+3. Copy and paste the contents of `database/schema.sql`
+4. Run the SQL script
+
+## 🏗️ Architecture
+
+### Client-Side (Browser)
+- **File**: `lib/supabase/client.ts`
+- **Usage**: Use in React components, event handlers, etc.
+- **Features**: Cookie-based auth, automatic token refresh
+
+### Server-Side (Server Components/API Routes)
+- **File**: `lib/supabase/server.ts`
+- **Usage**: Use in Server Components, API routes, middleware
+- **Features**: Server-side auth, secure cookie handling
+
+### Middleware
+- **File**: `middleware.ts`
+- **Purpose**: Handles auth token refresh and session management
+- **Automatic**: Runs on every request
+
+## 📊 Database Schema
+
+### Core Tables
+
+#### **Tasks**
+- Full task management with status, priority, assignments
+- Project relationships and dependencies
+- Time tracking (estimated vs actual hours)
+- Tags and metadata support
+
+#### **Projects**
+- Project lifecycle management
+- Team member assignments
+- Progress tracking with automatic task counting
+- Due dates and status management
+
+#### **Team Members**
+- User management with roles and departments
+- Manager hierarchies
+- Contact information and preferences
+- Active/inactive status tracking
+
+#### **Notes**
+- Rich note-taking system
+- Attachable to tasks, projects, or team members
+- Private/public visibility controls
+- Tagging and search capabilities
+
+#### **One-on-One Sessions**
+- Meeting scheduling and management
+- Agenda and notes tracking
+- Follow-up requirements
+- Integration with feedback system
+
+#### **Feedback System**
+- Multi-type feedback (positive, constructive, critical)
+- Anonymous feedback support
+- Task and project context
+- Public/private visibility controls
+
+#### **Performance Management**
+- Issue tracking and resolution
+- Severity levels and status management
+- Action plans and follow-ups
+- Integration with review system
+
+#### **Review Packets**
+- Comprehensive performance reviews
+- Multi-dimensional ratings
+- Goal setting and tracking
+- Period-based review cycles
+
+#### **Activity Logging**
+- Complete audit trail
+- User action tracking
+- Entity relationship logging
+- IP and user agent tracking
+
+### Advanced Features
+
+#### **Automatic Triggers**
+- `updated_at` timestamps on all tables
+- Project task count updates
+- Activity logging automation
+
+#### **Full-Text Search**
+- Task and project content search
+- Note content search
+- Optimized with GIN indexes
+
+#### **Performance Indexes**
+- Status and priority filtering
+- Date-based queries
+- User assignment lookups
+- Composite indexes for common queries
+
+#### **Row Level Security (RLS)**
+- Enabled on all tables
+- Configurable policies
+- Secure by default
+
+## 🔧 Usage Examples
+
+### Client-Side Usage
+
+```tsx
+'use client'
+
+import { createClient } from '@/lib/supabase/client'
+
+export default function TaskComponent() {
+  const supabase = createClient()
+  
+  const fetchTasks = async () => {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('status', 'todo')
+    
+    if (error) console.error('Error:', error)
+    else console.log('Tasks:', data)
+  }
+  
+  return (
+    <button onClick={fetchTasks}>
+      Fetch Tasks
+    </button>
+  )
+}
+```
+
+### Server-Side Usage
+
+```tsx
+import { createClient } from '@/lib/supabase/server'
+
+export default async function ServerComponent() {
+  const supabase = createClient()
+  
+  const { data: tasks } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('status', 'todo')
+  
+  return (
+    <div>
+      {tasks?.map(task => (
+        <div key={task.id}>{task.title}</div>
+      ))}
+    </div>
+  )
+}
+```
+
+### Type Safety
+
+```tsx
+import type { Database } from '@/lib/database.types'
+
+type Task = Database['public']['Tables']['tasks']['Row']
+type NewTask = Database['public']['Tables']['tasks']['Insert']
+
+const createTask = async (task: NewTask) => {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('tasks')
+    .insert(task)
+    .select()
+    .single()
+  
+  return { data, error }
+}
+```
+
+## 🧪 Testing
+
+### Dev Test Page
+
+Visit `/dev/supa-test` to test your Supabase connection:
+
+1. **Success**: Green box with "Connection Successful!"
+2. **Error**: Red box with detailed error information
+3. **Exception**: Red box with exception details
+
+### Database Connection Test
+
+The test page runs:
+```sql
+SELECT * FROM tasks LIMIT 1
+```
+
+This verifies:
+- ✅ Environment variables are set correctly
+- ✅ Supabase connection is working
+- ✅ Database schema is properly set up
+- ✅ RLS policies allow access
+
+## 🔒 Security Features
+
+### Row Level Security (RLS)
+- All tables have RLS enabled
+- Default policies allow all operations (customize for production)
+- Secure by design
+
+### Authentication
+- Cookie-based auth with automatic refresh
+- Secure token handling
+- Middleware protection
+
+### Data Validation
+- Enum constraints for status fields
+- Check constraints for numeric ranges
+- Foreign key relationships
+- UUID primary keys
+
+## 📈 Performance Optimizations
+
+### Indexes
+- **Status indexes**: Fast filtering by task/project status
+- **Date indexes**: Efficient date range queries
+- **Composite indexes**: Optimized for common query patterns
+- **Full-text search**: GIN indexes for content search
+
+### Triggers
+- **Automatic timestamps**: Always up-to-date `updated_at` fields
+- **Task counting**: Real-time project task statistics
+- **Activity logging**: Automatic audit trail
+
+### Functions
+- **Activity logging**: Centralized logging function
+- **Task count updates**: Automatic project statistics
+
+## 🚀 Production Considerations
+
+### Environment Variables
+```bash
+# Development
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Production (add to your hosting platform)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### RLS Policies
+Customize RLS policies based on your authentication needs:
+
+```sql
+-- Example: Users can only see their own tasks
+CREATE POLICY "Users can view own tasks" ON tasks
+FOR SELECT USING (auth.uid()::text = assigned_to);
+
+-- Example: Users can only edit their own tasks
+CREATE POLICY "Users can edit own tasks" ON tasks
+FOR UPDATE USING (auth.uid()::text = assigned_to);
+```
+
+### Monitoring
+- Use Supabase dashboard for query performance
+- Monitor RLS policy effectiveness
+- Track API usage and limits
+
+## 🆘 Troubleshooting
 
 ### Common Issues
 
-1. **"Invalid API key"**: Check your `.env.local` file
-2. **"Table doesn't exist"**: Run the SQL commands in order
-3. **"RLS policy violation"**: Check your RLS policies
-4. **"Connection timeout"**: Verify your project URL
+1. **"Invalid API key"**
+   - Check `.env.local` file
+   - Verify environment variables are loaded
+   - Restart development server
+
+2. **"Table doesn't exist"**
+   - Run the schema SQL in Supabase dashboard
+   - Check table names match exactly
+   - Verify RLS policies
+
+3. **"RLS policy violation"**
+   - Check RLS policies in Supabase dashboard
+   - Verify user authentication
+   - Test with basic policies first
+
+4. **"Connection timeout"**
+   - Verify Supabase project is active
+   - Check network connectivity
+   - Verify project URL is correct
 
 ### Getting Help
 
@@ -163,14 +318,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 - [Supabase Discord](https://discord.supabase.com)
 - [GitHub Issues](https://github.com/supabase/supabase/issues)
 
-## 9. Next Steps
+## 🎯 Next Steps
 
-Once Supabase is working:
+1. **Set up authentication** with Supabase Auth
+2. **Customize RLS policies** for your use case
+3. **Add real-time subscriptions** for live updates
+4. **Implement file storage** for attachments
+5. **Set up edge functions** for custom logic
 
-1. **Add authentication** for user management
-2. **Implement real-time subscriptions** for live updates
-3. **Add file storage** for attachments
-4. **Set up edge functions** for custom logic
-5. **Configure backups** and monitoring
-
-Your Kanban app is now powered by a production-ready PostgreSQL database! 🎉 
+Your Kanban app now has a production-ready, type-safe database with comprehensive features! 🎉 
