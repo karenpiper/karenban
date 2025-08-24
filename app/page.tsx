@@ -12,6 +12,7 @@ interface Task {
   category: string
   priority: "low" | "medium" | "high"
   projectId?: string
+  personId?: string
   createdAt: Date
   notes?: string
 }
@@ -41,6 +42,11 @@ export default function HomePage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+  const [people, setPeople] = useState<{ id: string; name: string }[]>([
+    { id: "john-smith", name: "John Smith" },
+    { id: "sarah-johnson", name: "Sarah Johnson" },
+    { id: "mike-davis", name: "Mike Davis" }
+  ])
   const [currentView, setCurrentView] = useState<"today" | "thisWeek" | "assignees" | "projects" | "admin">("today")
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
@@ -49,6 +55,7 @@ export default function HomePage() {
     const savedTasks = localStorage.getItem("kanban-tasks")
     const savedProjects = localStorage.getItem("kanban-projects")
     const savedTeamMembers = localStorage.getItem("team-members")
+    const savedPeople = localStorage.getItem("people")
 
     if (savedTasks) {
       setTasks(JSON.parse(savedTasks))
@@ -58,6 +65,9 @@ export default function HomePage() {
     }
     if (savedTeamMembers) {
       setTeamMembers(JSON.parse(savedTeamMembers))
+    }
+    if (savedPeople) {
+      setPeople(JSON.parse(savedPeople))
     }
   }, [])
 
@@ -74,6 +84,10 @@ export default function HomePage() {
     localStorage.setItem("team-members", JSON.stringify(teamMembers))
   }, [teamMembers])
 
+  useEffect(() => {
+    localStorage.setItem("people", JSON.stringify(people))
+  }, [people])
+
   // Get current day name
   const getCurrentDayName = () => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -83,7 +97,7 @@ export default function HomePage() {
   const todayColumns = [
     { id: "uncategorized", title: "Uncategorized", color: "bg-gray-400" },
     { id: "today", title: `${getCurrentDayName()} (Today)`, color: "bg-blue-400", hasCategories: true },
-    { id: "delegated", title: "Follow-up", color: "bg-red-400", hasCategories: true },
+    { id: "delegated", title: "Follow-up", color: "bg-red-400", hasPeople: true },
     { id: "later", title: "Later", color: "bg-purple-400" },
     { id: "completed", title: "Completed", color: "bg-green-400" },
   ]
@@ -91,7 +105,7 @@ export default function HomePage() {
   const thisWeekColumns = [
     { id: "uncategorized", title: "Uncategorized", color: "bg-gray-400" },
     { id: "today", title: `${getCurrentDayName()} (Today)`, color: "bg-blue-400", hasCategories: true },
-    { id: "delegated", title: "Follow-up", color: "bg-red-400", hasCategories: true },
+    { id: "delegated", title: "Follow-up", color: "bg-red-400", hasPeople: true },
     { id: "saturday", title: "Saturday", color: "bg-indigo-400", hasCategories: true },
     { id: "sunday", title: "Sunday", color: "bg-pink-400", hasCategories: true },
     { id: "monday", title: "Monday", color: "bg-teal-400", hasCategories: true },
@@ -110,13 +124,14 @@ export default function HomePage() {
     return tasks.filter((task) => task.status === status && task.category === category)
   }
 
-  const addTask = (columnId: string) => {
+  const addTask = (columnId: string, category?: string, personId?: string) => {
     const newTask: Task = {
       id: Date.now().toString(),
       title: "New Task",
       description: "",
       status: columnId as Task["status"],
-      category: "",
+      category: category || "",
+      personId: personId || undefined,
       priority: "medium",
       createdAt: new Date(),
     }
@@ -127,7 +142,7 @@ export default function HomePage() {
     setTasks(prev => prev.filter(task => task.id !== taskId))
   }
 
-  const renderColumn = (column: { id: string; title: string; color: string; hasCategories?: boolean }) => {
+  const renderColumn = (column: { id: string; title: string; color: string; hasCategories?: boolean; hasPeople?: boolean }) => {
     // Get tasks for this column - this will update when state changes
     const columnTasks = getTasksByStatus(column.id as Task["status"])
     
@@ -140,6 +155,9 @@ export default function HomePage() {
         const bigTasks = getTasksByStatusAndCategory(column.id as Task["status"], "big-tasks").length
         const done = getTasksByStatusAndCategory(column.id as Task["status"], "done").length
         return standing + comms + bigTasks + done
+      } else if (column.hasPeople) {
+        // For people columns, count all tasks across all people
+        return tasks.filter(task => task.status === column.id).length
       } else {
         // For regular columns, count all tasks
         return columnTasks.length
@@ -176,6 +194,10 @@ export default function HomePage() {
                 if (column.hasCategories && !updatedTask.category) {
                   updatedTask.category = "standing"
                 }
+                // If moving to a people column and task has no personId, assign to first person
+                if (column.hasPeople && !updatedTask.personId && people.length > 0) {
+                  updatedTask.personId = people[0].id
+                }
                 return updatedTask
               }
               return task
@@ -211,7 +233,173 @@ export default function HomePage() {
         </div>
         
         <div style={{ marginBottom: '8px', maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' }}>
-          {column.hasCategories ? (
+          {column.hasPeople ? (
+            // Render people categories for Follow-up column
+            <>
+              {people.map((person) => (
+                <div key={person.id} style={{ marginBottom: '16px' }}>
+                  {/* Person Header */}
+                  <div style={{ 
+                    fontSize: '11px', 
+                    color: '#6b7280', 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '0.5px',
+                    marginBottom: '8px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <span>{person.name}</span>
+                    <button
+                      onClick={() => deletePerson(person.id)}
+                      style={{
+                        fontSize: '9px',
+                        color: '#9ca3af',
+                        cursor: 'pointer',
+                        border: 'none',
+                        background: 'none',
+                        padding: '1px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = '#ef4444'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = '#9ca3af'
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  
+                  {/* Tasks for this person */}
+                  {tasks.filter(task => task.status === column.id && task.personId === person.id).map((task) => (
+                    <div
+                      key={task.id}
+                      style={{
+                        padding: '8px',
+                        marginBottom: '4px',
+                        cursor: 'grab',
+                        transition: 'all 0.2s ease',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(16px)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '12px',
+                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'
+                        e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.1)'
+                        e.currentTarget.style.transform = 'translateY(-1px)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                        e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.06)'
+                        e.currentTarget.style.transform = 'translateY(0)'
+                      }}
+                      draggable={true}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', task.id)
+                        e.currentTarget.style.opacity = '0.5'
+                      }}
+                      onDragEnd={(e) => {
+                        e.currentTarget.style.opacity = '1'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
+                        <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
+                        <button
+                          onClick={() => deleteTask(task.id)}
+                          style={{
+                            fontSize: '10px',
+                            color: '#9ca3af',
+                            cursor: 'pointer',
+                            border: 'none',
+                            background: 'none',
+                            padding: '1px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = '#ef4444'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = '#9ca3af'
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                      {task.description && (
+                        <p style={{ fontSize: '10px', color: '#6b7280', marginBottom: '4px' }}>{task.description}</p>
+                      )}
+                      <span style={{
+                        fontSize: '9px',
+                        color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#d97706' : '#059669',
+                        backgroundColor: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : '#f0fdf4',
+                        padding: '1px 4px',
+                        borderRadius: '9999px',
+                        fontWeight: '500'
+                      }}>
+                        {task.priority}
+                      </span>
+                    </div>
+                  ))}
+                  
+                  {/* Add Task button for this person */}
+                  <button
+                    onClick={() => addTask(column.id, "", person.id)}
+                    style={{
+                      width: '100%',
+                      padding: '6px',
+                      fontSize: '10px',
+                      color: '#6b7280',
+                      backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                      border: '1px dashed #d1d5db',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                      e.currentTarget.style.borderColor = '#9ca3af'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
+                      e.currentTarget.style.borderColor = '#d1d5db'
+                    }}
+                  >
+                    + Add Task for {person.name}
+                  </button>
+                </div>
+              ))}
+              
+              {/* Add Person button */}
+              <button
+                onClick={addPerson}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  fontSize: '13px',
+                  color: '#6b7280',
+                  backgroundColor: 'transparent',
+                  border: '1px dashed rgba(156, 163, 175, 0.6)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  marginTop: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
+                  e.currentTarget.style.color = '#111827'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = '#6b7280'
+                }}
+              >
+                + Add Person
+              </button>
+            </>
+          ) : column.hasCategories ? (
             // Render categories for day columns
             <>
               {/* Standing Tasks Category */}
@@ -776,7 +964,7 @@ export default function HomePage() {
         </div>
 
         <button
-          onClick={() => addTask(column.id)}
+          onClick={() => column.hasPeople ? addPerson() : addTask(column.id)}
           style={{
             width: '100%',
             padding: '8px',
@@ -797,7 +985,7 @@ export default function HomePage() {
             e.currentTarget.style.color = '#6b7280'
           }}
         >
-          + Add Task
+          {column.hasPeople ? '+ Add Person' : '+ Add Task'}
         </button>
       </div>
     )
@@ -836,6 +1024,27 @@ export default function HomePage() {
 
   const deleteTeamMember = (memberId: string) => {
     setTeamMembers(prev => prev.filter(member => member.id !== memberId))
+  }
+
+  const addPerson = () => {
+    const newPerson = {
+      id: `person-${Date.now()}`,
+      name: `New Person ${people.length + 1}`
+    }
+    setPeople(prev => [...prev, newPerson])
+  }
+
+  const deletePerson = (personId: string) => {
+    // Remove the person
+    setPeople(prev => prev.filter(person => person.id !== personId))
+    // Remove all tasks associated with this person
+    setTasks(prev => prev.filter(task => task.personId !== personId))
+  }
+
+  const updatePersonName = (personId: string, newName: string) => {
+    setPeople(prev => prev.map(person => 
+      person.id === personId ? { ...person, name: newName } : person
+    ))
   }
 
   const renderAdminView = () => (
