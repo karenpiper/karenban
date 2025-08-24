@@ -565,7 +565,7 @@ export default function HomePage() {
     ]
 
     const newMember = {
-      id: memberData?.id || name.toLowerCase().replace(/\s+/g, "-"),
+      id: name.toLowerCase().replace(/\s+/g, "-"),
       title: name,
       color: memberData?.color || colors[teamMembers.length % colors.length],
       email: memberData?.email,
