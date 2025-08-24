@@ -898,7 +898,7 @@ export default function HomePage() {
                                   {getTasksByStatus(column.id as Task["status"]).length}
                                 </span>
                               </div>
-                              {column.id === "delegated" ? (
+                              {column.hasTeamMembers ? (
                                 <Button
                                   size="sm"
                                   variant="ghost"
