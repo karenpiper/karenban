@@ -1296,6 +1296,50 @@ export default function HomePage() {
           />
         </div>
       )}
+
+      {/* Team Member Form Modal */}
+      {showAddMember && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-8 w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-semibold mb-6 text-gray-900">Add Team Member</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Team Member Name</label>
+                <Input
+                  placeholder="Enter team member name"
+                  value={newMemberName}
+                  onChange={(e) => setNewMemberName(e.target.value)}
+                  className="border-gray-300"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      addTeamMember()
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-8">
+              <Button
+                onClick={addTeamMember}
+                disabled={!newMemberName.trim()}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                Add Team Member
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowAddMember(false)
+                  setNewMemberName("")
+                }} 
+                className="border-gray-300 bg-transparent"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
