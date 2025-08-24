@@ -125,15 +125,7 @@ export default function HomePage() {
     const columnTasks = getTasksByStatus(column.id as Task["status"])
     
     return (
-      <div key={column.id} style={{
-        minWidth: '240px',
-        backdropFilter: 'blur(16px)',
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        borderRadius: '16px',
-        padding: '12px',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-      }}>
+      <div key={column.id} className="glass-column min-w-[240px] p-3">
         <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{
@@ -165,21 +157,7 @@ export default function HomePage() {
           {columnTasks.map((task) => (
             <div
               key={task.id}
-              style={{
-                backdropFilter: 'blur(16px)',
-                backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                borderRadius: '8px',
-                padding: '10px',
-                marginBottom: '6px',
-                transition: 'all 0.2s ease',
-                cursor: 'pointer'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.9)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.7)'
-              }}
+              className="glass-card p-2.5 mb-1.5 cursor-pointer transition-all duration-200 hover:glass-card-hover"
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
                 <h4 style={{ fontSize: '13px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>

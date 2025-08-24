@@ -183,69 +183,77 @@
   }
 }
 
-/* Glass Morphism Utilities */
+/* Glass Morphism Utilities - Perfect for Task Cards */
 @layer utilities {
+  /* Base glass effect - matches your reference image exactly */
   .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl;
+    @apply bg-white/70 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg shadow-black/5;
   }
   
+  /* Dark glass variant */
   .glass-dark {
-    @apply bg-black/10 backdrop-blur-md border border-white/10 shadow-xl;
+    @apply bg-gray-900/70 backdrop-blur-md border border-gray-700/20 rounded-2xl shadow-lg shadow-black/10;
   }
   
+  /* Task card glass effect - the main one you'll use */
   .glass-card {
-    @apply bg-white/20 backdrop-blur-lg border border-white/30 rounded-2xl shadow-2xl;
+    @apply bg-white/80 backdrop-blur-lg border border-white/30 rounded-2xl shadow-xl shadow-black/8;
   }
   
-  .glass-card-dark {
-    @apply bg-black/20 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl;
+  /* Hover state for task cards */
+  .glass-card-hover {
+    @apply bg-white/90 backdrop-blur-xl border border-white/40 rounded-2xl shadow-2xl shadow-black/12;
   }
   
+  /* Column glass effect */
+  .glass-column {
+    @apply bg-white/60 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg shadow-black/5;
+  }
+  
+  /* Navbar glass effect */
   .glass-navbar {
-    @apply bg-white/80 backdrop-blur-xl border-b border-white/30 shadow-lg;
+    @apply bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-lg shadow-black/5;
   }
   
-  .glass-navbar-dark {
-    @apply bg-black/80 backdrop-blur-xl border-b border-white/20 shadow-lg;
+  /* Sidebar glass effect */
+  .glass-sidebar {
+    @apply bg-gray-900/90 backdrop-blur-xl border-r border-gray-700/20 shadow-xl shadow-black/10;
   }
   
+  /* Input glass effect */
   .glass-input {
-    @apply bg-white/30 backdrop-blur-sm border border-white/40 rounded-xl shadow-sm;
+    @apply bg-white/50 backdrop-blur-sm border border-white/30 rounded-xl shadow-sm shadow-black/3;
   }
   
-  .glass-input-dark {
-    @apply bg-black/30 backdrop-blur-sm border border-white/30 rounded-xl shadow-sm;
-  }
-  
+  /* Button glass effect */
   .glass-button {
-    @apply bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-md hover:bg-white/30 transition-all duration-200;
+    @apply bg-white/60 backdrop-blur-md border border-white/30 rounded-xl shadow-md shadow-black/5 hover:bg-white/80 transition-all duration-200;
   }
   
-  .glass-button-dark {
-    @apply bg-black/20 backdrop-blur-md border border-white/20 rounded-xl shadow-md hover:bg-black/30 transition-all duration-200;
-  }
-  
+  /* Hairline borders - ultra-thin borders */
   .hairline-border {
     @apply border border-white/20;
   }
   
   .hairline-border-dark {
-    @apply border border-white/10;
+    @apply border border-gray-700/20;
   }
   
+  /* Soft shadows - subtle depth */
   .soft-shadow {
-    @apply shadow-[0_8px_32px_rgba(0,0,0,0.1)];
+    @apply shadow-[0_4px_20px_rgba(0,0,0,0.08)];
   }
   
-  .soft-shadow-dark {
-    @apply shadow-[0_8px_32px_rgba(0,0,0,0.3)];
+  .soft-shadow-hover {
+    @apply shadow-[0_8px_30px_rgba(0,0,0,0.12)];
   }
   
+  /* Glass glow effects */
   .glass-glow {
-    @apply shadow-[0_0_20px_rgba(255,255,255,0.1)];
+    @apply shadow-[0_0_20px_rgba(255,255,255,0.15)];
   }
   
   .glass-glow-dark {
-    @apply shadow-[0_0_20px_rgba(0,0,0,0.2)];
+    @apply shadow-[0_0_20px_rgba(139,92,246,0.2)];
   }
 }
