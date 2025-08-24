@@ -74,9 +74,15 @@ export default function HomePage() {
     localStorage.setItem("team-members", JSON.stringify(teamMembers))
   }, [teamMembers])
 
+  // Get current day name
+  const getCurrentDayName = () => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    return days[new Date().getDay()]
+  }
+
   const todayColumns = [
     { id: "uncategorized", title: "Uncategorized", color: "bg-gray-400" },
-    { id: "today", title: "Friday (Today)", color: "bg-blue-400" },
+    { id: "today", title: `${getCurrentDayName()} (Today)`, color: "bg-blue-400", hasCategories: true },
     { id: "delegated", title: "Blocked", color: "bg-red-400" },
     { id: "later", title: "Later", color: "bg-purple-400" },
     { id: "completed", title: "Completed", color: "bg-green-400" },
@@ -84,14 +90,14 @@ export default function HomePage() {
 
   const thisWeekColumns = [
     { id: "uncategorized", title: "Uncategorized", color: "bg-gray-400" },
-    { id: "today", title: "Today", color: "bg-blue-400" },
+    { id: "today", title: `${getCurrentDayName()} (Today)`, color: "bg-blue-400", hasCategories: true },
     { id: "delegated", title: "Delegated", color: "bg-red-400" },
-    { id: "saturday", title: "Saturday", color: "bg-indigo-400" },
-    { id: "sunday", title: "Sunday", color: "bg-pink-400" },
-    { id: "monday", title: "Monday", color: "bg-teal-400" },
-    { id: "tuesday", title: "Tuesday", color: "bg-orange-400" },
-    { id: "wednesday", title: "Wednesday", color: "bg-cyan-400" },
-    { id: "thursday", title: "Thursday", color: "bg-lime-400" },
+    { id: "saturday", title: "Saturday", color: "bg-indigo-400", hasCategories: true },
+    { id: "sunday", title: "Sunday", color: "bg-pink-400", hasCategories: true },
+    { id: "monday", title: "Monday", color: "bg-teal-400", hasCategories: true },
+    { id: "tuesday", title: "Tuesday", color: "bg-orange-400", hasCategories: true },
+    { id: "wednesday", title: "Wednesday", color: "bg-cyan-400", hasCategories: true },
+    { id: "thursday", title: "Thursday", color: "bg-lime-400", hasCategories: true },
     { id: "later", title: "Later", color: "bg-purple-400" },
     { id: "completed", title: "Completed", color: "bg-green-400" },
   ]
@@ -182,130 +188,568 @@ export default function HomePage() {
         </div>
         
         <div style={{ marginBottom: '8px', maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' }}>
-          {columnTasks.map((task) => (
-            <div
-              key={task.id}
-              style={{
-                padding: '10px',
-                marginBottom: '6px',
-                cursor: 'grab',
-                transition: 'all 0.2s ease',
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '16px',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'
-                e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.12)'
-                e.currentTarget.style.transform = 'translateY(-2px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
-                e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)'
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
-              draggable={true}
-              onDragStart={(e) => {
-                e.dataTransfer.setData('text/plain', task.id)
-                e.currentTarget.style.opacity = '0.5'
-              }}
-              onDragEnd={(e) => {
-                e.currentTarget.style.opacity = '1'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
+          {column.hasCategories ? (
+            // Render categories for day columns
+            <>
+              {/* Standing Tasks Category */}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ 
+                  fontSize: '11px', 
+                  color: '#6b7280', 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '0.5px',
+                  marginBottom: '6px',
+                  fontWeight: '600'
+                }}>
+                  Standing
+                </div>
+                {getTasksByStatusAndCategory(column.id as Task["status"], "standing").map((task) => (
+                  <div
+                    key={task.id}
+                    style={{
+                      padding: '8px',
+                      marginBottom: '4px',
+                      cursor: 'grab',
+                      transition: 'all 0.2s ease',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      backdropFilter: 'blur(16px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '12px',
+                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'
+                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.1)'
+                      e.currentTarget.style.transform = 'translateY(-1px)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                      e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.06)'
+                      e.currentTarget.style.transform = 'translateY(0)'
+                    }}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', task.id)
+                      e.currentTarget.style.opacity = '0.5'
+                    }}
+                    onDragEnd={(e) => {
+                      e.currentTarget.style.opacity = '1'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
+                      <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
+                      <button
+                        onClick={() => deleteTask(task.id)}
+                        style={{
+                          fontSize: '10px',
+                          color: '#9ca3af',
+                          cursor: 'pointer',
+                          border: 'none',
+                          background: 'none',
+                          padding: '1px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#ef4444'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#9ca3af'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    {task.description && (
+                      <p style={{ fontSize: '10px', color: '#6b7280', marginBottom: '4px' }}>{task.description}</p>
+                    )}
+                    <span style={{
+                      fontSize: '9px',
+                      color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#d97706' : '#059669',
+                      backgroundColor: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : '#f0fdf4',
+                      padding: '1px 4px',
+                      borderRadius: '9999px',
+                      fontWeight: '500'
+                    }}>
+                      {task.priority}
+                    </span>
+                  </div>
+                ))}
                 <button
-                  onClick={() => deleteTask(task.id)}
+                  onClick={() => addTask(column.id)}
                   style={{
-                    fontSize: '12px',
-                    color: '#9ca3af',
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '10px',
+                    color: '#6b7280',
+                    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                    border: '1px dashed #d1d5db',
+                    borderRadius: '8px',
                     cursor: 'pointer',
-                    border: 'none',
-                    background: 'none',
-                    padding: '2px'
+                    transition: 'all 0.2s ease'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.color = '#ef4444'
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                    e.currentTarget.style.borderColor = '#9ca3af'
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.color = '#9ca3af'
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
+                    e.currentTarget.style.borderColor = '#d1d5db'
                   }}
                 >
-                  ×
+                  + Add Standing Task
                 </button>
               </div>
-              {task.description && (
-                <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>{task.description}</p>
-              )}
-              
-              {/* Category Tags */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
-                <span style={{
-                  fontSize: '10px',
-                  color: '#ea580c',
-                  backgroundColor: '#fff7ed',
-                  padding: '2px 6px',
-                  borderRadius: '9999px',
-                  fontWeight: '600',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
+
+              {/* Comms Category */}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ 
+                  fontSize: '11px', 
+                  color: '#6b7280', 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '0.5px',
+                  marginBottom: '6px',
+                  fontWeight: '600'
                 }}>
-                  Standing Tasks
-                </span>
-                <span style={{
-                  fontSize: '10px',
-                  color: '#2563eb',
-                  backgroundColor: '#eff6ff',
-                  padding: '2px 6px',
-                  borderRadius: '9999px',
-                  fontWeight: '500'
-                }}>
-                  Email
-                </span>
-                <span style={{
-                  fontSize: '10px',
-                  color: '#059669',
-                  backgroundColor: '#f0fdf4',
-                  padding: '2px 6px',
-                  borderRadius: '9999px',
-                  fontWeight: '500'
-                }}>
-                  Development
-                </span>
+                  Comms
+                </div>
+                {getTasksByStatusAndCategory(column.id as Task["status"], "comms").map((task) => (
+                  <div
+                    key={task.id}
+                    style={{
+                      padding: '8px',
+                      marginBottom: '4px',
+                      cursor: 'grab',
+                      transition: 'all 0.2s ease',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      backdropFilter: 'blur(16px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '12px',
+                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'
+                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.1)'
+                      e.currentTarget.style.transform = 'translateY(-1px)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                      e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.06)'
+                      e.currentTarget.style.transform = 'translateY(0)'
+                    }}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', task.id)
+                      e.currentTarget.style.opacity = '0.5'
+                    }}
+                    onDragEnd={(e) => {
+                      e.currentTarget.style.opacity = '1'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
+                      <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
+                      <button
+                        onClick={() => deleteTask(task.id)}
+                        style={{
+                          fontSize: '10px',
+                          color: '#9ca3af',
+                          cursor: 'pointer',
+                          border: 'none',
+                          background: 'none',
+                          padding: '1px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#ef4444'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#9ca3af'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    {task.description && (
+                      <p style={{ fontSize: '10px', color: '#6b7280', marginBottom: '4px' }}>{task.description}</p>
+                    )}
+                    <span style={{
+                      fontSize: '9px',
+                      color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#d97706' : '#059669',
+                      backgroundColor: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : '#f0fdf4',
+                      padding: '1px 4px',
+                      borderRadius: '9999px',
+                      fontWeight: '500'
+                    }}>
+                      {task.priority}
+                    </span>
+                  </div>
+                ))}
+                <button
+                  onClick={() => addTask(column.id)}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '10px',
+                    color: '#6b7280',
+                    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                    border: '1px dashed #d1d5db',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                    e.currentTarget.style.borderColor = '#9ca3af'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
+                    e.currentTarget.style.borderColor = '#d1d5db'
+                  }}
+                >
+                  + Add Comms Task
+                </button>
               </div>
-              
-              {/* Priority Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{
-                  padding: '2px 6px',
-                  borderRadius: '9999px',
-                  fontSize: '11px',
-                  fontWeight: '600',
-                  backgroundColor: task.priority === "high" ? '#fef2f2' : 
-                                 task.priority === "medium" ? '#fffbeb' : '#f0fdf4',
-                  color: task.priority === "high" ? '#dc2626' : 
-                         task.priority === "medium" ? '#d97706' : '#16a34a'
+
+              {/* Big Tasks Category */}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ 
+                  fontSize: '11px', 
+                  color: '#6b7280', 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '0.5px',
+                  marginBottom: '6px',
+                  fontWeight: '600'
                 }}>
-                  {task.priority}
-                </span>
-                {task.projectId && (
+                  Big Tasks
+                </div>
+                {getTasksByStatusAndCategory(column.id as Task["status"], "big-tasks").map((task) => (
+                  <div
+                    key={task.id}
+                    style={{
+                      padding: '8px',
+                      marginBottom: '4px',
+                      cursor: 'grab',
+                      transition: 'all 0.2s ease',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      backdropFilter: 'blur(16px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '12px',
+                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'
+                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.1)'
+                      e.currentTarget.style.transform = 'translateY(-1px)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                      e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.06)'
+                      e.currentTarget.style.transform = 'translateY(0)'
+                    }}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', task.id)
+                      e.currentTarget.style.opacity = '0.5'
+                    }}
+                    onDragEnd={(e) => {
+                      e.currentTarget.style.opacity = '1'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
+                      <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
+                      <button
+                        onClick={() => deleteTask(task.id)}
+                        style={{
+                          fontSize: '10px',
+                          color: '#9ca3af',
+                          cursor: 'pointer',
+                          border: 'none',
+                          background: 'none',
+                          padding: '1px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#ef4444'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#9ca3af'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    {task.description && (
+                      <p style={{ fontSize: '10px', color: '#6b7280', marginBottom: '4px' }}>{task.description}</p>
+                    )}
+                    <span style={{
+                      fontSize: '9px',
+                      color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#d97706' : '#059669',
+                      backgroundColor: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : '#f0fdf4',
+                      padding: '1px 4px',
+                      borderRadius: '9999px',
+                      fontWeight: '500'
+                    }}>
+                      {task.priority}
+                    </span>
+                  </div>
+                ))}
+                <button
+                  onClick={() => addTask(column.id)}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '10px',
+                    color: '#6b7280',
+                    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                    border: '1px dashed #d1d5db',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                    e.currentTarget.style.borderColor = '#9ca3af'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
+                    e.currentTarget.style.borderColor = '#d1d5db'
+                  }}
+                >
+                  + Add Big Task
+                </button>
+              </div>
+
+              {/* Done Category */}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ 
+                  fontSize: '11px', 
+                  color: '#6b7280', 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '0.5px',
+                  marginBottom: '6px',
+                  fontWeight: '600'
+                }}>
+                  Done
+                </div>
+                {getTasksByStatusAndCategory(column.id as Task["status"], "done").map((task) => (
+                  <div
+                    key={task.id}
+                    style={{
+                      padding: '8px',
+                      marginBottom: '4px',
+                      cursor: 'grab',
+                      transition: 'all 0.2s ease',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      backdropFilter: 'blur(16px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '12px',
+                      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'
+                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.1)'
+                      e.currentTarget.style.transform = 'translateY(-1px)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                      e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.06)'
+                      e.currentTarget.style.transform = 'translateY(0)'
+                    }}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', task.id)
+                      e.currentTarget.style.opacity = '0.5'
+                    }}
+                    onDragEnd={(e) => {
+                      e.currentTarget.style.opacity = '1'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
+                      <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
+                      <button
+                        onClick={() => deleteTask(task.id)}
+                        style={{
+                          fontSize: '10px',
+                          color: '#9ca3af',
+                          cursor: 'pointer',
+                          border: 'none',
+                          background: 'none',
+                          padding: '1px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#ef4444'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#9ca3af'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    {task.description && (
+                      <p style={{ fontSize: '10px', color: '#6b7280', marginBottom: '4px' }}>{task.description}</p>
+                    )}
+                    <span style={{
+                      fontSize: '9px',
+                      color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#d97706' : '#059669',
+                      backgroundColor: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : '#f0fdf4',
+                      padding: '1px 4px',
+                      borderRadius: '9999px',
+                      fontWeight: '500'
+                    }}>
+                      {task.priority}
+                    </span>
+                  </div>
+                ))}
+                <button
+                  onClick={() => addTask(column.id)}
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    fontSize: '10px',
+                    color: '#6b7280',
+                    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                    border: '1px dashed #d1d5db',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                    e.currentTarget.style.borderColor = '#9ca3af'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
+                    e.currentTarget.style.borderColor = '#d1d5db'
+                  }}
+                >
+                  + Add Done Task
+                </button>
+              </div>
+            </>
+          ) : (
+            // Render regular tasks for non-day columns
+            columnTasks.map((task) => (
+              <div
+                key={task.id}
+                style={{
+                  padding: '10px',
+                  marginBottom: '6px',
+                  cursor: 'grab',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  backdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '16px',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'
+                  e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.12)'
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                }}
+                draggable={true}
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('text/plain', task.id)
+                  e.currentTarget.style.opacity = '0.5'
+                }}
+                onDragEnd={(e) => {
+                  e.currentTarget.style.opacity = '1'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <h4 style={{ fontSize: '13px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    style={{
+                      fontSize: '12px',
+                      color: '#9ca3af',
+                      cursor: 'pointer',
+                      border: 'none',
+                      background: 'none',
+                      padding: '2px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#ef4444'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = '#9ca3af'
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+                {task.description && (
+                  <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>{task.description}</p>
+                )}
+                
+                {/* Category Tags */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px' }}>
                   <span style={{
-                    fontSize: '11px',
-                    color: '#7c3aed',
-                    backgroundColor: '#f3f4f6',
+                    fontSize: '10px',
+                    color: '#ea580c',
+                    backgroundColor: '#fff7ed',
+                    padding: '2px 6px',
+                    borderRadius: '9999px',
+                    fontWeight: '600',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    Standing Tasks
+                  </span>
+                  <span style={{
+                    fontSize: '10px',
+                    color: '#2563eb',
+                    backgroundColor: '#eff6ff',
                     padding: '2px 6px',
                     borderRadius: '9999px',
                     fontWeight: '500'
                   }}>
-                    Project
+                    Email
                   </span>
-                )}
+                  <span style={{
+                    fontSize: '10px',
+                    color: '#059669',
+                    backgroundColor: '#f0fdf4',
+                    padding: '2px 6px',
+                    borderRadius: '9999px',
+                    fontWeight: '500'
+                  }}>
+                    Development
+                  </span>
+                </div>
+                
+                {/* Priority Badge */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{
+                    padding: '2px 6px',
+                    borderRadius: '9999px',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    backgroundColor: task.priority === "high" ? '#fef2f2' : 
+                                   task.priority === "medium" ? '#fffbeb' : '#f0fdf4',
+                    color: task.priority === "high" ? '#dc2626' : 
+                           task.priority === "medium" ? '#d97706' : '#16a34a'
+                  }}>
+                    {task.priority}
+                  </span>
+                  {task.projectId && (
+                    <span style={{
+                      fontSize: '11px',
+                      color: '#7c3aed',
+                      backgroundColor: '#f3f4f6',
+                      padding: '2px 6px',
+                      borderRadius: '9999px',
+                      fontWeight: '500'
+                    }}>
+                      Project
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         {column.id === "delegated" ? (
