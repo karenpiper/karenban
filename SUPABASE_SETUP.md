@@ -1,5 +1,13 @@
 # Supabase Setup Instructions
 
+## Prerequisites
+
+First, install the required dependencies:
+
+```bash
+npm install @supabase/supabase-js @supabase/auth-helpers-nextjs
+```
+
 ## Environment Variables
 
 Create a `.env.local` file in your project root with the following variables:
@@ -32,4 +40,15 @@ The following tables will be created in your Supabase project:
 ## Authentication
 
 This setup uses cookie-based authentication with automatic session refresh.
-The middleware will handle session management automatically. 
+The middleware will handle session management automatically.
+
+## Missing Files
+
+The following files were removed to fix build issues and need to be recreated after dependencies are installed:
+
+- `lib/supabase/client.ts` - Supabase client configuration
+- `lib/supabase/server.ts` - Supabase server configuration  
+- `middleware.ts` - Auth middleware
+- `app/dev/supa-test/page.tsx` - Test page
+
+These files are available in the git history and can be restored once the build is working. 
