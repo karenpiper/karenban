@@ -169,26 +169,11 @@ export default function HomePage() {
     localStorage.setItem("saved-views", JSON.stringify(savedViews))
   }, [savedViews])
 
-  // Cleanup any lingering drag previews when drag state changes
-  useEffect(() => {
-    if (!isDragging) {
-      // Small delay to ensure drag preview has time to unmount
-      const timer = setTimeout(() => {
-        const lingeringPreviews = document.querySelectorAll('[data-drag-preview]')
-        lingeringPreviews.forEach(el => el.remove())
-      }, 100)
-      
-      return () => clearTimeout(timer)
-    }
-  }, [isDragging])
+
 
   // Global drag end listener to catch any missed drag end events
   useEffect(() => {
     const handleGlobalDragEnd = () => {
-      // Force cleanup of any lingering drag previews
-      const lingeringPreviews = document.querySelectorAll('[data-drag-preview]')
-      lingeringPreviews.forEach(el => el.remove())
-      
       // Reset drag state if it's somehow still active
       if (isDragging) {
         setDraggedTask(null)
@@ -230,7 +215,7 @@ export default function HomePage() {
   }
 
   const handleDragEnd = (e: React.DragEvent) => {
-    // Immediately clear all drag state
+    // Clear all drag state
     setDraggedTask(null)
     setIsDragging(false)
     setDragOverColumn(null)
@@ -245,10 +230,6 @@ export default function HomePage() {
       e.currentTarget.style.opacity = '1'
       e.currentTarget.style.transform = 'none'
     }
-    
-    // Force cleanup of any lingering drag preview elements
-    const lingeringPreviews = document.querySelectorAll('[data-drag-preview]')
-    lingeringPreviews.forEach(el => el.remove())
   }
 
   const handleDragOver = (e: React.DragEvent, columnId: string, category?: string) => {
