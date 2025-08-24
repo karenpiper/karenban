@@ -618,36 +618,14 @@ export default function HomePage() {
     const columns = currentView === "today" ? todayColumns : thisWeekColumns
     
     return (
-      <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
-        <div style={{ display: 'flex', gap: '16px', paddingBottom: '16px', alignItems: 'flex-start' }}>
+      <div className="flex-1 overflow-auto p-4">
+        <div className="flex gap-4 pb-4 items-start">
           {columns.map(renderColumn)}
           
           {/* Add Column Button */}
-          <div style={{
-            minWidth: '240px',
-            backgroundColor: 'white',
-            border: '2px dashed #d1d5db',
-            borderRadius: '16px',
-            padding: '24px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            marginTop: '40px'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#8b5cf6'
-            e.currentTarget.style.backgroundColor = '#faf5ff'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#d1d5db'
-            e.currentTarget.style.backgroundColor = 'white'
-          }}
-          >
-            <div style={{ fontSize: '24px', color: '#9ca3af', marginBottom: '8px' }}>+</div>
-            <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>Add Column</div>
+          <div className="glass-column min-w-[240px] p-6 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 mt-10 hover:glass-card-hover">
+            <div className="text-2xl text-gray-400 mb-2">+</div>
+            <div className="compact font-medium text-gray-600">Add Column</div>
           </div>
         </div>
       </div>
@@ -655,41 +633,30 @@ export default function HomePage() {
   }
 
     return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #e0e7ff 0%, #ffffff 50%, #e0f2fe 100%)'
-    }}>
-      <div style={{ display: 'flex', height: '100vh' }}>
+    <div className="min-h-screen gradient-bg-indigo-cyan">
+      <div className="flex h-screen">
         {/* Sidebar */}
-        <div style={{
-          backgroundColor: '#1e1b4b',
-          borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-          transition: 'all 0.3s ease',
-          width: sidebarCollapsed ? '56px' : '280px',
-          display: 'flex',
-          flexDirection: 'column',
-          color: 'white',
-          marginLeft: '-1px',
-          marginTop: '-1px'
-        }}>
+        <div className={`glass-sidebar transition-all duration-300 flex flex-col text-white -ml-px -mt-px ${
+          sidebarCollapsed ? 'w-14' : 'w-70'
+        }`}>
           {/* Header Section */}
-          <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <div style={{ width: '20px', height: '20px', backgroundColor: '#8b5cf6', borderRadius: '4px' }}></div>
-              <span style={{ fontSize: '16px', fontWeight: '600', color: 'white' }}>Task Manager</span>
+          <div className="p-5 pb-4 border-b border-white/10">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-5 h-5 bg-purple-500 rounded"></div>
+              <span className="compact-lg font-semibold text-white">Task Manager</span>
             </div>
-            <div style={{ fontSize: '14px', color: '#a1a1aa' }}>Friday Aug 22</div>
+            <div className="compact text-gray-300">Friday Aug 22</div>
           </div>
 
           {/* Stats Section */}
-          <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: 'white' }}>24</div>
-              <div style={{ fontSize: '12px', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Tasks</div>
+          <div className="p-5 border-b border-white/10">
+            <div className="mb-4">
+              <div className="text-2xl font-bold text-white">24</div>
+              <div className="compact-xs text-gray-300 uppercase tracking-wider">Total Tasks</div>
             </div>
             <div>
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#8b5cf6' }}>8</div>
-              <div style={{ fontSize: '12px', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Due Today</div>
+              <div className="text-2xl font-bold text-purple-400">8</div>
+              <div className="compact-xs text-gray-300 uppercase tracking-wider">Due Today</div>
             </div>
           </div>
 
@@ -730,50 +697,32 @@ export default function HomePage() {
           </div>
 
           {/* Views Section */}
-          <div style={{ padding: '20px 16px', flex: 1 }}>
-            <div style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Views</div>
+          <div className="p-5 flex-1">
+            <div className="compact-ultra text-gray-400 uppercase tracking-widest mb-3">Views</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <button
                 onClick={() => setCurrentView("today")}
-                style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  transition: 'all 0.2s ease',
-                  backgroundColor: currentView === "today" ? '#8b5cf6' : 'transparent',
-                  color: currentView === "today" ? 'white' : '#a1a1aa',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
+                className={`w-full text-left p-3 rounded-lg transition-all duration-200 border-none cursor-pointer ${
+                  currentView === "today" ? 'bg-purple-500 text-white' : 'bg-transparent text-gray-300 hover:bg-white/10'
+                }`}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '16px', height: '16px', color: currentView === "today" ? 'white' : '#a1a1aa' }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4">
                     👁️
                   </div>
-                  {!sidebarCollapsed && <span style={{ fontSize: '13px', fontWeight: '500' }}>Today</span>}
+                  {!sidebarCollapsed && <span className="compact font-medium">Today</span>}
                 </div>
               </button>
 
               <button
                 onClick={() => setCurrentView("thisWeek")}
-                style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '12px',
-                  borderRadius: '8px',
-                  transition: 'all 0.2s ease',
-                  backgroundColor: 'transparent',
-                  color: '#a1a1aa',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
+                className="w-full text-left p-3 rounded-lg transition-all duration-200 bg-transparent text-gray-300 hover:bg-white/10 border-none cursor-pointer"
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '16px', height: '16px', color: '#a1a1aa' }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4">
                     📅
                   </div>
-                  {!sidebarCollapsed && <span style={{ fontSize: '13px' }}>My calendar</span>}
+                  {!sidebarCollapsed && <span className="compact">My calendar</span>}
                 </div>
               </button>
 
@@ -850,102 +799,42 @@ export default function HomePage() {
         </div>
 
         {/* Main Content */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
-          <header style={{
-            backgroundColor: 'white',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
-            padding: '20px 24px'
-          }}>
-            <div style={{ marginBottom: '16px' }}>
-              <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#111827', marginBottom: '4px' }}>Task Board</h1>
-              <p style={{ fontSize: '14px', color: '#6b7280' }}>Focus on now and later</p>
+          <header className="glass-navbar p-5">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-1">Task Board</h1>
+              <p className="compact text-gray-600">Focus on now and later</p>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
               {/* Search Bar */}
-              <div style={{ 
-                flex: 1, 
-                maxWidth: '400px',
-                position: 'relative'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  backgroundColor: '#f9fafb',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
-                  gap: '8px'
-                }}>
-                  <span style={{ fontSize: '16px' }}>🔍</span>
+              <div className="flex-1 max-w-md relative">
+                <div className="glass-input flex items-center p-2 gap-2">
+                  <span className="text-base">🔍</span>
                   <input
                     type="text"
                     placeholder="Search tasks, descriptions, or tags..."
-                    style={{
-                      border: 'none',
-                      outline: 'none',
-                      backgroundColor: 'transparent',
-                      fontSize: '14px',
-                      width: '100%',
-                      color: '#374151'
-                    }}
+                    className="border-none outline-none bg-transparent compact w-full text-gray-700 placeholder-gray-500"
                   />
                 </div>
               </div>
               
               {/* Filter Buttons */}
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#f3f4f6',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  color: '#374151',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}>
+              <div className="flex gap-2">
+                <button className="glass-button compact px-4 py-2">
                   All Priority
                 </button>
-                <button style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#f3f4f6',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  color: '#374151',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}>
+                <button className="glass-button compact px-4 py-2">
                   All Assignees
                 </button>
-                <button style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#f3f4f6',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  color: '#374151',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}>
+                <button className="glass-button compact px-4 py-2">
                   This Week
                 </button>
               </div>
               
               {/* Auto-move Button */}
-              <button style={{
-                padding: '8px 16px',
-                backgroundColor: '#8b5cf6',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '13px',
-                color: 'white',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontWeight: '500'
-              }}>
+              <button className="glass-button bg-purple-500 text-white compact px-4 py-2 font-medium">
                 Auto-move
               </button>
             </div>

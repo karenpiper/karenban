@@ -82,7 +82,7 @@
   }
 }
 
-/* Compact sizing */
+/* Compact sizing - Smaller fonts and tighter spacing */
 .compact {
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -96,6 +96,34 @@
 .compact-sm {
   font-size: 0.8125rem;
   line-height: 1.125rem;
+}
+
+.compact-lg {
+  font-size: 0.9375rem;
+  line-height: 1.375rem;
+}
+
+/* Ultra-compact for dense layouts */
+.compact-ultra {
+  font-size: 0.6875rem;
+  line-height: 0.875rem;
+}
+
+/* Modern gradient backgrounds */
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-bg-modern {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+}
+
+.gradient-bg-indigo-cyan {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #4facfe 50%, #00d2ff 100%);
+}
+
+.gradient-bg-subtle {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #cbd5e1 50%, #94a3b8 100%);
 }
 
 /* Custom scrollbar */
