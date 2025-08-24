@@ -169,6 +169,46 @@ export default function HomePage() {
     localStorage.setItem("saved-views", JSON.stringify(savedViews))
   }, [savedViews])
 
+  // Cleanup any lingering drag previews when drag state changes
+  useEffect(() => {
+    if (!isDragging) {
+      // Small delay to ensure drag preview has time to unmount
+      const timer = setTimeout(() => {
+        const lingeringPreviews = document.querySelectorAll('[data-drag-preview]')
+        lingeringPreviews.forEach(el => el.remove())
+      }, 100)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [isDragging])
+
+  // Global drag end listener to catch any missed drag end events
+  useEffect(() => {
+    const handleGlobalDragEnd = () => {
+      // Force cleanup of any lingering drag previews
+      const lingeringPreviews = document.querySelectorAll('[data-drag-preview]')
+      lingeringPreviews.forEach(el => el.remove())
+      
+      // Reset drag state if it's somehow still active
+      if (isDragging) {
+        setDraggedTask(null)
+        setIsDragging(false)
+        setDragOverColumn(null)
+        setDragOverCategory(null)
+        setDragPreview(null)
+        document.body.classList.remove('dragging')
+      }
+    }
+
+    document.addEventListener('dragend', handleGlobalDragEnd)
+    document.addEventListener('drop', handleGlobalDragEnd)
+    
+    return () => {
+      document.removeEventListener('dragend', handleGlobalDragEnd)
+      document.removeEventListener('drop', handleGlobalDragEnd)
+    }
+  }, [isDragging])
+
   // Enhanced drag & drop functions
   const handleDragStart = (e: React.DragEvent, task: Task) => {
     setDraggedTask(task)
@@ -190,6 +230,7 @@ export default function HomePage() {
   }
 
   const handleDragEnd = (e: React.DragEvent) => {
+    // Immediately clear all drag state
     setDraggedTask(null)
     setIsDragging(false)
     setDragOverColumn(null)
@@ -199,9 +240,15 @@ export default function HomePage() {
     // Remove dragging class from body
     document.body.classList.remove('dragging')
     
-    // Reset opacity
-    e.currentTarget.style.opacity = '1'
-    e.currentTarget.style.transform = 'none'
+    // Reset opacity and transform on the dragged element
+    if (e.currentTarget) {
+      e.currentTarget.style.opacity = '1'
+      e.currentTarget.style.transform = 'none'
+    }
+    
+    // Force cleanup of any lingering drag preview elements
+    const lingeringPreviews = document.querySelectorAll('[data-drag-preview]')
+    lingeringPreviews.forEach(el => el.remove())
   }
 
   const handleDragOver = (e: React.DragEvent, columnId: string, category?: string) => {
@@ -1589,15 +1636,18 @@ export default function HomePage() {
     if (!isDragging || !draggedTask || !dragPreview) return null
     
     return (
-      <div style={{
-        position: 'fixed',
-        top: dragPreview.y - 20,
-        left: dragPreview.x - 20,
-        zIndex: 9999,
-        pointerEvents: 'none',
-        transform: 'rotate(5deg)',
-        opacity: 0.8
-      }}>
+      <div 
+        data-drag-preview="true"
+        style={{
+          position: 'fixed',
+          top: dragPreview.y - 20,
+          left: dragPreview.x - 20,
+          zIndex: 9999,
+          pointerEvents: 'none',
+          transform: 'rotate(5deg)',
+          opacity: 0.8
+        }}
+      >
         <div style={{
           padding: '8px 12px',
           backgroundColor: 'rgba(59, 130, 246, 0.9)',
