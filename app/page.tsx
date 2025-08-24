@@ -2318,10 +2318,129 @@ export default function HomePage() {
   }
 
   const renderMainContent = () => {
+    // For specific views, use ViewRenderer
+    if (currentView === "admin" || currentView === "projects" || currentView === "oneOnOne" || currentView === "team") {
+      return (
+        <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
+          <QuickActionsBar />
+          <ViewRenderer />
+        </div>
+      )
+    }
+
+    // For main task board views, render the original styled layout
+    const columns = currentView === "today" ? todayColumns : thisWeekColumns
+    
     return (
       <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
+        {/* Quick Actions Bar */}
         <QuickActionsBar />
-        <ViewRenderer />
+        
+        {/* Compact Stats Section Above Main Cards */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '20px',
+          padding: '10px 14px',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          borderRadius: '12px',
+          marginBottom: '12px',
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
+          overflowX: 'auto'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#111827', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{tasks.length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Total</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#10b981', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#10b981' }}>{tasks.filter(t => t.status === 'completed').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Done</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#3b82f6', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#3b82f6' }}>{tasks.filter(t => t.status === 'uncategorized' || t.status === 'today' || t.status === 'thisWeek').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Active</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#f59e0b', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#f59e0b' }}>{tasks.filter(t => t.status === 'uncategorized' || t.status === 'today' || t.status === 'thisWeek').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Unassigned</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#ef4444', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#ef4444' }}>{tasks.filter(t => t.status === 'delegated').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Follow-up</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#8b5cf6', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#8b5cf6' }}>{projects.length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Projects</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#ec4899', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#ec4899' }}>{teamMembers.length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Team</span>
+          </div>
+          
+          {/* Status Indicators */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#10b981', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#10b981' }}>{tasks.filter(t => t.status === 'completed').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>T+1</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#3b82f6', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#3b82f6' }}>{tasks.filter(t => t.status === 'today').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>T+day</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#dc2626', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#dc2626' }}>{tasks.filter(t => t.status === 'blocked').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Blocked</span>
+          </div>
+        </div>
+        
+        <div style={{ display: 'flex', gap: '12px', paddingBottom: '16px', alignItems: 'flex-start' }}>
+          {columns.map(renderColumn)}
+          
+          {/* Add Column Button */}
+          <div style={{
+            minWidth: '200px',
+            backgroundColor: 'transparent',
+            border: 'none',
+            borderRadius: '16px',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            marginTop: '40px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.02)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent'
+          }}
+          >
+            <div style={{ fontSize: '24px', color: '#9ca3af', marginBottom: '8px' }}>+</div>
+            <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>Add Column</div>
+          </div>
+        </div>
       </div>
     )
   }
