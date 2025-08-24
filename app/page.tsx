@@ -399,6 +399,32 @@ export default function HomePage() {
     setDragOverCategory(categoryId)
   }
 
+  const handleCategoryDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOverCategory(null)
+  }
+
+  const handleCategoryDrop = (e: React.DragEvent, categoryId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const taskId = e.dataTransfer.getData("text/plain")
+    if (!taskId) return
+    
+    console.log("[v0] Dropping task", taskId, "into category", categoryId)
+    
+    // Update the task with the category
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? { ...task, category: categoryId }
+        : task
+    ))
+    
+    setDragOverCategory(null)
+    setDraggedTask(null)
+  }
+
   const handleDragLeave = (e: React.DragEvent) => {
     const rect = e.currentTarget.getBoundingClientRect()
     const x = e.clientX
@@ -420,27 +446,6 @@ export default function HomePage() {
           task.id === taskId ? { ...task, status: newStatus, category: "" } : task,
         )
         console.log("[v0] Updated tasks after drop:", updatedTasks.length)
-        return updatedTasks
-      })
-    }
-
-    setDraggedTask(null)
-    setDragOverColumn(null)
-    setDragOverCategory(null)
-  }
-
-  const handleCategoryDrop = (e: React.DragEvent, categoryId: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const taskId = e.dataTransfer.getData("text/plain")
-    console.log("[v0] Dropping task", taskId, "to category", categoryId)
-
-    if (draggedTask && taskId === draggedTask) {
-      setTasks((prev) => {
-        const updatedTasks = prev.map((task) =>
-          task.id === taskId ? { ...task, status: "today", category: categoryId } : task,
-        )
-        console.log("[v0] Updated tasks after category drop:", updatedTasks.length)
         return updatedTasks
       })
     }
@@ -931,39 +936,71 @@ export default function HomePage() {
                               {column.hasCategories && (
                                 <div className="space-y-3 mb-4">
                                   {/* STANDING category */}
-                                  <div className="space-y-2">
+                                  <div 
+                                    className="space-y-2"
+                                    onDragOver={handleDragOver}
+                                    onDragEnter={(e) => handleCategoryDragEnter(e, "standing")}
+                                    onDragLeave={handleCategoryDragLeave}
+                                    onDrop={(e) => handleCategoryDrop(e, "standing")}
+                                  >
                                     <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wider">STANDING</h4>
-                                    <button className="w-full py-2 text-sm text-gray-600 bg-orange-50 hover:bg-orange-100 rounded-md border border-orange-200 transition-colors">
+                                    <div className={`w-full py-2 text-sm text-gray-600 bg-orange-50 hover:bg-orange-100 rounded-md border border-orange-200 transition-colors ${
+                                      dragOverCategory === "standing" ? "bg-orange-200 border-orange-400 scale-105" : ""
+                                    }`}>
                                       <Plus className="w-4 h-4 inline mr-2" />
-                                      Add Standing Task
-                                    </button>
+                                      Drop tasks here for Standing
+                                    </div>
                                   </div>
                                   
                                   {/* COMMS category */}
-                                  <div className="space-y-2">
+                                  <div 
+                                    className="space-y-2"
+                                    onDragOver={handleDragOver}
+                                    onDragEnter={(e) => handleCategoryDragEnter(e, "comms")}
+                                    onDragLeave={handleCategoryDragLeave}
+                                    onDrop={(e) => handleCategoryDrop(e, "comms")}
+                                  >
                                     <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wider">COMMS</h4>
-                                    <button className="w-full py-2 text-sm text-gray-600 bg-blue-50 hover:bg-blue-100 rounded-md border border-blue-200 transition-colors">
+                                    <div className={`w-full py-2 text-sm text-gray-600 bg-blue-50 hover:bg-blue-100 rounded-md border border-blue-200 transition-colors ${
+                                      dragOverCategory === "comms" ? "bg-blue-200 border-blue-400 scale-105" : ""
+                                    }`}>
                                       <Plus className="w-4 h-4 inline mr-2" />
-                                      Add Comms Task
-                                    </button>
+                                      Drop tasks here for Comms
+                                    </div>
                                   </div>
                                   
                                   {/* BIG TASKS category */}
-                                  <div className="space-y-2">
+                                  <div 
+                                    className="space-y-2"
+                                    onDragOver={handleDragOver}
+                                    onDragEnter={(e) => handleCategoryDragEnter(e, "big-tasks")}
+                                    onDragLeave={handleCategoryDragLeave}
+                                    onDrop={(e) => handleCategoryDrop(e, "big-tasks")}
+                                  >
                                     <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wider">BIG TASKS</h4>
-                                    <button className="w-full py-2 text-sm text-gray-600 bg-purple-50 hover:bg-purple-100 rounded-md border border-purple-200 transition-colors">
+                                    <div className={`w-full py-2 text-sm text-gray-600 bg-purple-50 hover:bg-purple-100 rounded-md border border-purple-200 transition-colors ${
+                                      dragOverCategory === "big-tasks" ? "bg-purple-200 border-purple-400 scale-105" : ""
+                                    }`}>
                                       <Plus className="w-4 h-4 inline mr-2" />
-                                      Add Big Task
-                                    </button>
+                                      Drop tasks here for Big Tasks
+                                    </div>
                                   </div>
                                   
                                   {/* DONE category */}
-                                  <div className="space-y-2">
+                                  <div 
+                                    className="space-y-2"
+                                    onDragOver={handleDragOver}
+                                    onDragEnter={(e) => handleCategoryDragEnter(e, "done")}
+                                    onDragLeave={handleCategoryDragLeave}
+                                    onDrop={(e) => handleCategoryDrop(e, "done")}
+                                  >
                                     <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wider">DONE</h4>
-                                    <button className="w-full py-2 text-sm text-gray-600 bg-green-50 hover:bg-green-100 rounded-md border border-green-200 transition-colors">
+                                    <div className={`w-full py-2 text-sm text-gray-600 bg-green-50 hover:bg-green-100 rounded-md border border-green-200 transition-colors ${
+                                      dragOverCategory === "done" ? "bg-green-200 border-green-400 scale-105" : ""
+                                    }`}>
                                       <CheckCircle className="w-4 h-4 inline mr-2" />
-                                      View Completed
-                                    </button>
+                                      Drop tasks here to mark Done
+                                    </div>
                                   </div>
                                 </div>
                               )}
@@ -972,12 +1009,21 @@ export default function HomePage() {
                               {column.hasTeamMembers && (
                                 <div className="space-y-3 mb-4">
                                   {teamMembers.map((member) => (
-                                    <div key={member.id} className="space-y-2">
+                                    <div 
+                                      key={member.id} 
+                                      className="space-y-2"
+                                      onDragOver={handleDragOver}
+                                      onDragEnter={(e) => handleCategoryDragEnter(e, member.id)}
+                                      onDragLeave={handleCategoryDragLeave}
+                                      onDrop={(e) => handleCategoryDrop(e, member.id)}
+                                    >
                                       <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wider">{member.title}</h4>
-                                      <button className="w-full py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors">
+                                      <div className={`w-full py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors ${
+                                        dragOverCategory === member.id ? "bg-gray-200 border-gray-400 scale-105" : ""
+                                      }`}>
                                         <User className="w-4 h-4 inline mr-2" />
-                                        Add Task for {member.title}
-                                      </button>
+                                        Drop tasks here for {member.title}
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
