@@ -2337,71 +2337,66 @@ export default function HomePage() {
     
         return (
       <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
-        {/* Stats Section Above Main Cards */}
+        {/* Compact Stats Section Above Main Cards */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '16px',
-          padding: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '24px',
+          padding: '12px 16px',
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(16px)',
           border: '1px solid rgba(255, 255, 255, 0.3)',
           borderRadius: '12px',
           marginBottom: '16px',
-          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
+          overflowX: 'auto'
         }}>
-          <div style={{ textAlign: 'center', padding: '12px' }}>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#111827' }}>
-              {tasks.length}
-            </div>
-            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Total Tasks
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#111827', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>{tasks.length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Total</span>
           </div>
           
-          <div style={{ textAlign: 'center', padding: '12px' }}>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#10b981' }}>
-              {tasks.filter(t => t.status === 'completed').length}
-            </div>
-            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Completed
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#10b981', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#10b981' }}>{tasks.filter(t => t.status === 'completed').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Done</span>
           </div>
           
-          <div style={{ textAlign: 'center', padding: '12px' }}>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#3b82f6' }}>
-              {tasks.filter(t => t.status === 'uncategorized' || t.status === 'today' || t.status === 'thisWeek').length}
-            </div>
-            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Active
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#3b82f6', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#3b82f6' }}>{tasks.filter(t => t.status === 'uncategorized' || t.status === 'today' || t.status === 'thisWeek').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Active</span>
           </div>
           
-          <div style={{ textAlign: 'center', padding: '12px' }}>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#f59e0b' }}>
-              {projects.length}
-            </div>
-            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Projects
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#f59e0b', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#f59e0b' }}>{tasks.filter(t => t.status === 'uncategorized' || t.status === 'today' || t.status === 'thisWeek').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Unassigned</span>
           </div>
           
-          <div style={{ textAlign: 'center', padding: '12px' }}>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#8b5cf6' }}>
-              {teamMembers.length}
-            </div>
-            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Team Members
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#ef4444', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#ef4444' }}>{tasks.filter(t => t.status === 'delegated').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Follow-up</span>
           </div>
           
-          <div style={{ textAlign: 'center', padding: '12px' }}>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#ec4899' }}>
-              {tasks.filter(t => t.status === 'delegated').length}
-            </div>
-            <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Follow-up
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#f97316', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#f97316' }}>{tasks.filter(t => t.status === 'overdue').length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Overdue</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#8b5cf6', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#8b5cf6' }}>{projects.length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Projects</span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#ec4899', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '14px', fontWeight: '600', color: '#ec4899' }}>{teamMembers.length}</span>
+            <span style={{ fontSize: '12px', color: '#6b7280' }}>Team</span>
           </div>
         </div>
         
@@ -2477,41 +2472,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Status Section */}
-          <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <div style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Status</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0' }}>
-                <div style={{ width: '16px', height: '16px', backgroundColor: '#10b981', borderRadius: '2px' }}></div>
-                <span style={{ fontSize: '13px', color: 'white' }}>T+1 Complete</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0' }}>
-                <div style={{ width: '16px', height: '16px', backgroundColor: '#3b82f6', borderRadius: '2px' }}></div>
-                <span style={{ fontSize: '13px', color: 'white' }}>T+day</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '16px', height: '16px', backgroundColor: '#f59e0b', borderRadius: '2px' }}></div>
-                  <span style={{ fontSize: '13px', color: 'white' }}>Unassigned</span>
-                </div>
-                <span style={{ fontSize: '11px', backgroundColor: '#374151', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>8</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '16px', height: '16px', backgroundColor: '#ef4444', borderRadius: '2px' }}></div>
-                  <span style={{ fontSize: '13px', color: 'white' }}>Follow-up</span>
-                </div>
-                <span style={{ fontSize: '11px', backgroundColor: '#374151', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>8</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '16px', height: '16px', backgroundColor: '#f97316', borderRadius: '2px' }}></div>
-                  <span style={{ fontSize: '13px', color: 'white' }}>Overdue</span>
-                </div>
-                <span style={{ fontSize: '11px', backgroundColor: '#374151', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>3</span>
-              </div>
-            </div>
-          </div>
+
 
           {/* Views Section */}
           <div style={{ padding: '20px 16px', flex: 1 }}>
