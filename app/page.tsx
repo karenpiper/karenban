@@ -867,11 +867,11 @@ export default function HomePage() {
                     </div>
                   ) : (
                     <div className={`${currentView === "thisWeek" ? "overflow-x-auto h-full bg-gray-50" : ""}`}>
-                  <div className={`${
-                    currentView === "thisWeek"
-                      ? "flex gap-4 p-4 h-full bg-gray-50 min-w-max"
-                      : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
-                  }`}>
+                      <div className={`${
+                        currentView === "thisWeek"
+                          ? "flex gap-4 p-4 h-full bg-gray-50 min-w-max"
+                          : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
+                      }`}>
                     {columns.map((column) => (
                       <div
                         key={column.id}
