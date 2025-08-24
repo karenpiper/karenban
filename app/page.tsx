@@ -134,8 +134,10 @@ export default function HomePage() {
     // Calculate total task count for this column
     const getTotalTaskCount = () => {
       if (column.id === "delegated") {
-        // For Follow-up column, count people to follow up
-        return getTasksByStatusAndCategory(column.id as Task["status"], "follow-up").length
+        // For Follow-up column, count all tasks across all people
+        return tasks.filter(task => 
+          task.status === "delegated" && task.category?.startsWith("person-")
+        ).length
       } else if (column.hasCategories) {
         // For day columns, count tasks in all categories
         const standing = getTasksByStatusAndCategory(column.id as Task["status"], "standing").length
@@ -215,89 +217,175 @@ export default function HomePage() {
         
         <div style={{ marginBottom: '8px', maxHeight: 'calc(100vh - 280px)', overflowY: 'auto' }}>
           {column.id === "delegated" ? (
-            // Render Follow-up column with people
-            <div style={{ marginBottom: '12px' }}>
-              <div style={{ 
-                fontSize: '11px', 
-                color: '#6b7280', 
-                textTransform: 'uppercase', 
-                letterSpacing: '0.5px',
-                marginBottom: '6px',
-                fontWeight: '600'
-              }}>
-                People to Follow Up
-              </div>
-              {getTasksByStatusAndCategory(column.id as Task["status"], "follow-up").map((person) => (
-                <div
-                  key={person.id}
-                  style={{
-                    padding: '8px',
-                    marginBottom: '4px',
-                    cursor: 'grab',
-                    transition: 'all 0.2s ease',
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    backdropFilter: 'blur(16px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'
-                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.1)'
-                    e.currentTarget.style.transform = 'translateY(-1px)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
-                    e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.06)'
-                    e.currentTarget.style.transform = 'translateY(0)'
-                  }}
-                  draggable={true}
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData('text/plain', person.id)
-                    e.currentTarget.style.opacity = '0.5'
-                  }}
-                  onDragEnd={(e) => {
-                    e.currentTarget.style.opacity = '1'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
-                    <h4 style={{ fontSize: '12px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{person.title}</h4>
-                    <button
-                      onClick={() => deleteTask(person.id)}
-                      style={{
-                        fontSize: '10px',
-                        color: '#9ca3af',
-                        cursor: 'pointer',
-                        border: 'none',
-                        background: 'none',
-                        padding: '1px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#ef4444'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = '#9ca3af'
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                  {person.description && (
-                    <p style={{ fontSize: '10px', color: '#6b7280', marginBottom: '4px' }}>{person.description}</p>
-                  )}
-                  <span style={{
-                    fontSize: '9px',
-                    color: person.priority === 'high' ? '#dc2626' : person.priority === 'medium' ? '#d97706' : '#059669',
-                    backgroundColor: person.priority === 'high' ? '#fef2f2' : person.priority === 'medium' ? '#fffbeb' : '#f0fdf4',
-                    padding: '1px 4px',
-                    borderRadius: '9999px',
-                    fontWeight: '500'
-                  }}>
-                    {person.priority}
-                  </span>
-                </div>
-              ))}
-            </div>
+            // Render Follow-up column with people as categories
+            <>
+              {/* Get all people (tasks with person-* categories) */}
+              {(() => {
+                const peopleCategories = Array.from(new Set(
+                  tasks
+                    .filter(task => task.status === "delegated" && task.category?.startsWith("person-"))
+                    .map(task => task.category)
+                )).filter(Boolean)
+                
+                return peopleCategories.map((personCategory) => {
+                  const personTasks = tasks.filter(task => 
+                    task.status === "delegated" && task.category === personCategory
+                  )
+                  const personName = personTasks[0]?.title || "Unknown Person"
+                  
+                  return (
+                    <div key={personCategory} style={{ marginBottom: '16px' }}>
+                      {/* Person Category Header */}
+                      <div style={{ 
+                        fontSize: '11px', 
+                        color: '#6b7280', 
+                        textTransform: 'uppercase', 
+                        letterSpacing: '0.5px',
+                        marginBottom: '8px',
+                        fontWeight: '600',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}>
+                        <span>{personName}</span>
+                        <button
+                          onClick={() => {
+                            // Delete all tasks for this person
+                            setTasks(prev => prev.filter(task => task.category !== personCategory))
+                          }}
+                          style={{
+                            fontSize: '9px',
+                            color: '#9ca3af',
+                            cursor: 'pointer',
+                            border: 'none',
+                            background: 'none',
+                            padding: '1px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = '#ef4444'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = '#9ca3af'
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                      
+                      {/* Tasks under this person */}
+                      {personTasks.map((task) => (
+                        <div
+                          key={task.id}
+                          style={{
+                            padding: '6px',
+                            marginBottom: '3px',
+                            cursor: 'grab',
+                            transition: 'all 0.2s ease',
+                            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                            backdropFilter: 'blur(16px)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            borderRadius: '8px',
+                            boxShadow: '0 1px 8px rgba(0, 0, 0, 0.05)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)'
+                            e.currentTarget.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.08)'
+                            e.currentTarget.style.transform = 'translateY(-1px)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                            e.currentTarget.style.boxShadow = '0 1px 8px rgba(0, 0, 0, 0.05)'
+                            e.currentTarget.style.transform = 'translateY(0)'
+                          }}
+                          draggable={true}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('text/plain', task.id)
+                            e.currentTarget.style.opacity = '0.5'
+                          }}
+                          onDragEnd={(e) => {
+                            e.currentTarget.style.opacity = '1'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2px' }}>
+                            <h4 style={{ fontSize: '11px', fontWeight: '500', color: '#111827', lineHeight: '1.2' }}>{task.title}</h4>
+                            <button
+                              onClick={() => deleteTask(task.id)}
+                              style={{
+                                fontSize: '8px',
+                                color: '#9ca3af',
+                                cursor: 'pointer',
+                                border: 'none',
+                                background: 'none',
+                                padding: '1px'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.color = '#ef4444'
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.color = '#9ca3af'
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                          {task.description && (
+                            <p style={{ fontSize: '9px', color: '#6b7280', marginBottom: '3px' }}>{task.description}</p>
+                          )}
+                          <span style={{
+                            fontSize: '8px',
+                            color: task.priority === 'high' ? '#dc2626' : task.priority === 'medium' ? '#d97706' : '#059669',
+                            backgroundColor: task.priority === 'high' ? '#fef2f2' : task.priority === 'medium' ? '#fffbeb' : '#f0fdf4',
+                            padding: '1px 3px',
+                            borderRadius: '9999px',
+                            fontWeight: '500'
+                          }}>
+                            {task.priority}
+                          </span>
+                        </div>
+                      ))}
+                      
+                      {/* Add Task button for this person */}
+                      <button
+                        onClick={() => {
+                          const newTask: Task = {
+                            id: Date.now().toString(),
+                            title: "New Follow-up Task",
+                            description: "",
+                            status: "delegated",
+                            category: personCategory,
+                            priority: "medium",
+                            createdAt: new Date(),
+                          }
+                          setTasks(prev => [...prev, newTask])
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          fontSize: '9px',
+                          color: '#6b7280',
+                          backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                          border: '1px dashed #d1d5db',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          marginTop: '4px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'
+                          e.currentTarget.style.borderColor = '#9ca3af'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
+                          e.currentTarget.style.borderColor = '#d1d5db'
+                        }}
+                      >
+                        + Add Task for {personName}
+                      </button>
+                    </div>
+                  )
+                })
+              })()}
+            </>
           ) : column.hasCategories ? (
             // Render categories for day columns
             <>
@@ -955,7 +1043,7 @@ export default function HomePage() {
       title: "New Person to Follow Up",
       description: "Person requiring follow-up",
       status: "delegated",
-      category: "follow-up",
+      category: "person-" + Date.now().toString(),
       priority: "medium",
       createdAt: new Date(),
     }
