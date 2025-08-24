@@ -927,6 +927,22 @@ export default function HomePage() {
                             </div>
 
                             <div className="space-y-2">
+                              {/* Show team members as categories for Follow-up column */}
+                              {column.hasTeamMembers && (
+                                <div className="space-y-3 mb-4">
+                                  {teamMembers.map((member) => (
+                                    <div key={member.id} className="space-y-2">
+                                      <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wider">{member.title}</h4>
+                                      <button className="w-full py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors">
+                                        <User className="w-4 h-4 inline mr-2" />
+                                        Add Task for {member.title}
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {/* Show tasks for the column */}
                               {getTasksByStatus(column.id as Task["status"]).map((task) => (
                                 <div
                                   key={task.id}
@@ -952,7 +968,7 @@ export default function HomePage() {
                                         size="sm"
                                         variant="ghost"
                                         onClick={() => handleDeleteTask(task.id)}
-                                        className="h-5 w-5 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                        className="h-5 w-5 p-0 text-red-500 hover:text-red-700 hover:bg-gray-50"
                                       >
                                         <Trash2 className="w-2.5 h-2.5" />
                                       </Button>
@@ -974,7 +990,7 @@ export default function HomePage() {
                               ))}
 
                               <div className="border-t pt-2 mt-2">
-                                {column.id === "delegated" ? (
+                                {column.hasTeamMembers ? (
                                   <Button
                                     size="sm"
                                     variant="ghost"
@@ -985,7 +1001,7 @@ export default function HomePage() {
                                     className="w-full text-gray-600 hover:text-gray-900 text-xs h-6"
                                   >
                                     <User className="w-3 h-3 mr-1" />
-                                    Add Person
+                                    Add Team Member
                                   </Button>
                                 ) : (
                                   <Button
