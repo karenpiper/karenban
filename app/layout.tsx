@@ -1,4 +1,6 @@
 import type { Metadata } from "next"
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -13,14 +15,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className="antialiased"
-        style={{
-          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-          '--font-sans': 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-          '--font-mono': 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-        } as React.CSSProperties}
-      >
+      <head>
+        <style>{`
+          html {
+            font-family: ${GeistSans.style.fontFamily};
+            --font-sans: ${GeistSans.variable};
+            --font-mono: ${GeistMono.variable};
+          }
+        `}</style>
+      </head>
+      <body className="antialiased">
         {children}
       </body>
     </html>
