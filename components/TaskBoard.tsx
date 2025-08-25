@@ -269,6 +269,11 @@ export function TaskBoard() {
     )
   }
 
+  // Debug logging
+  console.log('AppState:', appState)
+  console.log('Columns:', appState.columns)
+  console.log('Tasks:', appState.tasks)
+
   return (
     <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
@@ -342,6 +347,12 @@ export function TaskBoard() {
         {/* Task Columns */}
         <div className="flex-1">
           <div className="flex gap-4 items-start">
+            {/* Debug info */}
+            <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
+              <p>Debug: {appState.columns.length} columns found</p>
+              <p>Column IDs: {appState.columns.map(c => c.id).join(', ')}</p>
+            </div>
+            
             {appState.columns
               .sort((a, b) => a.order - b.order)
               .map(renderColumn)}
