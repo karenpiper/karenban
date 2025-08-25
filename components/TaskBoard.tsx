@@ -14,6 +14,7 @@ export function TaskBoard() {
 
   useEffect(() => {
     const state = loadAppState()
+    console.log('Loaded app state:', state)
     setAppState(state)
   }, [])
 
@@ -404,9 +405,12 @@ export function TaskBoard() {
         {/* Task Columns */}
         <div className="flex-1">
           <div className="flex gap-4 items-start">
-            {appState.columns
-              .sort((a, b) => a.order - b.order)
-              .map(renderColumn)}
+            {(() => {
+              console.log('Rendering columns:', appState.columns)
+              return appState.columns
+                .sort((a, b) => a.order - b.order)
+                .map(renderColumn)
+            })()}
 
             {/* Add Column Button */}
             <div className="min-w-[280px] mt-4">
