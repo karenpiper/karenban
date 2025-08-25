@@ -105,6 +105,7 @@ export function TaskBoard() {
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, task: Task) => {
+    console.log('Drag start for task:', task.title)
     setDraggedTask(task)
     e.dataTransfer.setData('text/plain', task.id)
     e.dataTransfer.effectAllowed = 'move'
@@ -122,6 +123,7 @@ export function TaskBoard() {
 
   const handleDrop = (e: React.DragEvent, targetType: 'column' | 'category' | 'person', targetId: string) => {
     e.preventDefault()
+    console.log('Drop event:', targetType, targetId)
     
     if (!draggedTask) return
 
