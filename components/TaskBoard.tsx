@@ -72,6 +72,7 @@ export function TaskBoard() {
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, task: Task) => {
+    console.log('Drag started for task:', task.title)
     setDraggedTask(task)
     e.dataTransfer.setData('text/plain', task.id)
     e.dataTransfer.effectAllowed = 'move'
@@ -89,19 +90,23 @@ export function TaskBoard() {
 
   const handleDrop = (e: React.DragEvent, targetType: 'column' | 'category' | 'person', targetId: string) => {
     e.preventDefault()
+    console.log('Drop event:', targetType, targetId, 'for task:', draggedTask?.title)
     
     if (!draggedTask) return
 
     if (targetType === 'column') {
+      console.log('Moving task to column:', targetId)
       updateTaskLocation(draggedTask.id, targetId)
     } else if (targetType === 'category') {
       // Find the column ID for this category
       const category = appState?.columns.flatMap(col => col.categories).find(cat => cat.id === targetId)
       if (category) {
+        console.log('Moving task to category:', targetId, 'in column:', category.columnId)
         updateTaskLocation(draggedTask.id, category.columnId, targetId)
       }
     } else if (targetType === 'person') {
       // Moving to a person (follow-up column)
+      console.log('Moving task to person:', targetId)
       updateTaskLocation(draggedTask.id, 'col-followup', undefined, targetId)
     }
 
