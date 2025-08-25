@@ -220,74 +220,12 @@ const seedTasks: Task[] = [
     tags: ["meeting", "preparation"],
     estimatedHours: 0.5,
   },
-    createdAt: new Date("2024-01-14T09:00:00"),
-    updatedAt: new Date("2024-01-14T09:00:00"),
-    tags: ["planning", "goals"],
-    estimatedHours: 1,
-  },
 
-  // Comms
-  {
-    id: "task-4",
-    title: "Product roadmap meeting",
-    description: "Quarterly planning session with product team",
-    priority: "high",
-    status: "todo",
-    columnId: "col-comms",
-    categoryId: "cat-meetings",
-    createdAt: new Date("2024-01-15T10:00:00"),
-    updatedAt: new Date("2024-01-15T10:00:00"),
-    dueDate: new Date("2024-01-16T14:00:00"),
-    tags: ["meeting", "product", "planning"],
-    estimatedHours: 2,
-  },
-  {
-    id: "task-5",
-    title: "Client feedback review",
-    description: "Process and respond to recent client feedback",
-    priority: "medium",
-    status: "in-progress",
-    columnId: "col-comms",
-    categoryId: "cat-emails",
-    createdAt: new Date("2024-01-15T11:00:00"),
-    updatedAt: new Date("2024-01-15T11:30:00"),
-    tags: ["client", "feedback", "communication"],
-    estimatedHours: 1.5,
-  },
 
-  // Big Tasks
-  {
-    id: "task-6",
-    title: "Q1 Marketing Campaign",
-    description: "Design and launch comprehensive marketing campaign for Q1",
-    priority: "urgent",
-    status: "in-progress",
-    columnId: "col-big-tasks",
-    categoryId: "cat-projects",
-    createdAt: new Date("2024-01-10T09:00:00"),
-    updatedAt: new Date("2024-01-15T16:00:00"),
-    dueDate: new Date("2024-02-01T17:00:00"),
-    tags: ["marketing", "campaign", "strategic"],
-    estimatedHours: 40,
-    actualHours: 12,
-  },
-  {
-    id: "task-7",
-    title: "System architecture redesign",
-    description: "Modernize core system architecture for better scalability",
-    priority: "high",
-    status: "todo",
-    columnId: "col-big-tasks",
-    categoryId: "cat-initiatives",
-    createdAt: new Date("2024-01-12T14:00:00"),
-    updatedAt: new Date("2024-01-12T14:00:00"),
-    tags: ["architecture", "technical", "scalability"],
-    estimatedHours: 60,
-  },
 
   // Follow Up Tasks
   {
-    id: "task-8",
+    id: "task-4",
     title: "Budget approval for new tools",
     description: "Waiting for Sarah to approve budget for development tools",
     priority: "medium",
@@ -301,7 +239,7 @@ const seedTasks: Task[] = [
     estimatedHours: 0.5,
   },
   {
-    id: "task-9",
+    id: "task-5",
     title: "API documentation review",
     description: "Need Mike to review and approve API documentation changes",
     priority: "high",
@@ -315,7 +253,7 @@ const seedTasks: Task[] = [
     estimatedHours: 2,
   },
   {
-    id: "task-9a",
+    id: "task-6",
     title: "Design system review",
     description: "Julian needs to review the new design system components",
     priority: "medium",
@@ -331,7 +269,7 @@ const seedTasks: Task[] = [
 
   // Today Tasks
   {
-    id: "task-10",
+    id: "task-7",
     title: "Daily team sync",
     description: "Quick check-in with team members",
     priority: "medium",
@@ -344,7 +282,7 @@ const seedTasks: Task[] = [
     estimatedHours: 0.5,
   },
   {
-    id: "task-10a",
+    id: "task-8",
     title: "Weekly planning review",
     description: "Review and adjust weekly priorities",
     priority: "high",
@@ -357,7 +295,7 @@ const seedTasks: Task[] = [
     estimatedHours: 1,
   },
   {
-    id: "task-11",
+    id: "task-9",
     title: "Client presentation prep",
     description: "Prepare slides for client meeting",
     priority: "high",
@@ -370,7 +308,7 @@ const seedTasks: Task[] = [
     estimatedHours: 2,
   },
   {
-    id: "task-11a",
+    id: "task-10",
     title: "Email follow-ups",
     description: "Follow up on pending email threads",
     priority: "medium",
@@ -383,7 +321,7 @@ const seedTasks: Task[] = [
     estimatedHours: 0.75,
   },
   {
-    id: "task-11b",
+    id: "task-11",
     title: "Project milestone planning",
     description: "Plan major project milestones for Q1",
     priority: "high",
@@ -396,7 +334,7 @@ const seedTasks: Task[] = [
     estimatedHours: 3,
   },
   {
-    id: "task-11c",
+    id: "task-12",
     title: "Morning routine completed",
     description: "Daily standup and email check completed",
     priority: "low",
@@ -415,7 +353,7 @@ const seedTasks: Task[] = [
 
   // Later Tasks
   {
-    id: "task-12",
+    id: "task-13",
     title: "Quarterly planning session",
     description: "Strategic planning for Q2",
     priority: "high",
@@ -428,7 +366,7 @@ const seedTasks: Task[] = [
     estimatedHours: 4,
   },
   {
-    id: "task-12a",
+    id: "task-14",
     title: "Monthly team retrospective",
     description: "Conduct monthly team performance review",
     priority: "medium",
@@ -441,7 +379,7 @@ const seedTasks: Task[] = [
     estimatedHours: 2,
   },
   {
-    id: "task-12b",
+    id: "task-15",
     title: "Stakeholder communication plan",
     description: "Develop communication strategy for stakeholders",
     priority: "medium",
@@ -456,7 +394,7 @@ const seedTasks: Task[] = [
 
   // Completed Tasks (for duration tracking demonstration)
   {
-    id: "task-13",
+    id: "task-16",
     title: "Website redesign project",
     description: "Complete redesign of company website",
     priority: "high",
@@ -473,7 +411,7 @@ const seedTasks: Task[] = [
     durationHours: 120,
   },
   {
-    id: "task-14",
+    id: "task-17",
     title: "Client onboarding process",
     description: "Streamline client onboarding workflow",
     priority: "medium",
@@ -490,7 +428,7 @@ const seedTasks: Task[] = [
     durationHours: 120,
   },
   {
-    id: "task-15",
+    id: "task-18",
     title: "Team training session",
     description: "Conduct training on new software tools",
     priority: "medium",
