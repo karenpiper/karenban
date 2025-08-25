@@ -149,6 +149,7 @@ export function TaskBoard() {
       draggable={true}
       onDragStart={(e) => handleDragStart(e, task)}
       onDragEnd={() => console.log('Drag ended for task:', task.title)}
+      onDrag={(e) => console.log('Dragging task:', task.title, 'dataTransfer:', e.dataTransfer.types)}
       className={`bg-white/90 backdrop-blur-md border border-gray-200/40 rounded-xl shadow-md hover:shadow-lg hover:bg-white/95 transition-all duration-200 p-3 mb-3 cursor-move ${
         draggedTask?.id === task.id ? 'opacity-50' : ''
       }`}
@@ -380,11 +381,27 @@ export function TaskBoard() {
         {/* Task Columns */}
         <div className="flex-1">
           <div className="flex gap-4 items-start">
-            {/* Debug info */}
-            <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
-              <p>Debug: {appState.columns.length} columns found</p>
-              <p>Column IDs: {appState.columns.map(c => c.id).join(', ')}</p>
+                    {/* Debug info */}
+        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
+          <p>Debug: {appState.columns.length} columns found</p>
+          <p>Column IDs: {appState.columns.map(c => c.id).join(', ')}</p>
+          
+          {/* Test drag and drop */}
+          <div className="mt-4 p-3 bg-blue-100 border border-blue-300 rounded">
+            <p className="text-sm font-medium mb-2">Test Drag and Drop:</p>
+            <div 
+              draggable={true}
+              onDragStart={(e) => {
+                console.log('Test drag start')
+                e.dataTransfer.setData('text/plain', 'test')
+              }}
+              onDragEnd={() => console.log('Test drag end')}
+              className="p-2 bg-blue-200 rounded cursor-move text-center"
+            >
+              🧪 Drag this test item
             </div>
+          </div>
+        </div>
             
             {appState.columns
               .sort((a, b) => a.order - b.order)
