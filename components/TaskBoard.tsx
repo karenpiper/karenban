@@ -15,7 +15,6 @@ export function TaskBoard() {
   useEffect(() => {
     const state = loadAppState()
     setAppState(state)
-    console.log('TaskBoard loaded with state:', state)
   }, [])
 
   // Update task properties when dragged to new location
@@ -170,32 +169,32 @@ export function TaskBoard() {
 
   const renderTaskCard = (task: Task) => {
     return (
-    <div 
-      key={task.id} 
-      draggable={true}
-      onDragStart={(e) => handleDragStart(e, task)}
-      onDragEnd={() => {}}
-      onDrag={() => {}}
-      className={`bg-white/90 backdrop-blur-md border border-gray-200/40 rounded-xl shadow-md hover:shadow-lg hover:bg-white/95 transition-all duration-200 p-3 mb-3 cursor-move ${
-        draggedTask?.id === task.id ? 'opacity-50' : ''
-      }`}
-      style={{ userSelect: 'none' }}
-    >
-      <div className="flex justify-between items-start mb-2">
-        <h4 className="font-medium text-sm text-gray-900">{task.title}</h4>
-        <div className="flex gap-1">
-          <button className="text-gray-400 hover:text-gray-600 p-1 rounded">×</button>
+      <div 
+        key={task.id} 
+        draggable={true}
+        onDragStart={(e) => handleDragStart(e, task)}
+        onDragEnd={() => {}}
+        onDrag={() => {}}
+        className={`bg-white/90 backdrop-blur-md border border-gray-200/40 rounded-xl shadow-md hover:shadow-lg hover:bg-white/95 transition-all duration-200 p-3 mb-3 cursor-move ${
+          draggedTask?.id === task.id ? 'opacity-50' : ''
+        }`}
+        style={{ userSelect: 'none' }}
+      >
+        <div className="flex justify-between items-start mb-2">
+          <h4 className="font-medium text-sm text-gray-900">{task.title}</h4>
+          <div className="flex gap-1">
+            <button className="text-gray-400 hover:text-gray-600 p-1 rounded">×</button>
+          </div>
         </div>
-      </div>
-      <div className="flex flex-wrap gap-1 mb-2">
-        {task.tags?.map((tag: string, index: number) => (
-          <span key={index} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
-            {tag}
-          </span>
-        ))}
-      </div>
-      <div className="flex items-center justify-between">
-        <span className={`text-xs px-2 py-1 rounded ${
+        <div className="flex flex-wrap gap-1 mb-2">
+          {task.tags?.map((tag: string, index: number) => (
+            <span key={index} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+              {tag}
+            </span>
+          ))}
+        </div>
+        <div className="flex items-center justify-between">
+          <span className={`text-xs px-2 py-1 rounded ${
             task.priority === 'high' ? 'bg-red-100 text-red-800' :
             task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
             'bg-green-100 text-green-800'
@@ -227,7 +226,6 @@ export function TaskBoard() {
           </div>
         )}
       </div>
-    </div>
     )
   }
 
@@ -285,13 +283,13 @@ export function TaskBoard() {
             : 'border-gray-200/30'
         }`}>
           <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-            <div className={`w-2.5 h-2.5 rounded-full bg-gradient-to-r ${column.color}`}></div>
-            <h3 className="font-semibold text-gray-900 text-sm">{column.name}</h3>
-            <span className="bg-gray-200 text-gray-600 text-xs px-1.5 py-0.1 rounded-full">
-              {columnTasks.length}
-            </span>
-          </div>
+            <div className="flex items-center gap-2">
+              <div className={`w-2.5 h-2.5 rounded-full bg-gradient-to-r ${column.color}`}></div>
+              <h3 className="font-semibold text-gray-900 text-sm">{column.name}</h3>
+              <span className="bg-gray-200 text-gray-600 text-xs px-1.5 py-0.1 rounded-full">
+                {columnTasks.length}
+              </span>
+            </div>
             <button className="p-1 rounded transition-all duration-200 bg-transparent text-gray-500 hover:bg-gray-100">
               <Plus className="w-4 h-4" />
             </button>
@@ -326,8 +324,6 @@ export function TaskBoard() {
       </div>
     )
   }
-
-  // Debug logging removed to prevent excessive console output during drag and drop
 
   return (
     <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-gray-100">
@@ -402,14 +398,6 @@ export function TaskBoard() {
         {/* Task Columns */}
         <div className="flex-1">
           <div className="flex gap-4 items-start">
-                    {/* Debug info */}
-        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
-          <p>Debug: {appState.columns.length} columns found</p>
-          <p>Column IDs: {appState.columns.map(c => c.id).join(', ')}</p>
-          
-          {/* Test drag and drop removed to prevent console spam */}
-        </div>
-            
             {appState.columns
               .sort((a, b) => a.order - b.order)
               .map(renderColumn)}
@@ -552,7 +540,7 @@ export function TaskBoard() {
                     <div className="bg-orange-50/80 backdrop-blur-sm border border-orange-200/50 rounded-xl p-3">
                       <div className="text-xs font-medium text-orange-700 mb-1">Longest Duration</div>
                       <div className="text-sm font-semibold text-orange-800">{slowestTask.title}</div>
-                      <div className="text-xs text-orange-600">{slowestTask.durationDays} days</div>
+                      <div className="text-xs text-green-600">{slowestTask.durationDays} days</div>
                     </div>
                   )}
                 </div>
