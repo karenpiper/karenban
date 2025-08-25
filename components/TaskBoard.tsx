@@ -34,8 +34,8 @@ export function TaskBoard() {
           updates.category = newCategoryId
         }
 
-        // Update assignee if moving to blocked column
-        if (newColumnId === 'col-blocked' && newAssignee) {
+        // Update assignee if moving to follow-up column
+        if (newColumnId === 'col-followup' && newAssignee) {
           updates.assignedTo = newAssignee
         }
 
@@ -50,8 +50,8 @@ export function TaskBoard() {
           const durationMs = completedDate.getTime() - createdDate.getTime()
           updates.durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24))
           updates.durationHours = Math.ceil(durationMs / (1000 * 60 * 60))
-        } else if (newColumnId === 'col-blocked') {
-          updates.status = 'blocked'
+        } else if (newColumnId === 'col-followup') {
+          updates.status = 'todo'
         } else if (newColumnId === 'col-today') {
           updates.status = 'today'
         } else if (newColumnId === 'col-later') {
@@ -101,8 +101,8 @@ export function TaskBoard() {
         updateTaskLocation(draggedTask.id, category.columnId, targetId)
       }
     } else if (targetType === 'person') {
-      // Moving to a person (blocked column)
-      updateTaskLocation(draggedTask.id, 'col-blocked', undefined, targetId)
+      // Moving to a person (follow-up column)
+      updateTaskLocation(draggedTask.id, 'col-followup', undefined, targetId)
     }
 
     setDraggedTask(null)
