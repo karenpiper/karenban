@@ -21,8 +21,6 @@ export function TaskBoard() {
   const updateTaskLocation = (taskId: string, newColumnId: string, newCategoryId?: string, newAssignee?: string) => {
     if (!appState) return
 
-    console.log('Updating task location:', taskId, 'to column:', newColumnId, 'category:', newCategoryId)
-
     const updatedTasks = appState.tasks.map((task) => {
       if (task.id === taskId) {
         const updates: Partial<Task> = {
@@ -62,9 +60,7 @@ export function TaskBoard() {
           updates.status = 'todo'
         }
 
-        const updatedTask = { ...task, ...updates }
-        console.log('Updated task:', updatedTask.title, 'new columnId:', updatedTask.columnId, 'new categoryId:', updatedTask.categoryId)
-        return updatedTask
+        return { ...task, ...updates }
       }
       return task
     })
@@ -72,12 +68,6 @@ export function TaskBoard() {
     const updatedState = { ...appState, tasks: updatedTasks }
     setAppState(updatedState)
     saveAppState(updatedState)
-    
-    console.log('State updated, total tasks:', updatedTasks.length)
-    console.log('Tasks by column:', updatedTasks.reduce((acc, task) => {
-      acc[task.columnId || 'undefined'] = (acc[task.columnId || 'undefined'] || 0) + 1
-      return acc
-    }, {} as Record<string, number>))
   }
 
   // Add task handler
@@ -134,21 +124,16 @@ export function TaskBoard() {
     
     if (!draggedTask) return
 
-    console.log('Dropping task:', draggedTask.title, 'to:', targetType, targetId)
-
     if (targetType === 'column') {
-      console.log('Moving to column:', targetId)
       updateTaskLocation(draggedTask.id, targetId)
     } else if (targetType === 'category') {
       // Find the column ID for this category
       const category = appState?.columns.flatMap(col => col.categories).find(cat => cat.id === targetId)
       if (category) {
-        console.log('Moving to category:', targetId, 'in column:', category.columnId)
         updateTaskLocation(draggedTask.id, category.columnId, targetId)
       }
     } else if (targetType === 'person') {
       // Moving to a person (follow-up column)
-      console.log('Moving to person:', targetId)
       updateTaskLocation(draggedTask.id, 'col-followup', undefined, targetId)
     }
 
@@ -159,23 +144,15 @@ export function TaskBoard() {
   // Get tasks for a specific column and category
   const getTasksForCategory = (columnId: string, categoryId: string) => {
     if (!appState) return []
-    const tasks = appState.tasks.filter(task => 
+    return appState.tasks.filter(task => 
       task.columnId === columnId && task.categoryId === categoryId
     )
-    if (tasks.length > 0) {
-      console.log(`Found ${tasks.length} tasks for category ${categoryId} in column ${columnId}:`, tasks.map(t => t.title))
-    }
-    return tasks
   }
 
   // Get tasks for a specific column
   const getTasksForColumn = (columnId: string) => {
     if (!appState) return []
-    const tasks = appState.tasks.filter(task => task.columnId === columnId)
-    if (tasks.length > 0) {
-      console.log(`Found ${tasks.length} tasks for column ${columnId}:`, tasks.map(t => t.title))
-    }
-    return tasks
+    return appState.tasks.filter(task => task.columnId === columnId)
   }
 
   // Get count for a specific category
@@ -273,7 +250,11 @@ export function TaskBoard() {
           </span>
         </h4>
         
-        {categoryTasks.map(renderTaskCard)}
+        {categoryTasks.map((task) => (
+          <div key={task.id}>
+            {renderTaskCard(task)}
+          </div>
+        ))}
         
         <button 
           onClick={() => handleAddTask(category.id)}
@@ -322,7 +303,11 @@ export function TaskBoard() {
             ) : (
               // Render tasks directly in the column if no categories
               <div className="space-y-2">
-                {columnTasks.map(renderTaskCard)}
+                {columnTasks.map((task) => (
+                <div key={task.id}>
+                  {renderTaskCard(task)}
+                </div>
+              ))}
                 <button 
                   onClick={() => handleAddTask('')}
                   className="w-full py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors"
