@@ -141,11 +141,13 @@ export function TaskBoard() {
   const renderTaskCard = (task: Task) => (
     <div 
       key={task.id} 
-      draggable
+      draggable={true}
       onDragStart={(e) => handleDragStart(e, task)}
+      onDragEnd={() => console.log('Drag ended for task:', task.title)}
       className={`bg-white/90 backdrop-blur-md border border-gray-200/40 rounded-xl shadow-md hover:shadow-lg hover:bg-white/95 transition-all duration-200 p-3 mb-3 cursor-move ${
         draggedTask?.id === task.id ? 'opacity-50' : ''
       }`}
+      style={{ userSelect: 'none' }}
     >
       <div className="flex justify-between items-start mb-2">
         <h4 className="font-medium text-sm text-gray-900">{task.title}</h4>
