@@ -49,6 +49,10 @@ export interface Task {
   assignedTo?: string // For blocked tasks - person name
   notes?: string
   category?: string
+  // Duration tracking
+  durationDays?: number // Days from creation to completion
+  durationHours?: number // Hours from creation to completion
+  startDate?: Date // When work actually started (can be different from createdAt)
 }
 
 export interface Category {

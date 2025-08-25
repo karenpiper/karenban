@@ -4,8 +4,8 @@ import { GeistMono } from 'geist/font/mono'
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Task Manager",
-  description: "A modern task management application",
+  title: "Task Manager - Figma Design",
+  description: "A modern task management application with beautiful glass morphism design",
 }
 
 export default function RootLayout({

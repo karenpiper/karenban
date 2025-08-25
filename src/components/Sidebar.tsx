@@ -1,20 +1,18 @@
-"use client"
-
-import { Home, Calendar, BarChart3, Users, Settings, ChevronLeft, CheckCircle, Clock, AlertTriangle, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import React from 'react';
+import { Home, Calendar, BarChart3, Users, Settings, ChevronLeft, CheckCircle, Clock, AlertTriangle, User } from 'lucide-react';
 
 interface SidebarProps {
-  isCollapsed?: boolean
-  onToggle?: () => void
+  isCollapsed?: boolean;
+  onToggle?: () => void;
+  onCelebrate?: () => void;
 }
 
-// Updated Sidebar with glass morphism effects - Force deployment
-export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
+export function Sidebar({ isCollapsed = false, onToggle, onCelebrate }: SidebarProps) {
   const currentDate = new Date().toLocaleDateString('en-US', { 
     weekday: 'long', 
     month: 'short', 
     day: 'numeric' 
-  })
+  });
 
   return (
     <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white/90 backdrop-blur-xl border-r border-gray-200/50 shadow-lg transition-all duration-300 ease-out h-screen flex-shrink-0 sticky top-0`}>
@@ -118,50 +116,36 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
             Views
           </h3>
           <div className="space-y-2">
-            <Button
-              className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-blue-50/80 text-blue-700 border border-blue-200/50 shadow-md backdrop-blur-sm"
-            >
+            <button className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-blue-50/80 text-blue-700 border border-blue-200/50 shadow-md backdrop-blur-sm">
               <Calendar className="w-4 h-4 mr-3 text-blue-600" />
               <span className="flex-1 text-left">Today</span>
               <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-blue-200/50 text-blue-700 rounded-full">
                 2
               </span>
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:bg-gray-50/80 hover:text-gray-900 border border-transparent hover:border-gray-200/30"
-            >
+            </button>
+            <button className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:bg-gray-50/80 hover:text-gray-900 border border-transparent hover:border-gray-200/30">
               <Calendar className="w-4 h-4 mr-3 text-gray-500" />
               <span className="flex-1 text-left">My calendar</span>
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:bg-gray-50/80 hover:text-gray-900 border border-transparent hover:border-gray-200/30"
-            >
+            </button>
+            <button className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:bg-gray-50/80 hover:text-gray-900 border border-transparent hover:border-gray-200/30">
               <BarChart3 className="w-4 h-4 mr-3 text-gray-500" />
               <span className="flex-1 text-left">Analytics</span>
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:bg-gray-50/80 hover:text-gray-900 border border-transparent hover:border-gray-200/30"
-            >
+            </button>
+            <button className="w-full flex items-center px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:bg-gray-50/80 hover:text-gray-900 border border-transparent hover:border-gray-200/30">
               <Users className="w-4 h-4 mr-3 text-gray-500" />
               <span className="flex-1 text-left">Team</span>
-            </Button>
+            </button>
           </div>
         </nav>
 
         {/* Settings */}
         <div className="p-6 border-t border-gray-200/30">
-          <Button
-            variant="ghost"
-            className="w-full flex items-center px-4 py-2.5 text-sm text-gray-500 hover:text-gray-900 rounded-lg transition-all duration-200 hover:bg-gray-50/80 hover:shadow-md"
-          >
+          <button className="w-full flex items-center px-4 py-2.5 text-sm text-gray-500 hover:text-gray-900 rounded-lg transition-all duration-200 hover:bg-gray-50/80 hover:shadow-md">
             <Settings className="w-4 h-4 mr-3 text-gray-500" />
             {!isCollapsed && "Settings"}
-          </Button>
+          </button>
         </div>
       </div>
     </aside>
-  )
-}
+  );
+} 
