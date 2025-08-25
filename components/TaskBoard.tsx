@@ -254,7 +254,18 @@ export function TaskBoard() {
           </div>
 
           <div className="space-y-3">
-            {column.categories.map(category => renderCategory(column.id, category))}
+            {column.categories.length > 0 ? (
+              column.categories.map(category => renderCategory(column.id, category))
+            ) : (
+              // Render tasks directly in the column if no categories
+              <div className="space-y-2">
+                {columnTasks.map(renderTaskCard)}
+                <button className="w-full py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors">
+                  <Plus className="w-4 h-4 inline mr-2" />
+                  Add task
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
