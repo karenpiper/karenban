@@ -15,6 +15,7 @@ export function TaskBoard() {
   useEffect(() => {
     const state = loadAppState()
     setAppState(state)
+    console.log('TaskBoard loaded with state:', state)
   }, [])
 
   // Update task properties when dragged to new location
@@ -70,9 +71,40 @@ export function TaskBoard() {
     saveAppState(updatedState)
   }
 
+  // Add task handler
+  const handleAddTask = (categoryId: string) => {
+    if (!appState) return
+    
+    // Create a new task
+    const newTask: Task = {
+      id: `task-${Date.now()}`,
+      title: 'New Task',
+      description: 'Task description',
+      status: 'todo',
+      priority: 'medium',
+      columnId: appState.columns.find(col => 
+        col.categories.some(cat => cat.id === categoryId)
+      )?.id || appState.columns[0]?.id || 'col-standing',
+      categoryId: categoryId,
+      category: categoryId,
+      tags: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      estimatedHours: 1,
+      assignedTo: undefined,
+      dueDate: undefined,
+      completedAt: undefined,
+      durationDays: undefined,
+      durationHours: undefined
+    }
+
+    const updatedState = { ...appState, tasks: [...appState.tasks, newTask] }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, task: Task) => {
-    console.log('Drag started for task:', task.title)
     setDraggedTask(task)
     e.dataTransfer.setData('text/plain', task.id)
     e.dataTransfer.effectAllowed = 'move'
@@ -81,7 +113,6 @@ export function TaskBoard() {
   const handleDragOver = (e: React.DragEvent, targetType: 'column' | 'category' | 'person', targetId: string) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
-    console.log('Drag over:', targetType, targetId)
     setDragOverTarget({ type: targetType, id: targetId })
   }
 
@@ -91,23 +122,19 @@ export function TaskBoard() {
 
   const handleDrop = (e: React.DragEvent, targetType: 'column' | 'category' | 'person', targetId: string) => {
     e.preventDefault()
-    console.log('Drop event:', targetType, targetId, 'for task:', draggedTask?.title)
     
     if (!draggedTask) return
 
     if (targetType === 'column') {
-      console.log('Moving task to column:', targetId)
       updateTaskLocation(draggedTask.id, targetId)
     } else if (targetType === 'category') {
       // Find the column ID for this category
       const category = appState?.columns.flatMap(col => col.categories).find(cat => cat.id === targetId)
       if (category) {
-        console.log('Moving task to category:', targetId, 'in column:', category.columnId)
         updateTaskLocation(draggedTask.id, category.columnId, targetId)
       }
     } else if (targetType === 'person') {
       // Moving to a person (follow-up column)
-      console.log('Moving task to person:', targetId)
       updateTaskLocation(draggedTask.id, 'col-followup', undefined, targetId)
     }
 
@@ -121,7 +148,6 @@ export function TaskBoard() {
     const tasks = appState.tasks.filter(task => 
       task.columnId === columnId && task.categoryId === categoryId
     )
-    console.log(`Tasks for category ${categoryId} in column ${columnId}:`, tasks.length)
     return tasks
   }
 
@@ -129,7 +155,6 @@ export function TaskBoard() {
   const getTasksForColumn = (columnId: string) => {
     if (!appState) return []
     const tasks = appState.tasks.filter(task => task.columnId === columnId)
-    console.log(`Tasks for column ${columnId}:`, tasks.length)
     return tasks
   }
 
@@ -143,13 +168,14 @@ export function TaskBoard() {
     return getTasksForColumn(columnId).length
   }
 
-  const renderTaskCard = (task: Task) => (
+  const renderTaskCard = (task: Task) => {
+    return (
     <div 
       key={task.id} 
       draggable={true}
       onDragStart={(e) => handleDragStart(e, task)}
-      onDragEnd={() => console.log('Drag ended for task:', task.title)}
-      onDrag={(e) => console.log('Dragging task:', task.title, 'dataTransfer:', e.dataTransfer.types)}
+      onDragEnd={() => {}}
+      onDrag={() => {}}
       className={`bg-white/90 backdrop-blur-md border border-gray-200/40 rounded-xl shadow-md hover:shadow-lg hover:bg-white/95 transition-all duration-200 p-3 mb-3 cursor-move ${
         draggedTask?.id === task.id ? 'opacity-50' : ''
       }`}
@@ -168,7 +194,7 @@ export function TaskBoard() {
           </span>
         ))}
       </div>
-              <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
           <span className={`text-xs px-2 py-1 rounded ${
             task.priority === 'high' ? 'bg-red-100 text-red-800' :
             task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
@@ -200,8 +226,10 @@ export function TaskBoard() {
             )}
           </div>
         )}
+      </div>
     </div>
-  )
+    )
+  }
 
   const renderCategory = (columnId: string, category: Category) => {
     const categoryTasks = getTasksForCategory(columnId, category.id)
@@ -228,7 +256,10 @@ export function TaskBoard() {
         
         {categoryTasks.map(renderTaskCard)}
         
-        <button className="w-full py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors">
+        <button 
+          onClick={() => handleAddTask(category.id)}
+          className="w-full py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors"
+        >
           <Plus className="w-4 h-4 inline mr-2" />
           Add task
         </button>
@@ -273,7 +304,10 @@ export function TaskBoard() {
               // Render tasks directly in the column if no categories
               <div className="space-y-2">
                 {columnTasks.map(renderTaskCard)}
-                <button className="w-full py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors">
+                <button 
+                  onClick={() => handleAddTask('')}
+                  className="w-full py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors"
+                >
                   <Plus className="w-4 h-4 inline mr-2" />
                   Add task
                 </button>
@@ -293,20 +327,7 @@ export function TaskBoard() {
     )
   }
 
-  // Debug logging
-  console.log('AppState:', appState)
-  console.log('Columns:', appState.columns)
-  console.log('Tasks:', appState.tasks)
-  console.log('Column count:', appState.columns.length)
-  console.log('Task count:', appState.tasks.length)
-  
-  // Check if columns have categories
-  appState.columns.forEach((col, index) => {
-    console.log(`Column ${index}: ${col.name} (${col.id}) has ${col.categories.length} categories`)
-    col.categories.forEach((cat, catIndex) => {
-      console.log(`  Category ${catIndex}: ${cat.name} (${cat.id})`)
-    })
-  })
+  // Debug logging removed to prevent excessive console output during drag and drop
 
   return (
     <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-gray-100">
@@ -386,21 +407,7 @@ export function TaskBoard() {
           <p>Debug: {appState.columns.length} columns found</p>
           <p>Column IDs: {appState.columns.map(c => c.id).join(', ')}</p>
           
-          {/* Test drag and drop */}
-          <div className="mt-4 p-3 bg-blue-100 border border-blue-300 rounded">
-            <p className="text-sm font-medium mb-2">Test Drag and Drop:</p>
-            <div 
-              draggable={true}
-              onDragStart={(e) => {
-                console.log('Test drag start')
-                e.dataTransfer.setData('text/plain', 'test')
-              }}
-              onDragEnd={() => console.log('Test drag end')}
-              className="p-2 bg-blue-200 rounded cursor-move text-center"
-            >
-              🧪 Drag this test item
-            </div>
-          </div>
+          {/* Test drag and drop removed to prevent console spam */}
         </div>
             
             {appState.columns
