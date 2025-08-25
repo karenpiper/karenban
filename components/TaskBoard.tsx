@@ -81,6 +81,7 @@ export function TaskBoard() {
   const handleDragOver = (e: React.DragEvent, targetType: 'column' | 'category' | 'person', targetId: string) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
+    console.log('Drag over:', targetType, targetId)
     setDragOverTarget({ type: targetType, id: targetId })
   }
 
@@ -117,15 +118,19 @@ export function TaskBoard() {
   // Get tasks for a specific column and category
   const getTasksForCategory = (columnId: string, categoryId: string) => {
     if (!appState) return []
-    return appState.tasks.filter(task => 
+    const tasks = appState.tasks.filter(task => 
       task.columnId === columnId && task.categoryId === categoryId
     )
+    console.log(`Tasks for category ${categoryId} in column ${columnId}:`, tasks.length)
+    return tasks
   }
 
   // Get tasks for a specific column
   const getTasksForColumn = (columnId: string) => {
     if (!appState) return []
-    return appState.tasks.filter(task => task.columnId === columnId)
+    const tasks = appState.tasks.filter(task => task.columnId === columnId)
+    console.log(`Tasks for column ${columnId}:`, tasks.length)
+    return tasks
   }
 
   // Get count for a specific category
@@ -291,6 +296,16 @@ export function TaskBoard() {
   console.log('AppState:', appState)
   console.log('Columns:', appState.columns)
   console.log('Tasks:', appState.tasks)
+  console.log('Column count:', appState.columns.length)
+  console.log('Task count:', appState.tasks.length)
+  
+  // Check if columns have categories
+  appState.columns.forEach((col, index) => {
+    console.log(`Column ${index}: ${col.name} (${col.id}) has ${col.categories.length} categories`)
+    col.categories.forEach((cat, catIndex) => {
+      console.log(`  Category ${catIndex}: ${cat.name} (${cat.id})`)
+    })
+  })
 
   return (
     <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-gray-100">
