@@ -22,7 +22,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { loadAppState, saveAppState } from "@/data/seed"
-import type { AppState, Project, Task } from "@/types"
+import type { AppState, Project, Task, Category } from "@/types"
 
 export default function HomePage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
