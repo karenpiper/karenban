@@ -565,10 +565,11 @@ export function TaskBoard() {
             
             return (
               <Select
-                value={task.assignedTo || ""}
+                value={task.assignedTo || "__unassigned__"}
                 onValueChange={(value) => {
                   // Use updateTaskLocation for both assign and unassign to ensure consistency
                   const assignee = value === "__unassigned__" ? undefined : value
+                  // When unassigning, the function will automatically move to uncategorized if in follow-up
                   updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, assignee)
                 }}
                 onClick={(e) => e.stopPropagation()}
