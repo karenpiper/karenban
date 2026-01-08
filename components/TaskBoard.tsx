@@ -680,11 +680,22 @@ export function TaskBoard() {
                 .filter(category => {
                   // Only show non-archived categories
                   if (category.archived) return false
-                  // If it's a person category, ensure isTeamMember is explicitly set
-                  if (category.isPerson) {
-                    // If isTeamMember is undefined, treat it as non-team member
+                  
+                  // For follow-up column, filter person categories
+                  if (column.id === 'col-followup' && category.isPerson) {
+                    const personName = category.personName || category.name
+                    const isTeamMember = category.isTeamMember === true
+                    
+                    // For team members: only show if they have tasks assigned
+                    if (isTeamMember) {
+                      const hasTasks = appState.tasks.some(task => task.assignedTo === personName)
+                      return hasTasks
+                    }
+                    
+                    // For non-team members: always show
                     return true
                   }
+                  
                   return true
                 })
                 .sort((a, b) => {
