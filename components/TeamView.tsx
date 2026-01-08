@@ -115,17 +115,24 @@ export function TeamView({
     setShowAddNonTeamMember(false)
   }
 
-  // Get non-team members from follow-up column
+  // Get non-team members from follow-up column (exclude team members)
   const nonTeamMembers = useMemo(() => {
     if (!columns || columns.length === 0) return new Set<string>()
     const followUpColumn = columns.find((col: any) => col.id === 'col-followup')
     if (!followUpColumn) return new Set<string>()
+    const teamMemberNames = teamMembers // Use the teamMembers set we already computed
     return new Set(
       followUpColumn.categories
-        .filter((cat: any) => cat.isPerson && !cat.isTeamMember && !cat.archived)
+        .filter((cat: any) => {
+          const isPerson = cat.isPerson && !cat.archived
+          const isNotTeamMember = !cat.isTeamMember // Explicitly check for false/undefined
+          const personName = cat.personName || cat.name
+          // Exclude if it's a team member
+          return isPerson && isNotTeamMember && !teamMemberNames.has(personName)
+        })
         .map((cat: any) => cat.personName || cat.name)
     )
-  }, [columns])
+  }, [columns, teamMembers])
 
   // Filter team members based on search (exclude "Unassigned" from team members list)
   const filteredTeamMembers = Object.keys(tasksByTeam).filter(member => {

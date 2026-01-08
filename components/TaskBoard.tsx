@@ -675,11 +675,22 @@ export function TaskBoard() {
           <div className="space-y-3">
             {column.categories.length > 0 ? (
               column.categories
-                .filter(category => !category.archived)
+                .filter(category => {
+                  // Only show non-archived categories
+                  if (category.archived) return false
+                  // If it's a person category, ensure isTeamMember is explicitly set
+                  if (category.isPerson) {
+                    // If isTeamMember is undefined, treat it as non-team member
+                    return true
+                  }
+                  return true
+                })
                 .sort((a, b) => {
                   // Team members first, then non-team follow-ups
-                  if (a.isTeamMember && !b.isTeamMember) return -1
-                  if (!a.isTeamMember && b.isTeamMember) return 1
+                  const aIsTeam = a.isTeamMember === true
+                  const bIsTeam = b.isTeamMember === true
+                  if (aIsTeam && !bIsTeam) return -1
+                  if (!aIsTeam && bIsTeam) return 1
                   return a.order - b.order
                 })
                 .map(category => renderCategory(column.id, category))
