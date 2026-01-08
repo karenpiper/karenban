@@ -51,10 +51,11 @@ export function TaskBoard() {
         }
 
         // Update assignee if provided (regardless of column)
+        // Empty string means explicitly unassign
         if (newAssignee !== undefined) {
-          updates.assignedTo = newAssignee || undefined
+          updates.assignedTo = (newAssignee === "" || newAssignee === null) ? undefined : newAssignee
           // If assigning to a person, also set categoryId to match the person's category
-          if (newAssignee) {
+          if (newAssignee && newAssignee !== "") {
             const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
             const personCategory = followUpColumn?.categories.find(
               cat => cat.isPerson && (cat.personName || cat.name) === newAssignee
