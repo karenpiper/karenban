@@ -1,8 +1,18 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Plus, Search, Filter, Calendar, Users, Bell, Settings, CheckCircle, Clock, AlertTriangle, User, Target, Trophy, Star, Zap, Sunrise, Crown } from "lucide-react"
+import { Plus, Search, Filter, Calendar, Users, Bell, Settings, CheckCircle, Clock, AlertTriangle, User, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import type { Task, Category, Column, AppState } from "../types"
 import { loadAppState, saveAppState } from "../data/seed"
 
@@ -11,6 +21,7 @@ export function TaskBoard() {
   const [appState, setAppState] = useState<AppState | null>(null)
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
   const [dragOverTarget, setDragOverTarget] = useState<{ type: 'column' | 'category' | 'person', id: string } | null>(null)
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
 
   useEffect(() => {
     const state = loadAppState()
@@ -187,6 +198,21 @@ export function TaskBoard() {
     return getTasksForColumn(columnId).length
   }
 
+  // Handle task deletion with confirmation
+  const handleDeleteTask = (task: Task) => {
+    setTaskToDelete(task)
+  }
+
+  const confirmDeleteTask = () => {
+    if (!appState || !taskToDelete) return
+
+    const updatedTasks = appState.tasks.filter(task => task.id !== taskToDelete.id)
+    const updatedState = { ...appState, tasks: updatedTasks }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+    setTaskToDelete(null)
+  }
+
   const renderTaskCard = (task: Task) => {
     return (
       <div 
@@ -205,7 +231,16 @@ export function TaskBoard() {
         <div className="flex justify-between items-start mb-1.5">
           <h4 className="font-normal text-xs text-gray-800 leading-relaxed">{task.title}</h4>
           <div className="flex gap-1">
-            <button className="text-gray-400/70 hover:text-gray-500 p-0.5 rounded-full transition-colors">×</button>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation()
+                handleDeleteTask(task)
+              }}
+              className="text-gray-400/70 hover:text-red-500 p-0.5 rounded-full transition-colors"
+              title="Delete task"
+            >
+              <X className="w-3 h-3" />
+            </button>
           </div>
         </div>
         <div className="flex flex-wrap gap-1 mb-1.5">
@@ -480,143 +515,30 @@ export function TaskBoard() {
           </div>
         </div>
 
-        {/* Right Sidebar - Focus Zone & Achievements */}
-        <div className="w-80 space-y-6">
-          {/* Focus Zone */}
-          <div className="bg-gradient-to-br from-violet-400/80 via-purple-400/70 to-blue-400/80 rounded-3xl shadow-md p-5 text-white backdrop-blur-xl">
-            <h3 className="text-base font-medium mb-0.5">Focus Zone</h3>
-            <p className="text-purple-50/90 text-xs mb-3">Your daily inspiration</p>
-            
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-xs">
-                <div className="text-purple-50/90">12 day streak</div>
-                <div className="text-purple-50/90">Level 8</div>
-              </div>
-              <div className="relative w-14 h-14">
-                <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="rgba(255,255,255,0.25)"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeDasharray="67"
-                    strokeDashoffset="22"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xs font-medium">67%</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="text-center mb-3">
-              <p className="text-purple-50/90 italic text-xs">"The magic happens outside your comfort zone."</p>
-              <p className="text-purple-50/70 text-[0.625rem]">- Growth Mindset</p>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-1.5 text-center text-[0.625rem]">
-              <div>
-                <div className="font-medium">8</div>
-                <div className="text-purple-50/80">Completed</div>
-              </div>
-              <div>
-                <div className="font-medium">4</div>
-                <div className="text-purple-50/80">In Progress</div>
-              </div>
-              <div>
-                <div className="font-medium">2h</div>
-                <div className="text-purple-50/80">Focus Time</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Achievements */}
-          <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-3xl shadow-sm p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-800">Achievements</h3>
-              <span className="text-xs text-gray-500">2/6 Unlocked</span>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2">
-              {appState.achievements.map((achievement) => {
-                const IconComponent = achievement.icon as any
-                return (
-                  <div key={achievement.id} className="bg-gray-50/60 backdrop-blur-xl border border-gray-200/40 rounded-2xl p-2.5">
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <IconComponent className={`w-3.5 h-3.5 ${achievement.isUnlocked ? 'text-amber-500/80' : 'text-gray-400/60'}`} />
-                      <span className="text-xs font-normal text-gray-700">{achievement.name}</span>
-                    </div>
-                    <p className="text-[0.625rem] text-gray-500 mb-1.5 leading-relaxed">{achievement.description}</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 bg-gray-200/60 rounded-full h-1.5 mr-1.5">
-                        <div 
-                          className={`h-1.5 rounded-full ${achievement.isUnlocked ? 'bg-amber-400/70' : 'bg-blue-400/60'}`}
-                          style={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-[0.625rem] text-gray-500">{achievement.progress}/{achievement.maxProgress}</span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Duration Analytics */}
-          <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-3xl shadow-sm p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-800">Performance Insights</h3>
-              <Clock className="w-4 h-4 text-gray-400" />
-            </div>
-            
-            {(() => {
-              const completedTasks = appState.tasks.filter(task => task.status === 'done' && task.durationDays)
-              const avgDuration = completedTasks.length > 0 
-                ? Math.round(completedTasks.reduce((sum, task) => sum + (task.durationDays || 0), 0) / completedTasks.length)
-                : 0
-              const fastestTask = completedTasks.reduce((fastest, task) => 
-                !fastest || (task.durationDays || 0) < (fastest.durationDays || 0) ? task : fastest, null as Task | null
-              )
-              const slowestTask = completedTasks.reduce((slowest, task) => 
-                !slowest || (task.durationDays || 0) > (slowest.durationDays || 0) ? task : slowest, null as Task | null
-              )
-
-              return (
-                <div className="space-y-2.5">
-                  <div className="bg-blue-50/60 backdrop-blur-xl border border-blue-200/40 rounded-2xl p-2.5">
-                    <div className="text-center">
-                      <div className="text-lg font-medium text-blue-600/80">{avgDuration}</div>
-                      <div className="text-[0.625rem] text-blue-600/70">Avg Days</div>
-                    </div>
-                  </div>
-                  
-                  {fastestTask && (
-                    <div className="bg-emerald-50/60 backdrop-blur-xl border border-emerald-200/40 rounded-2xl p-2.5">
-                      <div className="text-[0.625rem] font-normal text-emerald-700/80 mb-0.5">Fastest Completion</div>
-                      <div className="text-xs font-medium text-emerald-800/90">{fastestTask.title}</div>
-                      <div className="text-[0.625rem] text-emerald-600/70">{fastestTask.durationDays} days</div>
-                    </div>
-                  )}
-                  
-                  {slowestTask && (
-                    <div className="bg-amber-50/60 backdrop-blur-xl border border-amber-200/40 rounded-2xl p-2.5">
-                      <div className="text-[0.625rem] font-normal text-amber-700/80 mb-0.5">Longest Duration</div>
-                      <div className="text-xs font-medium text-amber-800/90">{slowestTask.title}</div>
-                      <div className="text-[0.625rem] text-amber-600/70">{slowestTask.durationDays} days</div>
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
-          </div>
-        </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!taskToDelete} onOpenChange={(open) => !open && setTaskToDelete(null)}>
+        <AlertDialogContent className="bg-white/90 backdrop-blur-xl border border-gray-200/40 rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-sm font-medium text-gray-800">Delete Task</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-gray-600">
+              Are you sure you want to delete "{taskToDelete?.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="text-xs px-3 py-1.5 rounded-xl border border-gray-200/40 bg-white/60 hover:bg-gray-50/80">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteTask}
+              className="text-xs px-3 py-1.5 rounded-xl bg-red-50/80 text-red-700 border border-red-200/50 hover:bg-red-100/80"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 } 
