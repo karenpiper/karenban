@@ -65,7 +65,7 @@ export default function HomePage() {
         return <TaskBoard />
       case "calendar":
         return (
-          <div className="flex-1 overflow-auto p-5">
+          <div className="flex-1 overflow-auto p-3">
             <CalendarView
               tasks={appState.tasks || []}
               onEditTask={handleEditTask}
@@ -75,7 +75,7 @@ export default function HomePage() {
         )
       case "team":
         return (
-          <div className="flex-1 overflow-auto p-5">
+          <div className="flex-1 overflow-auto p-3">
             <TeamView
               tasks={appState.tasks || []}
               onEditTask={handleEditTask}
@@ -85,7 +85,7 @@ export default function HomePage() {
         )
       case "projects":
         return (
-          <div className="flex-1 overflow-auto p-5">
+          <div className="flex-1 overflow-auto p-3">
             <ProjectView
               projects={appState.projects || []}
               tasks={appState.tasks || []}
@@ -99,7 +99,7 @@ export default function HomePage() {
         )
       case "clients":
         return (
-          <div className="flex-1 overflow-auto p-5">
+          <div className="flex-1 overflow-auto p-3">
             <ClientProjectView
               projects={appState.projects || []}
               tasks={appState.tasks || []}

@@ -360,7 +360,7 @@ export function TaskBoard() {
           e.stopPropagation()
         }}
       >
-        <div className={`bg-white/50 backdrop-blur-xl border-2 rounded-3xl shadow-sm p-3.5 mb-3 transition-all duration-300 ${
+        <div className={`bg-white/50 backdrop-blur-xl border-2 rounded-xl shadow-sm p-2.5 mb-2 transition-all duration-300 ${
           isDragOver && column.categories.length === 0
             ? 'border-blue-300/50 bg-blue-50/30' 
             : 'border-gray-200/40'
@@ -428,7 +428,7 @@ export function TaskBoard() {
   return (
     <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50/80 via-white/50 to-gray-50/60">
       {/* Header */}
-      <header className="bg-white/60 backdrop-blur-2xl border-b border-gray-200/30 shadow-sm p-5">
+      <header className="bg-white/60 backdrop-blur-2xl border-b border-gray-200/30 shadow-sm p-3">
         <div className="mb-3">
           <h1 className="text-xl font-medium text-gray-800 mb-0.5">Task Board</h1>
           <p className="text-xs text-gray-500">Drag and drop tasks to organize your workflow</p>
@@ -494,7 +494,7 @@ export function TaskBoard() {
       </header>
 
       {/* Main Content */}
-      <div className="flex gap-5 p-5">
+      <div className="flex gap-3 p-3">
         {/* Task Columns */}
         <div className="flex-1">
           <div className="flex gap-4 items-start">
@@ -507,7 +507,7 @@ export function TaskBoard() {
 
             {/* Add Column Button */}
             <div className="min-w-[280px] mt-4">
-              <div className="bg-white/30 backdrop-blur-xl border border-gray-200/30 rounded-3xl shadow-sm flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:bg-white/50 hover:shadow-md p-4">
+              <div className="bg-white/30 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:bg-white/50 hover:shadow-md p-3">
                 <div className="text-xl text-gray-400/70 mb-1.5">+</div>
                 <div className="text-xs text-gray-500 font-normal">Create a new task column</div>
               </div>

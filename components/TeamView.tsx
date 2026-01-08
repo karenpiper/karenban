@@ -70,27 +70,27 @@ export function TeamView({
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-2">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-medium text-gray-800 mb-0.5">Team</h2>
-        <p className="text-xs text-gray-500">View tasks organized by team member</p>
+        <h2 className="text-lg font-medium text-gray-800 mb-0.5">Team</h2>
+        <p className="text-[0.625rem] text-gray-500">View tasks organized by team member</p>
       </div>
 
       {/* Search */}
       <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
         <Input
           placeholder="Search team members..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9 bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm text-xs h-8"
+          className="pl-7 bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm text-[0.625rem] h-7"
         />
       </div>
 
       {/* Team Grid */}
       {filteredTeamMembers.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredTeamMembers.map((member) => {
             const memberTasks = tasksByTeam[member]
             const stats = getTaskStats(memberTasks)
@@ -98,49 +98,49 @@ export function TeamView({
             return (
               <div
                 key={member}
-                className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
               >
                 {/* Team Member Header */}
-                <div className="p-4 border-b border-gray-200/20">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-400/70 to-violet-400/70 flex items-center justify-center shadow-sm">
-                      <Users className="w-5 h-5 text-white" />
+                <div className="p-2.5 border-b border-gray-200/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-400/70 to-violet-400/70 flex items-center justify-center shadow-sm">
+                      <Users className="w-4 h-4 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-sm font-medium text-gray-800">{member}</h3>
+                      <h3 className="text-xs font-medium text-gray-800">{member}</h3>
                       <p className="text-[0.625rem] text-gray-500">{stats.total} {stats.total === 1 ? 'task' : 'tasks'}</p>
                     </div>
                   </div>
 
                   {/* Stats */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-gray-50/60 rounded-xl p-2 text-center">
-                      <div className="text-base font-medium text-gray-800">{stats.total}</div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <div className="bg-gray-50/60 rounded-lg p-1.5 text-center">
+                      <div className="text-sm font-medium text-gray-800">{stats.total}</div>
                       <div className="text-[0.625rem] text-gray-500">Total</div>
                     </div>
-                    <div className="bg-emerald-50/60 rounded-xl p-2 text-center">
-                      <div className="text-base font-medium text-emerald-700">{stats.completed}</div>
+                    <div className="bg-emerald-50/60 rounded-lg p-1.5 text-center">
+                      <div className="text-sm font-medium text-emerald-700">{stats.completed}</div>
                       <div className="text-[0.625rem] text-emerald-600">Done</div>
                     </div>
-                    <div className="bg-blue-50/60 rounded-xl p-2 text-center">
-                      <div className="text-base font-medium text-blue-700">{stats.inProgress}</div>
+                    <div className="bg-blue-50/60 rounded-lg p-1.5 text-center">
+                      <div className="text-sm font-medium text-blue-700">{stats.inProgress}</div>
                       <div className="text-[0.625rem] text-blue-600">Active</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Task List */}
-                <div className="p-4">
+                <div className="p-2.5">
                   {memberTasks.length > 0 ? (
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                    <div className="space-y-1.5 max-h-64 overflow-y-auto">
                       {memberTasks.map((task) => (
                         <div
                           key={task.id}
-                          className="bg-gray-50/60 rounded-xl p-2.5 hover:bg-gray-100/80 transition-colors cursor-pointer group"
+                          className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
                           onClick={() => onEditTask(task)}
                         >
-                          <div className="flex items-start justify-between mb-1.5">
-                            <h4 className="text-xs font-medium text-gray-800 flex-1">{task.title}</h4>
+                          <div className="flex items-start justify-between mb-1">
+                            <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()

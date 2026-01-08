@@ -71,16 +71,16 @@ export function ProjectView({
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-medium text-gray-800 mb-0.5">Projects</h2>
-          <p className="text-xs text-gray-500">View tasks organized by project</p>
+          <h2 className="text-lg font-medium text-gray-800 mb-0.5">Projects</h2>
+          <p className="text-[0.625rem] text-gray-500">View tasks organized by project</p>
         </div>
         <Button
           onClick={onCreateProject}
-          className="bg-blue-50/60 text-blue-700 border border-blue-200/40 rounded-2xl shadow-sm hover:bg-blue-50/80 hover:shadow-md transition-all duration-300 px-3 py-1.5 text-xs"
+          className="bg-blue-50/60 text-blue-700 border border-blue-200/40 rounded-xl shadow-sm hover:bg-blue-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem]"
         >
           <Plus className="w-3.5 h-3.5 mr-1.5" />
           New Project
@@ -122,14 +122,14 @@ export function ProjectView({
             return (
               <div 
                 key={project.id} 
-                className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
               >
                 {/* Project Header - Collapsable */}
                 <button
                   onClick={() => toggleExpand(project.id)}
-                  className="w-full p-4 flex items-center justify-between hover:bg-gray-50/40 transition-colors"
+                  className="w-full p-2.5 flex items-center justify-between hover:bg-gray-50/40 transition-colors"
                 >
-                  <div className="flex items-center gap-3 flex-1 text-left">
+                  <div className="flex items-center gap-2 flex-1 text-left">
                     <div className={`w-2.5 h-2.5 rounded-full bg-gradient-to-br ${project.color} opacity-70`}></div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -190,20 +190,20 @@ export function ProjectView({
 
                 {/* Expanded Task List */}
                 {isExpanded && (
-                  <div className="border-t border-gray-200/20 px-4 py-3">
+                  <div className="border-t border-gray-200/20 px-3 py-2">
                     {project.description && (
-                      <p className="text-xs text-gray-600 mb-3 leading-relaxed">{project.description}</p>
+                      <p className="text-[0.625rem] text-gray-600 mb-2 leading-relaxed">{project.description}</p>
                     )}
                     {projectTasks.length > 0 ? (
-                      <div className="space-y-1.5">
+                      <div className="space-y-1">
                         {projectTasks.map((task) => (
                           <div
                             key={task.id}
-                            className="bg-gray-50/60 rounded-xl p-2.5 hover:bg-gray-100/80 transition-colors cursor-pointer group"
+                            className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
                             onClick={() => onEditTask(task)}
                           >
-                            <div className="flex items-start justify-between mb-1.5">
-                              <h4 className="text-xs font-medium text-gray-800 flex-1">{task.title}</h4>
+                            <div className="flex items-start justify-between mb-1">
+                              <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()

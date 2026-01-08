@@ -61,17 +61,17 @@ export function CalendarView({
   const selectedDateTasks = selectedDate ? getTasksForDate(selectedDate) : []
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-2">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-medium text-gray-800 mb-0.5">Calendar</h2>
-        <p className="text-xs text-gray-500">View tasks by due date</p>
+        <h2 className="text-lg font-medium text-gray-800 mb-0.5">Calendar</h2>
+        <p className="text-[0.625rem] text-gray-500">View tasks by due date</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Calendar */}
         <div className="lg:col-span-2">
-          <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-3xl shadow-sm p-5">
+          <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-3">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -91,31 +91,31 @@ export function CalendarView({
 
         {/* Tasks for Selected Date */}
         <div className="lg:col-span-1">
-          <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-3xl shadow-sm p-5 h-full">
+          <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-3 h-full">
             {selectedDate ? (
               <>
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CalendarIcon className="w-4 h-4 text-gray-500" />
-                    <h3 className="text-sm font-medium text-gray-800">
+                <div className="mb-2">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <CalendarIcon className="w-3.5 h-3.5 text-gray-500" />
+                    <h3 className="text-xs font-medium text-gray-800">
                       {formatDate(selectedDate)}
                     </h3>
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-[0.625rem] text-gray-500">
                     {selectedDateTasks.length} {selectedDateTasks.length === 1 ? 'task' : 'tasks'}
                   </p>
                 </div>
 
                 {selectedDateTasks.length > 0 ? (
-                  <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                  <div className="space-y-1.5 max-h-[500px] overflow-y-auto">
                     {selectedDateTasks.map((task) => (
                       <div
                         key={task.id}
-                        className="bg-gray-50/60 rounded-xl p-3 hover:bg-gray-100/80 transition-colors cursor-pointer group"
+                        className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
                         onClick={() => onEditTask(task)}
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="text-xs font-medium text-gray-800 flex-1">{task.title}</h4>
+                        <div className="flex items-start justify-between mb-1">
+                          <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
