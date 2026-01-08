@@ -288,7 +288,47 @@ export function TaskBoard() {
       return col
     })
 
-    const updatedState = { ...appState, columns: updatedColumns }
+    // Clean up duplicates: if there are both team and non-team versions of the same person, keep only the team version
+    const cleanedColumns = updatedColumns.map(col => {
+      if (col.id === 'col-followup') {
+        const seenNames = new Map<string, Category>()
+        const cleanedCategories: Category[] = []
+        
+        // First pass: collect team members
+        col.categories.forEach(cat => {
+          if (cat.isPerson) {
+            const personName = (cat.personName || cat.name).toLowerCase()
+            if (cat.isTeamMember === true) {
+              seenNames.set(personName, cat)
+            }
+          }
+        })
+        
+        // Second pass: collect non-team members (only if no team member exists)
+        col.categories.forEach(cat => {
+          if (cat.isPerson) {
+            const personName = (cat.personName || cat.name).toLowerCase()
+            if (cat.isTeamMember !== true && !seenNames.has(personName)) {
+              seenNames.set(personName, cat)
+            }
+          } else {
+            // Non-person categories always included
+            cleanedCategories.push(cat)
+          }
+        })
+        
+        // Add all unique person categories
+        seenNames.forEach(cat => cleanedCategories.push(cat))
+        
+        return {
+          ...col,
+          categories: cleanedCategories
+        }
+      }
+      return col
+    })
+
+    const updatedState = { ...appState, columns: cleanedColumns }
     setAppState(updatedState)
     saveAppState(updatedState)
     setShowAddPerson(false)
@@ -676,37 +716,64 @@ export function TaskBoard() {
 
           <div className="space-y-3">
             {column.categories.length > 0 ? (
-              column.categories
-                .filter(category => {
-                  // Only show non-archived categories
-                  if (category.archived) return false
+              (() => {
+                // For follow-up column, deduplicate person categories by name
+                // If both team and non-team versions exist, prefer team member version
+                let categoriesToShow = column.categories.filter(category => !category.archived)
+                
+                if (column.id === 'col-followup') {
+                  const seenNames = new Set<string>()
+                  const deduplicated: Category[] = []
                   
-                  // For follow-up column, filter person categories
-                  if (column.id === 'col-followup' && category.isPerson) {
-                    const personName = category.personName || category.name
-                    const isTeamMember = category.isTeamMember === true
-                    
-                    // For team members: only show if they have tasks assigned
-                    if (isTeamMember) {
+                  // First pass: collect team members
+                  categoriesToShow.forEach(category => {
+                    if (category.isPerson) {
+                      const personName = (category.personName || category.name).toLowerCase()
+                      if (category.isTeamMember === true && !seenNames.has(personName)) {
+                        seenNames.add(personName)
+                        deduplicated.push(category)
+                      }
+                    }
+                  })
+                  
+                  // Second pass: collect non-team members (only if not already seen)
+                  categoriesToShow.forEach(category => {
+                    if (category.isPerson) {
+                      const personName = (category.personName || category.name).toLowerCase()
+                      if (category.isTeamMember !== true && !seenNames.has(personName)) {
+                        seenNames.add(personName)
+                        deduplicated.push(category)
+                      }
+                    } else {
+                      // Non-person categories always included
+                      deduplicated.push(category)
+                    }
+                  })
+                  
+                  categoriesToShow = deduplicated
+                  
+                  // Filter team members to only show if they have tasks
+                  categoriesToShow = categoriesToShow.filter(category => {
+                    if (category.isPerson && category.isTeamMember === true) {
+                      const personName = category.personName || category.name
                       const hasTasks = appState.tasks.some(task => task.assignedTo === personName)
                       return hasTasks
                     }
-                    
-                    // For non-team members: always show
                     return true
-                  }
-                  
-                  return true
-                })
-                .sort((a, b) => {
-                  // Team members first, then non-team follow-ups
-                  const aIsTeam = a.isTeamMember === true
-                  const bIsTeam = b.isTeamMember === true
-                  if (aIsTeam && !bIsTeam) return -1
-                  if (!aIsTeam && bIsTeam) return 1
-                  return a.order - b.order
-                })
-                .map(category => renderCategory(column.id, category))
+                  })
+                }
+                
+                return categoriesToShow
+                  .sort((a, b) => {
+                    // Team members first, then non-team follow-ups
+                    const aIsTeam = a.isTeamMember === true
+                    const bIsTeam = b.isTeamMember === true
+                    if (aIsTeam && !bIsTeam) return -1
+                    if (!aIsTeam && bIsTeam) return 1
+                    return a.order - b.order
+                  })
+                  .map(category => renderCategory(column.id, category))
+              })()
             ) : (
               // Render tasks directly in the column if no categories
               <div 

@@ -37,7 +37,56 @@ export default function HomePage() {
 
   useEffect(() => {
     const state = loadAppState()
-    setAppState(state)
+    if (state) {
+      // Clean up duplicate person categories on load
+      const cleanedColumns = state.columns.map(col => {
+        if (col.id === 'col-followup') {
+          const seenNames = new Map<string, Category>()
+          const cleanedCategories: Category[] = []
+          
+          // First pass: collect team members (prefer team members over non-team)
+          col.categories.forEach(cat => {
+            if (cat.isPerson) {
+              const personName = (cat.personName || cat.name).toLowerCase()
+              if (cat.isTeamMember === true) {
+                seenNames.set(personName, cat)
+              }
+            }
+          })
+          
+          // Second pass: collect non-team members (only if no team member exists)
+          col.categories.forEach(cat => {
+            if (cat.isPerson) {
+              const personName = (cat.personName || cat.name).toLowerCase()
+              if (cat.isTeamMember !== true && !seenNames.has(personName)) {
+                seenNames.set(personName, cat)
+              }
+            } else {
+              // Non-person categories always included
+              cleanedCategories.push(cat)
+            }
+          })
+          
+          // Add all unique person categories
+          seenNames.forEach(cat => cleanedCategories.push(cat))
+          
+          return {
+            ...col,
+            categories: cleanedCategories
+          }
+        }
+        return col
+      })
+      
+      const cleanedState = { ...state, columns: cleanedColumns }
+      // Only save if we actually cleaned something
+      if (cleanedState.columns !== state.columns) {
+        saveAppState(cleanedState)
+        setAppState(cleanedState)
+      } else {
+        setAppState(state)
+      }
+    }
   }, [])
 
   const handleEditProject = (project: Project) => {
