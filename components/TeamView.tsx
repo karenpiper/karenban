@@ -4,8 +4,8 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search, Users, Calendar, X } from "lucide-react"
-import type { Task } from "../types"
+import { Search, Users, Calendar, X, Plus, Check } from "lucide-react"
+import type { Task, Category } from "../types"
 
 interface TeamViewProps {
   tasks: Task[]
@@ -13,6 +13,9 @@ interface TeamViewProps {
   onDeleteTask: (task: Task) => void
   onTaskDrop?: (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => void
   columns?: any[] // To access archived person categories
+  onAddTeamMember?: (name: string) => void
+  onArchiveTeamMember?: (name: string) => void
+  onDeleteTeamMember?: (name: string) => void
 }
 
 export function TeamView({
@@ -20,11 +23,28 @@ export function TeamView({
   onEditTask,
   onDeleteTask,
   onTaskDrop,
-  columns = []
+  columns = [],
+  onAddTeamMember,
+  onArchiveTeamMember,
+  onDeleteTeamMember
 }: TeamViewProps) {
   const [searchTerm, setSearchTerm] = useState("")
+  const [showAddMember, setShowAddMember] = useState(false)
+  const [newMemberName, setNewMemberName] = useState("")
 
   const safeTasks = tasks || []
+
+  // Get team members from follow-up column (those marked as isTeamMember)
+  const teamMembers = useMemo(() => {
+    if (!columns || columns.length === 0) return new Set<string>()
+    const followUpColumn = columns.find((col: any) => col.id === 'col-followup')
+    if (!followUpColumn) return new Set<string>()
+    return new Set(
+      followUpColumn.categories
+        .filter((cat: any) => cat.isPerson && cat.isTeamMember && !cat.archived)
+        .map((cat: any) => cat.personName || cat.name)
+    )
+  }, [columns])
 
   // Get archived person names from columns
   const archivedPeople = useMemo(() => {
@@ -49,11 +69,14 @@ export function TeamView({
         if (archivedPeople.has(task.assignedTo)) {
           return
         }
-        const member = task.assignedTo
-        if (!grouped[member]) {
-          grouped[member] = []
+        // Only show team members in team view
+        if (teamMembers.has(task.assignedTo)) {
+          const member = task.assignedTo
+          if (!grouped[member]) {
+            grouped[member] = []
+          }
+          grouped[member].push(task)
         }
-        grouped[member].push(task)
       } else {
         unassigned.push(task)
       }
@@ -64,12 +87,26 @@ export function TeamView({
       grouped["Unassigned"] = unassigned
     }
 
-    return grouped
-  }, [safeTasks, archivedPeople])
+    // Also add team members that have no tasks yet
+    teamMembers.forEach(member => {
+      if (!grouped[member]) {
+        grouped[member] = []
+      }
+    })
 
-  // Filter team members based on search
+    return grouped
+  }, [safeTasks, archivedPeople, teamMembers])
+
+  const handleAddTeamMember = () => {
+    if (!newMemberName.trim() || !onAddTeamMember) return
+    onAddTeamMember(newMemberName.trim())
+    setNewMemberName("")
+    setShowAddMember(false)
+  }
+
+  // Filter team members based on search (exclude "Unassigned" from team members list)
   const filteredTeamMembers = Object.keys(tasksByTeam).filter(member => {
-    if (member === "Unassigned") return true
+    if (member === "Unassigned") return false // Don't show unassigned in team view
     return member.toLowerCase().includes(searchTerm.toLowerCase())
   })
 
@@ -92,13 +129,58 @@ export function TeamView({
   return (
     <div className="space-y-2">
       {/* Header */}
-      <div>
-        <h2 className="text-lg font-medium text-gray-800 mb-0.5">Team</h2>
-        <p className="text-[0.625rem] text-gray-500">View tasks organized by team member</p>
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h2 className="text-lg font-medium text-gray-800 mb-0.5">Team</h2>
+          <p className="text-[0.625rem] text-gray-500">View tasks organized by team member</p>
+        </div>
+        {!showAddMember && onAddTeamMember && (
+          <Button
+            onClick={() => setShowAddMember(true)}
+            className="bg-blue-50/60 text-blue-700 border border-blue-200/40 rounded-xl shadow-sm hover:bg-blue-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] h-7"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Add Member
+          </Button>
+        )}
+        {showAddMember && onAddTeamMember && (
+          <div className="flex items-center gap-1">
+            <Input
+              value={newMemberName}
+              onChange={(e) => setNewMemberName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleAddTeamMember()
+                } else if (e.key === 'Escape') {
+                  setShowAddMember(false)
+                  setNewMemberName("")
+                }
+              }}
+              placeholder="Team member name"
+              className="text-[0.625rem] h-7 w-32 bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl"
+              autoFocus
+            />
+            <Button
+              onClick={handleAddTeamMember}
+              className="p-1 h-7 w-7 bg-emerald-50/80 text-emerald-600 hover:bg-emerald-100/80 rounded-xl"
+            >
+              <Check className="w-3 h-3" />
+            </Button>
+            <Button
+              onClick={() => {
+                setShowAddMember(false)
+                setNewMemberName("")
+              }}
+              className="p-1 h-7 w-7 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500 rounded-xl"
+            >
+              <X className="w-3 h-3" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Search */}
-      <div className="relative max-w-md">
+      <div className="relative max-w-md mb-2">
         <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
         <Input
           placeholder="Search team members..."

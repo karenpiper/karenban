@@ -71,6 +71,7 @@ export interface Category {
   isPerson?: boolean
   personName?: string
   archived?: boolean // Whether the category is archived
+  isTeamMember?: boolean // Whether this is a team member (vs non-team follow-up)
 }
 
 export interface Column {

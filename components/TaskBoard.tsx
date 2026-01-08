@@ -173,7 +173,12 @@ export function TaskBoard() {
       // Find the column ID for this category
       const category = appState?.columns.flatMap(col => col.categories).find(cat => cat.id === targetId)
       if (category) {
-        updateTaskLocation(draggedTask.id, category.columnId, targetId)
+        // If it's a person category, set the assignedTo to the person's name
+        if (category.isPerson && category.personName) {
+          updateTaskLocation(draggedTask.id, category.columnId, targetId, category.personName)
+        } else {
+          updateTaskLocation(draggedTask.id, category.columnId, targetId)
+        }
       }
     } else if (targetType === 'person') {
       // Moving to a person (follow-up column)
@@ -239,7 +244,7 @@ export function TaskBoard() {
       return
     }
 
-    // Create new person category
+    // Create new person category (non-team follow-up)
     const newCategory: Category = {
       id: `cat-followup-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: newPersonName.trim(),
@@ -250,7 +255,8 @@ export function TaskBoard() {
       taskCount: 0,
       completedCount: 0,
       isPerson: true,
-      personName: newPersonName.trim()
+      personName: newPersonName.trim(),
+      isTeamMember: false // Non-team follow-up
     }
 
     // Update the column with the new category

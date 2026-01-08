@@ -187,6 +187,93 @@ export default function HomePage() {
     saveAppState(updatedState)
   }
 
+  const handleAddTeamMember = (name: string) => {
+    if (!appState) return
+    const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
+    if (!followUpColumn) return
+
+    // Check if team member already exists
+    const existingMember = followUpColumn.categories.find(
+      cat => cat.isPerson && cat.isTeamMember && (cat.personName || cat.name)?.toLowerCase() === name.toLowerCase()
+    )
+    if (existingMember) return
+
+    // Create new team member category
+    const newCategory: Category = {
+      id: `cat-followup-team-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: name,
+      columnId: 'col-followup',
+      color: `from-blue-400 to-blue-500`, // Team members get blue color
+      isCollapsed: false,
+      order: followUpColumn.categories.filter(cat => cat.isTeamMember).length,
+      taskCount: 0,
+      completedCount: 0,
+      isPerson: true,
+      personName: name,
+      isTeamMember: true // Mark as team member
+    }
+
+    // Update the column with the new category
+    const updatedColumns = appState.columns.map(col => {
+      if (col.id === 'col-followup') {
+        return {
+          ...col,
+          categories: [...col.categories, newCategory]
+        }
+      }
+      return col
+    })
+
+    const updatedState = { ...appState, columns: updatedColumns }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
+  const handleArchiveTeamMember = (name: string) => {
+    if (!appState) return
+    const updatedColumns = appState.columns.map(col => {
+      if (col.id === 'col-followup') {
+        return {
+          ...col,
+          categories: col.categories.map(cat =>
+            cat.isPerson && (cat.personName || cat.name) === name && cat.isTeamMember
+              ? { ...cat, archived: true }
+              : cat
+          )
+        }
+      }
+      return col
+    })
+    const updatedState = { ...appState, columns: updatedColumns }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
+  const handleDeleteTeamMember = (name: string) => {
+    if (!appState) return
+    const updatedColumns = appState.columns.map(col => {
+      if (col.id === 'col-followup') {
+        return {
+          ...col,
+          categories: col.categories.filter(cat =>
+            !(cat.isPerson && (cat.personName || cat.name) === name && cat.isTeamMember)
+          )
+        }
+      }
+      return col
+    })
+    // Unassign tasks from this team member
+    const updatedTasks = appState.tasks.map(task => {
+      if (task.assignedTo === name) {
+        return { ...task, assignedTo: undefined, categoryId: undefined, category: undefined }
+      }
+      return task
+    })
+    const updatedState = { ...appState, columns: updatedColumns, tasks: updatedTasks }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
   const handleTaskDrop = (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => {
     if (!appState) return
     
@@ -254,6 +341,9 @@ export default function HomePage() {
               onDeleteTask={handleDeleteTask}
               onTaskDrop={handleTaskDrop}
               columns={appState.columns || []}
+              onAddTeamMember={handleAddTeamMember}
+              onArchiveTeamMember={handleArchiveTeamMember}
+              onDeleteTeamMember={handleDeleteTeamMember}
             />
           </div>
         )
