@@ -215,6 +215,54 @@ export function TaskBoard() {
     setTaskToDelete(null)
   }
 
+  const handleAddPerson = () => {
+    if (!appState || !newPersonName.trim()) return
+
+    const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
+    if (!followUpColumn) return
+
+    // Check if person already exists
+    const existingPerson = followUpColumn.categories.find(
+      cat => cat.isPerson && cat.personName?.toLowerCase() === newPersonName.trim().toLowerCase()
+    )
+    if (existingPerson) {
+      setShowAddPerson(false)
+      setNewPersonName("")
+      return
+    }
+
+    // Create new person category
+    const newCategory: Category = {
+      id: `cat-followup-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: newPersonName.trim(),
+      columnId: 'col-followup',
+      color: `from-${['pink', 'indigo', 'cyan', 'violet', 'amber', 'emerald', 'rose'][Math.floor(Math.random() * 7)]}-400 to-${['pink', 'indigo', 'cyan', 'violet', 'amber', 'emerald', 'rose'][Math.floor(Math.random() * 7)]}-500`,
+      isCollapsed: false,
+      order: followUpColumn.categories.length,
+      taskCount: 0,
+      completedCount: 0,
+      isPerson: true,
+      personName: newPersonName.trim()
+    }
+
+    // Update the column with the new category
+    const updatedColumns = appState.columns.map(col => {
+      if (col.id === 'col-followup') {
+        return {
+          ...col,
+          categories: [...col.categories, newCategory]
+        }
+      }
+      return col
+    })
+
+    const updatedState = { ...appState, columns: updatedColumns }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+    setShowAddPerson(false)
+    setNewPersonName("")
+  }
+
   const renderTaskCard = (task: Task) => {
     // Get project name if task has projectId
     const project = appState?.projects?.find(p => p.id === task.projectId)
