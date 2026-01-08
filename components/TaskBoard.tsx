@@ -446,7 +446,8 @@ export function TaskBoard() {
                 value={task.assignedTo || ""}
                 onValueChange={(value) => {
                   // Use updateTaskLocation for both assign and unassign to ensure consistency
-                  updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, value || undefined)
+                  const assignee = value === "__unassigned__" ? undefined : value
+                  updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, assignee)
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -463,7 +464,7 @@ export function TaskBoard() {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent onClick={(e) => e.stopPropagation()}>
-                  <SelectItem value="">Unassigned</SelectItem>
+                  <SelectItem value="__unassigned__">Unassigned</SelectItem>
                   {availablePeople.map((person) => (
                     <SelectItem key={person.name} value={person.name}>
                       {person.name} {person.isTeamMember && <span className="text-blue-600">(Team)</span>}

@@ -248,12 +248,17 @@ export function TaskEditDialog({
               Assignee / Owner
             </Label>
             {availableAssignees.length > 0 ? (
-              <Select value={assignedTo} onValueChange={setAssignedTo}>
+              <Select 
+                value={assignedTo || "__unassigned__"} 
+                onValueChange={(value) => {
+                  setAssignedTo(value === "__unassigned__" ? "" : value)
+                }}
+              >
                 <SelectTrigger className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm text-xs h-8">
                   <SelectValue placeholder="Select person" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Unassigned</SelectItem>
+                  <SelectItem value="__unassigned__">Unassigned</SelectItem>
                   {availableAssignees.map((person) => (
                     <SelectItem key={person.name} value={person.name}>
                       {person.name} {person.isTeamMember && <span className="text-blue-600">(Team)</span>}
