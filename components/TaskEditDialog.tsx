@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon, X } from "lucide-react"
+import { CalendarIcon, X, Plus } from "lucide-react"
 import { format } from "date-fns"
 import type { Task, Project } from "../types"
 
@@ -20,6 +20,8 @@ interface TaskEditDialogProps {
   projects: Project[]
   onSave: (task: Task) => void
   columns?: any[] // To access person categories for assignee dropdown
+  onCreateClient?: (clientName: string) => void
+  onCreateProject?: (projectName: string, clientName?: string) => void
 }
 
 export function TaskEditDialog({
@@ -28,7 +30,9 @@ export function TaskEditDialog({
   task,
   projects,
   onSave,
-  columns = []
+  columns = [],
+  onCreateClient,
+  onCreateProject
 }: TaskEditDialogProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -38,6 +42,10 @@ export function TaskEditDialog({
   const [client, setClient] = useState("")
   const [projectId, setProjectId] = useState<string>("")
   const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">("medium")
+  const [showNewClient, setShowNewClient] = useState(false)
+  const [newClientName, setNewClientName] = useState("")
+  const [showNewProject, setShowNewProject] = useState(false)
+  const [newProjectName, setNewProjectName] = useState("")
 
   useEffect(() => {
     if (task) {
@@ -50,7 +58,14 @@ export function TaskEditDialog({
       setProjectId(task.projectId || "")
       setPriority(task.priority)
     }
-  }, [task])
+    // Reset new item states when dialog opens/closes
+    if (!open) {
+      setShowNewClient(false)
+      setNewClientName("")
+      setShowNewProject(false)
+      setNewProjectName("")
+    }
+  }, [task, open])
 
   const handleSave = () => {
     if (!task) return
@@ -80,8 +95,11 @@ export function TaskEditDialog({
     onOpenChange(false)
   }
 
-  // Get unique clients from projects
-  const uniqueClients = Array.from(new Set(projects.filter(p => p.client).map(p => p.client!)))
+  // Get unique clients from projects and tasks
+  const uniqueClients = Array.from(new Set([
+    ...projects.filter(p => p.client).map(p => p.client!),
+    ...(task?.client ? [task.client] : [])
+  ]))
 
   // Get projects for selected client (or all if no client selected)
   const availableProjects = client
@@ -189,29 +207,94 @@ export function TaskEditDialog({
             <Label htmlFor="project" className="text-xs font-medium text-gray-700 mb-1.5 block">
               Project
             </Label>
-            <Select value={projectId || "__none__"} onValueChange={(value) => {
-              const actualValue = value === "__none__" ? "" : value
-              setProjectId(actualValue)
-              // Update client when project is selected
-              if (actualValue) {
-                const selectedProject = projects.find(p => p.id === actualValue)
-                if (selectedProject?.client) {
-                  setClient(selectedProject.client)
-                }
-              }
-            }}>
-              <SelectTrigger className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm text-xs h-8">
-                <SelectValue placeholder="Select project" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">No project</SelectItem>
-                {projects.filter(p => !p.archived).map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name} {project.client && `(${project.client})`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {!showNewProject ? (
+              <div className="flex gap-1">
+                <Select value={projectId || "__none__"} onValueChange={(value) => {
+                  if (value === "__new__") {
+                    setShowNewProject(true)
+                  } else {
+                    const actualValue = value === "__none__" ? "" : value
+                    setProjectId(actualValue)
+                    // Update client when project is selected
+                    if (actualValue) {
+                      const selectedProject = projects.find(p => p.id === actualValue)
+                      if (selectedProject?.client) {
+                        setClient(selectedProject.client)
+                      }
+                    }
+                  }
+                }}>
+                  <SelectTrigger className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm text-xs h-8 flex-1">
+                    <SelectValue placeholder="Select project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">No project</SelectItem>
+                    {availableProjects.filter(p => !p.archived).map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name} {project.client && `(${project.client})`}
+                      </SelectItem>
+                    ))}
+                    {onCreateProject && (
+                      <SelectItem value="__new__" className="text-blue-600">
+                        <Plus className="w-3 h-3 inline mr-1" />
+                        Add new project
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="flex gap-1">
+                <Input
+                  value={newProjectName}
+                  onChange={(e) => setNewProjectName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newProjectName.trim() && onCreateProject) {
+                      onCreateProject(newProjectName.trim(), client || undefined)
+                      // Find the newly created project
+                      const newProject = projects.find(p => p.name === newProjectName.trim() && (!client || p.client === client))
+                      if (newProject) {
+                        setProjectId(newProject.id)
+                      }
+                      setShowNewProject(false)
+                      setNewProjectName("")
+                    } else if (e.key === 'Escape') {
+                      setShowNewProject(false)
+                      setNewProjectName("")
+                    }
+                  }}
+                  placeholder="New project name"
+                  className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm text-xs h-8 flex-1"
+                  autoFocus
+                />
+                <Button
+                  onClick={() => {
+                    if (newProjectName.trim() && onCreateProject) {
+                      onCreateProject(newProjectName.trim(), client || undefined)
+                      // Find the newly created project
+                      const newProject = projects.find(p => p.name === newProjectName.trim() && (!client || p.client === client))
+                      if (newProject) {
+                        setProjectId(newProject.id)
+                      }
+                      setShowNewProject(false)
+                      setNewProjectName("")
+                    }
+                  }}
+                  className="p-1 h-8 w-8 bg-emerald-50/80 text-emerald-600 hover:bg-emerald-100/80 rounded-xl"
+                >
+                  <Plus className="w-3 h-3" />
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowNewProject(false)
+                    setNewProjectName("")
+                  }}
+                  className="p-1 h-8 w-8 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500 rounded-xl"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Client */}
@@ -219,29 +302,86 @@ export function TaskEditDialog({
             <Label htmlFor="client" className="text-xs font-medium text-gray-700 mb-1.5 block">
               Client
             </Label>
-            <Select value={client || "__none__"} onValueChange={(value) => {
-              const actualValue = value === "__none__" ? "" : value
-              setClient(actualValue)
-              // Clear project if client doesn't match
-              if (projectId) {
-                const selectedProject = projects.find(p => p.id === projectId)
-                if (selectedProject && selectedProject.client !== actualValue) {
-                  setProjectId("")
-                }
-              }
-            }}>
-              <SelectTrigger className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm text-xs h-8">
-                <SelectValue placeholder="Select client" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">No client</SelectItem>
-                {uniqueClients.map((clientName) => (
-                  <SelectItem key={clientName} value={clientName}>
-                    {clientName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {!showNewClient ? (
+              <div className="flex gap-1">
+                <Select value={client || "__none__"} onValueChange={(value) => {
+                  if (value === "__new__") {
+                    setShowNewClient(true)
+                  } else {
+                    const actualValue = value === "__none__" ? "" : value
+                    setClient(actualValue)
+                    // Clear project if client doesn't match
+                    if (projectId) {
+                      const selectedProject = projects.find(p => p.id === projectId)
+                      if (selectedProject && selectedProject.client !== actualValue) {
+                        setProjectId("")
+                      }
+                    }
+                  }
+                }}>
+                  <SelectTrigger className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm text-xs h-8 flex-1">
+                    <SelectValue placeholder="Select client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">No client</SelectItem>
+                    {uniqueClients.map((clientName) => (
+                      <SelectItem key={clientName} value={clientName}>
+                        {clientName}
+                      </SelectItem>
+                    ))}
+                    {onCreateClient && (
+                      <SelectItem value="__new__" className="text-blue-600">
+                        <Plus className="w-3 h-3 inline mr-1" />
+                        Add new client
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="flex gap-1">
+                <Input
+                  value={newClientName}
+                  onChange={(e) => setNewClientName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newClientName.trim() && onCreateClient) {
+                      onCreateClient(newClientName.trim())
+                      setClient(newClientName.trim())
+                      setShowNewClient(false)
+                      setNewClientName("")
+                    } else if (e.key === 'Escape') {
+                      setShowNewClient(false)
+                      setNewClientName("")
+                    }
+                  }}
+                  placeholder="New client name"
+                  className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm text-xs h-8 flex-1"
+                  autoFocus
+                />
+                <Button
+                  onClick={() => {
+                    if (newClientName.trim() && onCreateClient) {
+                      onCreateClient(newClientName.trim())
+                      setClient(newClientName.trim())
+                      setShowNewClient(false)
+                      setNewClientName("")
+                    }
+                  }}
+                  className="p-1 h-8 w-8 bg-emerald-50/80 text-emerald-600 hover:bg-emerald-100/80 rounded-xl"
+                >
+                  <Plus className="w-3 h-3" />
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowNewClient(false)
+                    setNewClientName("")
+                  }}
+                  className="p-1 h-8 w-8 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500 rounded-xl"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Assignee / Owner */}

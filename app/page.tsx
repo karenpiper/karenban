@@ -176,9 +176,37 @@ export default function HomePage() {
     setDeleteClientWithTasks(false)
   }
 
-  const handleCreateProject = () => {
-    console.log("Create new project")
-    // TODO: Implement create project
+  const handleCreateProject = (projectName: string, clientName?: string) => {
+    if (!appState) return
+    
+    const newProject: Project = {
+      id: `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: projectName,
+      description: "",
+      color: `from-${['blue', 'purple', 'pink', 'green', 'orange', 'cyan', 'violet'][Math.floor(Math.random() * 7)]}-400 to-${['blue', 'purple', 'pink', 'green', 'orange', 'cyan', 'violet'][Math.floor(Math.random() * 7)]}-500`,
+      status: "active",
+      client: clientName,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      progress: 0,
+      totalTasks: 0,
+      completedTasks: 0,
+      archived: false
+    }
+    
+    const updatedProjects = [...appState.projects, newProject]
+    const updatedState = { ...appState, projects: updatedProjects }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+    
+    return newProject
+  }
+
+  const handleCreateClient = (clientName: string) => {
+    // Clients are created implicitly when projects are created with a client name
+    // This function is here for consistency, but clients don't need to be stored separately
+    // They're derived from projects
+    return clientName
   }
 
   const handleBulkImport = (newProjects: Project[], newTasks: Task[]) => {
@@ -592,6 +620,8 @@ export default function HomePage() {
         projects={appState?.projects || []}
         onSave={handleSaveTask}
         columns={appState?.columns || []}
+        onCreateClient={handleCreateClient}
+        onCreateProject={handleCreateProject}
       />
     </div>
   )
