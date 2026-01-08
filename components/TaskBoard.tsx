@@ -193,7 +193,7 @@ export function TaskBoard() {
         if (category.isPerson && category.personName) {
           updateTaskLocation(draggedTask.id, category.columnId, targetId, category.personName)
         } else {
-          updateTaskLocation(draggedTask.id, category.columnId, targetId)
+        updateTaskLocation(draggedTask.id, category.columnId, targetId)
         }
       }
     } else if (targetType === 'person') {
@@ -415,12 +415,12 @@ export function TaskBoard() {
               {task.client && (
                 <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
                   {task.client}
-                </span>
+            </span>
               )}
               {project && (
                 <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
                   {project.name}
-                </span>
+          </span>
               )}
             </>
           )}
@@ -456,8 +456,8 @@ export function TaskBoard() {
                     {task.assignedTo ? (
                       <span className="flex items-center gap-0.5">
                         <User className="w-2.5 h-2.5" />
-                        {task.assignedTo}
-                      </span>
+              {task.assignedTo}
+            </span>
                     ) : (
                       <User className="w-2.5 h-2.5 text-gray-400" />
                     )}
@@ -505,7 +505,7 @@ export function TaskBoard() {
               ? 'text-blue-600 font-medium' 
               : 'text-gray-600'
           }`}>
-            {category.name}
+          {category.name}
             {category.isTeamMember && (
               <span className="text-[0.5rem] bg-blue-100/80 text-blue-700 px-1 py-0.5 rounded-full">
                 Team
@@ -519,8 +519,8 @@ export function TaskBoard() {
           </h4>
           <div className="flex items-center gap-1">
             <span className="text-[0.625rem] bg-gray-100/80 text-gray-600 px-1.5 py-0.5 rounded-full border border-gray-200/40">
-              {categoryTasks.length}
-            </span>
+            {categoryTasks.length}
+          </span>
             {category.isPerson && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -854,6 +854,61 @@ export function TaskBoard() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteTask}
+              className="text-[0.625rem] px-2 py-1 rounded-lg bg-red-50/80 text-red-700 border border-red-200/50 hover:bg-red-100/80"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Person Confirmation Dialog */}
+      <AlertDialog open={!!personToDelete} onOpenChange={(open) => !open && setPersonToDelete(null)}>
+        <AlertDialogContent className="bg-white/90 backdrop-blur-xl border border-gray-200/40 shadow-lg rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-sm font-medium text-gray-800">
+              Delete {personToDelete?.isTeamMember ? 'Team Member' : 'Person'}?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[0.625rem] text-gray-600">
+              {(() => {
+                const personName = personToDelete?.personName || personToDelete?.name || 'this person'
+                const taskCount = appState?.tasks.filter(t => t.assignedTo === personName).length || 0
+                return `Are you sure you want to delete ${personName}? ${taskCount > 0 ? `This person has ${taskCount} ${taskCount === 1 ? 'task' : 'tasks'} assigned.` : ''}`
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {(() => {
+            const personName = personToDelete?.personName || personToDelete?.name
+            const taskCount = appState?.tasks.filter(t => t.assignedTo === personName).length || 0
+            return taskCount > 0 ? (
+              <div className="py-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="deletePersonWithTasks"
+                    checked={deletePersonWithTasks}
+                    onChange={(e) => setDeletePersonWithTasks(e.target.checked)}
+                    className="w-3 h-3 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                  />
+                  <label htmlFor="deletePersonWithTasks" className="text-[0.625rem] text-gray-700 cursor-pointer">
+                    Also delete all {taskCount} {taskCount === 1 ? 'task' : 'tasks'} assigned to this person
+                  </label>
+                </div>
+              </div>
+            ) : null
+            })()}
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel 
+              onClick={() => {
+                setPersonToDelete(null)
+                setDeletePersonWithTasks(false)
+              }}
+              className="text-[0.625rem] px-2 py-1 rounded-lg border border-gray-200/40 bg-white/60 hover:bg-gray-50/80"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeletePerson}
               className="text-[0.625rem] px-2 py-1 rounded-lg bg-red-50/80 text-red-700 border border-red-200/50 hover:bg-red-100/80"
             >
               Delete
