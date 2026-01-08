@@ -512,7 +512,15 @@ export default function HomePage() {
 
     switch (currentView) {
       case "today":
-        return <TaskBoard />
+        return (
+          <TaskBoard 
+            appState={appState}
+            onUpdateState={(updatedState) => {
+              setAppState(updatedState)
+              saveAppState(updatedState)
+            }}
+          />
+        )
       case "calendar":
         return (
           <div className="flex-1 overflow-auto p-3">

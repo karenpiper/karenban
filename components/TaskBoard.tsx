@@ -21,11 +21,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Task, Category, Column, AppState } from "../types"
-import { loadAppState, saveAppState } from "../data/seed"
+import { saveAppState } from "../data/seed"
 
-export function TaskBoard() {
+interface TaskBoardProps {
+  appState: AppState
+  onUpdateState: (state: AppState) => void
+}
+
+export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
   const [searchQuery, setSearchQuery] = React.useState("")
-  const [appState, setAppState] = useState<AppState | null>(null)
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
   const [dragOverTarget, setDragOverTarget] = useState<{ type: 'column' | 'category' | 'person', id: string } | null>(null)
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
@@ -33,12 +37,6 @@ export function TaskBoard() {
   const [newPersonName, setNewPersonName] = useState("")
   const [personToDelete, setPersonToDelete] = useState<Category | null>(null)
   const [deletePersonWithTasks, setDeletePersonWithTasks] = useState(false)
-
-  useEffect(() => {
-    const state = loadAppState()
-    console.log('Loaded app state:', state)
-    setAppState(state)
-  }, [])
 
   // Update task properties when dragged to new location
   const updateTaskLocation = (taskId: string, newColumnId: string, newCategoryId?: string, newAssignee?: string) => {
@@ -130,9 +128,9 @@ export function TaskBoard() {
     const updatedState = { ...appState, tasks: updatedTasks }
     const updatedTask = updatedTasks.find(t => t.id === taskId)
     if (updatedTask) {
-      console.log('Task after update:', updatedTask.id, 'assignedTo:', updatedTask.assignedTo, 'columnId:', updatedTask.columnId, 'categoryId:', updatedTask.categoryId)
+      console.log('Task after update:', updatedTask.id, 'assignedTo:', updatedTask.assignedTo, 'columnId:', updatedTask.columnId, 'categoryId:', updatedTask.columnId)
     }
-    setAppState(updatedState)
+    onUpdateState(updatedState)
     saveAppState(updatedState)
   }
 
@@ -177,7 +175,7 @@ export function TaskBoard() {
     }
 
     const updatedState = { ...appState, tasks: [...appState.tasks, newTask] }
-    setAppState(updatedState)
+    onUpdateState(updatedState)
     saveAppState(updatedState)
   }
 
@@ -288,7 +286,7 @@ export function TaskBoard() {
 
     const updatedTasks = appState.tasks.filter(task => task.id !== taskToDelete.id)
     const updatedState = { ...appState, tasks: updatedTasks }
-    setAppState(updatedState)
+    onUpdateState(updatedState)
     saveAppState(updatedState)
     setTaskToDelete(null)
   }
@@ -378,7 +376,7 @@ export function TaskBoard() {
     })
 
     const updatedState = { ...appState, columns: cleanedColumns }
-    setAppState(updatedState)
+    onUpdateState(updatedState)
     saveAppState(updatedState)
     setShowAddPerson(false)
     setNewPersonName("")
@@ -398,7 +396,7 @@ export function TaskBoard() {
       return col
     })
     const updatedState = { ...appState, columns: updatedColumns }
-    setAppState(updatedState)
+    onUpdateState(updatedState)
     saveAppState(updatedState)
   }
 
@@ -416,7 +414,7 @@ export function TaskBoard() {
       return col
     })
     const updatedState = { ...appState, columns: updatedColumns }
-    setAppState(updatedState)
+    onUpdateState(updatedState)
     saveAppState(updatedState)
   }
 
@@ -496,7 +494,7 @@ export function TaskBoard() {
     })
     
     const updatedState = { ...appState, columns: updatedColumns }
-    setAppState(updatedState)
+    onUpdateState(updatedState)
     saveAppState(updatedState)
   }
 
@@ -537,7 +535,7 @@ export function TaskBoard() {
     }
 
     const updatedState = { ...appState, columns: updatedColumns, tasks: updatedTasks }
-    setAppState(updatedState)
+    onUpdateState(updatedState)
     saveAppState(updatedState)
     setPersonToDelete(null)
     setDeletePersonWithTasks(false)
