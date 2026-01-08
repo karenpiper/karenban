@@ -1014,15 +1014,65 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
 
           {/* Filter Buttons */}
           <div className="flex gap-1.5">
-            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600">
-              All Priority
-            </button>
-            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600">
-              All Assignees
-            </button>
-            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600">
-              This Week
-            </button>
+            {(() => {
+              const unassignedCount = appState?.tasks.filter(t => !t.assignedTo).length || 0
+              const blockedCount = appState?.tasks.filter(t => t.columnId === 'col-followup').length || 0
+              const today = new Date()
+              today.setHours(0, 0, 0, 0)
+              const overdueCount = appState?.tasks.filter(t => 
+                t.dueDate && new Date(t.dueDate) < today && t.status !== 'done'
+              ).length || 0
+              
+              return (
+                <>
+                  <button 
+                    onClick={() => {
+                      setFilterType('unassigned')
+                      setFilterDialogOpen(true)
+                    }}
+                    className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600 flex items-center gap-1"
+                  >
+                    <User className="w-3 h-3" />
+                    Unassigned
+                    {unassignedCount > 0 && (
+                      <span className="bg-gray-800/80 text-white px-1.5 py-0.5 rounded-full text-[0.5rem]">
+                        {unassignedCount}
+                      </span>
+                    )}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setFilterType('blocked')
+                      setFilterDialogOpen(true)
+                    }}
+                    className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600 flex items-center gap-1"
+                  >
+                    <AlertTriangle className="w-3 h-3" />
+                    Blocked
+                    {blockedCount > 0 && (
+                      <span className="bg-gray-800/80 text-white px-1.5 py-0.5 rounded-full text-[0.5rem]">
+                        {blockedCount}
+                      </span>
+                    )}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setFilterType('overdue')
+                      setFilterDialogOpen(true)
+                    }}
+                    className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600 flex items-center gap-1"
+                  >
+                    <Clock className="w-3 h-3" />
+                    Overdue
+                    {overdueCount > 0 && (
+                      <span className="bg-red-500/80 text-white px-1.5 py-0.5 rounded-full text-[0.5rem]">
+                        {overdueCount}
+                      </span>
+                    )}
+                  </button>
+                </>
+              )
+            })()}
           </div>
 
           {/* Toggle Switches */}
