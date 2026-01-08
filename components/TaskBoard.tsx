@@ -595,47 +595,53 @@ export function TaskBoard() {
             if (availablePeople.length === 0) return null
             
             return (
-              <Select
-                value={task.assignedTo || "__unassigned__"}
-                onValueChange={(value) => {
-                  console.log('Select value changed:', value, 'for task:', task.id, 'current assignedTo:', task.assignedTo, 'current columnId:', task.columnId, 'current categoryId:', task.categoryId)
-                  // Use updateTaskLocation for both assign and unassign to ensure consistency
-                  const assignee = value === "__unassigned__" ? undefined : value
-                  console.log('Calling updateTaskLocation with assignee:', assignee)
-                  // When unassigning, the function will automatically move to uncategorized if in follow-up
-                  // Pass the current task's column ID so the function can check if it's in follow-up
-                  updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, assignee)
-                }}
-                onOpenChange={(open) => {
-                  // Prevent task card click when opening select
-                  if (open) {
-                    // Do nothing, just prevent propagation
-                  }
-                }}
-              >
-                <SelectTrigger className="h-5 text-[0.5rem] px-1.5 py-0.5 bg-white/60 border border-gray-200/40 rounded-full hover:bg-white/80 transition-colors">
-                  <SelectValue placeholder={<User className="w-2.5 h-2.5 text-gray-400" />}>
-                    {task.assignedTo ? (
-                      <span className="flex items-center gap-0.5">
-                        <User className="w-2.5 h-2.5" />
-              {task.assignedTo}
-              </span>
-                    ) : (
-                      <User className="w-2.5 h-2.5 text-gray-400" />
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent onClick={(e) => e.stopPropagation()}>
-                  <SelectItem value="__unassigned__">
-                    Unassigned
-                  </SelectItem>
-                  {availablePeople.map((person) => (
-                    <SelectItem key={person.name} value={person.name}>
-                      {person.name} {person.isTeamMember && <span className="text-blue-600">(Team)</span>}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <Select
+                  value={task.assignedTo || ""}
+                  onValueChange={(value) => {
+                    console.log('Select value changed:', value, 'for task:', task.id, 'current assignedTo:', task.assignedTo, 'current columnId:', task.columnId, 'current categoryId:', task.categoryId)
+                    // Use updateTaskLocation for both assign and unassign to ensure consistency
+                    const assignee = value || undefined
+                    console.log('Calling updateTaskLocation with assignee:', assignee)
+                    // When unassigning, the function will automatically move to uncategorized if in follow-up
+                    // Pass the current task's column ID so the function can check if it's in follow-up
+                    updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, assignee)
+                  }}
+                >
+                  <SelectTrigger className="h-5 text-[0.5rem] px-1.5 py-0.5 bg-white/60 border border-gray-200/40 rounded-full hover:bg-white/80 transition-colors">
+                    <SelectValue placeholder={<User className="w-2.5 h-2.5 text-gray-400" />}>
+                      {task.assignedTo ? (
+                        <span className="flex items-center gap-0.5">
+                          <User className="w-2.5 h-2.5" />
+                          {task.assignedTo}
+                        </span>
+                      ) : (
+                        <User className="w-2.5 h-2.5 text-gray-400" />
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent onClick={(e) => e.stopPropagation()}>
+                    {availablePeople.map((person) => (
+                      <SelectItem key={person.name} value={person.name}>
+                        {person.name} {person.isTeamMember && <span className="text-blue-600">(Team)</span>}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {task.assignedTo && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      console.log('Clear assignment clicked for task:', task.id)
+                      updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, undefined)
+                    }}
+                    className="p-0.5 rounded-full hover:bg-gray-200/60 text-gray-400 hover:text-red-500 transition-colors"
+                    title="Unassign"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
             )
           })()}
           </div>
