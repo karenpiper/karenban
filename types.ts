@@ -23,6 +23,7 @@ export interface Project {
   color: string
   status: "active" | "completed" | "on-hold"
   client?: string // Client name for organizing projects
+  archived?: boolean // Whether the project is archived
   createdAt: Date
   updatedAt: Date
   dueDate?: Date

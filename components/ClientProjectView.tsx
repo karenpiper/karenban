@@ -4,17 +4,21 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Building2, ChevronDown, ChevronUp, Calendar, X, FolderKanban } from "lucide-react"
+import { Plus, Search, Building2, ChevronDown, ChevronUp, Calendar, X, FolderKanban, Archive, ArchiveRestore, FileText } from "lucide-react"
 import type { Project, Task } from "../types"
+import { BulkImportDialog } from "./BulkImportDialog"
 
 interface ClientProjectViewProps {
   projects: Project[]
   tasks: Task[]
   onEditProject: (project: Project) => void
   onDeleteProject: (projectId: string) => void
+  onArchiveProject: (projectId: string) => void
+  onUnarchiveProject: (projectId: string) => void
   onEditTask: (task: Task) => void
   onDeleteTask: (taskId: string) => void
   onCreateProject: () => void
+  onBulkImport: (projects: Project[], tasks: Task[]) => void
 }
 
 export function ClientProjectView({
@@ -22,13 +26,18 @@ export function ClientProjectView({
   tasks,
   onEditProject,
   onDeleteProject,
+  onArchiveProject,
+  onUnarchiveProject,
   onEditTask,
   onDeleteTask,
-  onCreateProject
+  onCreateProject,
+  onBulkImport
 }: ClientProjectViewProps) {
   const [searchTerm, setSearchTerm] = useState("")
+  const [showArchived, setShowArchived] = useState(false)
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set())
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set())
+  const [bulkImportOpen, setBulkImportOpen] = useState(false)
 
   // Ensure we have valid arrays
   const safeProjects = projects || []
@@ -38,7 +47,10 @@ export function ClientProjectView({
   // - Tasks through projects (with projectId matching client's projects)
   // - Unassigned tasks (no projectId) that should be shown at client level
   const getClientTasks = (clientName: string) => {
-    const clientProjects = safeProjects.filter(p => (p.client || "Unassigned") === clientName)
+    const clientProjects = safeProjects.filter(p => 
+      (p.client || "Unassigned") === clientName && 
+      (showArchived ? p.archived === true : p.archived !== true)
+    )
     const projectIds = clientProjects.map(p => p.id)
     
     // Tasks assigned to projects for this client
@@ -58,15 +70,19 @@ export function ClientProjectView({
   const allClients = useMemo(() => {
     const clients = new Set<string>()
     safeProjects.forEach(p => {
-      clients.add(p.client || "Unassigned")
+      if (showArchived ? p.archived === true : p.archived !== true) {
+        clients.add(p.client || "Unassigned")
+      }
     })
-    // Also check if there are unassigned tasks
-    const hasUnassignedTasks = safeTasks.some(t => !t.projectId)
-    if (hasUnassignedTasks) {
-      clients.add("Unassigned")
+    // Also check if there are unassigned tasks (only if not showing archived)
+    if (!showArchived) {
+      const hasUnassignedTasks = safeTasks.some(t => !t.projectId)
+      if (hasUnassignedTasks) {
+        clients.add("Unassigned")
+      }
     }
     return Array.from(clients)
-  }, [safeProjects, safeTasks])
+  }, [safeProjects, safeTasks, showArchived])
 
   // Filter clients based on search
   const filteredClients = allClients.filter(clientName => {
@@ -175,14 +191,31 @@ export function ClientProjectView({
           <h2 className="text-lg font-medium text-gray-800 mb-0.5">Client</h2>
           <p className="text-[0.625rem] text-gray-500">View tasks organized by client and project</p>
         </div>
-        <Button
-          onClick={onCreateProject}
-          className="bg-blue-50/60 text-blue-700 border border-blue-200/40 rounded-xl shadow-sm hover:bg-blue-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem]"
-        >
-          <Plus className="w-3.5 h-3.5 mr-1.5" />
-          New Project
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Button
+            onClick={() => setBulkImportOpen(true)}
+            variant="ghost"
+            className="bg-gray-50/60 text-gray-700 border border-gray-200/40 rounded-xl shadow-sm hover:bg-gray-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem]"
+          >
+            <FileText className="w-3.5 h-3.5 mr-1.5" />
+            Bulk Import
+          </Button>
+          <Button
+            onClick={onCreateProject}
+            className="bg-blue-50/60 text-blue-700 border border-blue-200/40 rounded-xl shadow-sm hover:bg-blue-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem]"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            New Project
+          </Button>
+        </div>
       </div>
+
+      <BulkImportDialog
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        onImport={onBulkImport}
+        existingProjects={safeProjects}
+      />
 
       {/* Filters */}
       <div className="flex items-center gap-1.5">
@@ -195,6 +228,16 @@ export function ClientProjectView({
             className="pl-9 bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm text-xs h-8"
           />
         </div>
+        <Button
+          onClick={() => setShowArchived(!showArchived)}
+          variant="ghost"
+          className={`border border-gray-200/30 rounded-xl px-2 py-1.5 text-[0.625rem] h-8 ${
+            showArchived ? "bg-gray-100/60 text-gray-800" : "bg-white/40 text-gray-600"
+          }`}
+        >
+          <Archive className="w-3 h-3 mr-1.5" />
+          {showArchived ? "Hide Archived" : "Show Archived"}
+        </Button>
       </div>
 
       {/* Client List */}
@@ -307,7 +350,15 @@ export function ClientProjectView({
                                   <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${project.color} opacity-70`}></div>
                                   <FolderKanban className="w-3 h-3 text-gray-500" />
                                   <div className="flex-1 min-w-0">
-                                    <h4 className="text-[0.625rem] font-medium text-gray-800">{project.name}</h4>
+                                    <div className="flex items-center gap-1.5">
+                                      <h4 className="text-[0.625rem] font-medium text-gray-800">{project.name}</h4>
+                                      {project.archived && (
+                                        <Badge className="bg-gray-200/80 text-gray-600 border border-gray-300/50 text-[0.625rem] px-1 py-0.5 rounded-full">
+                                          <Archive className="w-2.5 h-2.5 mr-0.5" />
+                                          Archived
+                                        </Badge>
+                                      )}
+                                    </div>
                                     <div className="flex items-center gap-1.5 text-[0.625rem] text-gray-500 mt-0.5">
                                       <span>{projectTasksList.length} {projectTasksList.length === 1 ? 'task' : 'tasks'}</span>
                                       {projectTasksList.length > 0 && (
@@ -321,11 +372,31 @@ export function ClientProjectView({
                                     </div>
                                   </div>
                                 </div>
-                                {isProjectExpanded ? (
-                                  <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
-                                ) : (
-                                  <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
-                                )}
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      if (project.archived) {
+                                        onUnarchiveProject(project.id)
+                                      } else {
+                                        onArchiveProject(project.id)
+                                      }
+                                    }}
+                                    className="p-1 rounded-lg hover:bg-gray-200/60 text-gray-400 hover:text-gray-600 transition-colors"
+                                    title={project.archived ? "Unarchive project" : "Archive project"}
+                                  >
+                                    {project.archived ? (
+                                      <ArchiveRestore className="w-3 h-3" />
+                                    ) : (
+                                      <Archive className="w-3 h-3" />
+                                    )}
+                                  </button>
+                                  {isProjectExpanded ? (
+                                    <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
+                                  ) : (
+                                    <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                                  )}
+                                </div>
                               </button>
 
                               {/* Project Tasks */}

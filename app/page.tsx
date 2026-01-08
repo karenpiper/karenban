@@ -7,7 +7,7 @@ import { ProjectView } from "@/components/ProjectView"
 import { ClientProjectView } from "@/components/ClientProjectView"
 import { CalendarView } from "@/components/CalendarView"
 import { TeamView } from "@/components/TeamView"
-import { loadAppState } from "@/data/seed"
+import { loadAppState, saveAppState } from "@/data/seed"
 import type { AppState, Project, Task } from "@/types"
 
 export default function HomePage() {
@@ -30,7 +30,27 @@ export default function HomePage() {
     const updatedProjects = appState.projects.filter(p => p.id !== projectId)
     const updatedState = { ...appState, projects: updatedProjects }
     setAppState(updatedState)
-    // TODO: Save to localStorage
+    saveAppState(updatedState)
+  }
+
+  const handleArchiveProject = (projectId: string) => {
+    if (!appState) return
+    const updatedProjects = appState.projects.map(p => 
+      p.id === projectId ? { ...p, archived: true, updatedAt: new Date() } : p
+    )
+    const updatedState = { ...appState, projects: updatedProjects }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
+  const handleUnarchiveProject = (projectId: string) => {
+    if (!appState) return
+    const updatedProjects = appState.projects.map(p => 
+      p.id === projectId ? { ...p, archived: false, updatedAt: new Date() } : p
+    )
+    const updatedState = { ...appState, projects: updatedProjects }
+    setAppState(updatedState)
+    saveAppState(updatedState)
   }
 
   const handleEditTask = (task: Task) => {
@@ -43,12 +63,21 @@ export default function HomePage() {
     const updatedTasks = appState.tasks.filter(t => t.id !== taskId)
     const updatedState = { ...appState, tasks: updatedTasks }
     setAppState(updatedState)
-    // TODO: Save to localStorage
+    saveAppState(updatedState)
   }
 
   const handleCreateProject = () => {
     console.log("Create new project")
     // TODO: Implement create project
+  }
+
+  const handleBulkImport = (newProjects: Project[], newTasks: Task[]) => {
+    if (!appState) return
+    const updatedProjects = [...appState.projects, ...newProjects]
+    const updatedTasks = [...appState.tasks, ...newTasks]
+    const updatedState = { ...appState, projects: updatedProjects, tasks: updatedTasks }
+    setAppState(updatedState)
+    saveAppState(updatedState)
   }
 
   const renderView = () => {
@@ -91,9 +120,12 @@ export default function HomePage() {
               tasks={appState.tasks || []}
               onEditProject={handleEditProject}
               onDeleteProject={handleDeleteProject}
+              onArchiveProject={handleArchiveProject}
+              onUnarchiveProject={handleUnarchiveProject}
               onEditTask={handleEditTask}
               onDeleteTask={handleDeleteTask}
               onCreateProject={handleCreateProject}
+              onBulkImport={handleBulkImport}
             />
           </div>
         )
@@ -105,9 +137,12 @@ export default function HomePage() {
               tasks={appState.tasks || []}
               onEditProject={handleEditProject}
               onDeleteProject={handleDeleteProject}
+              onArchiveProject={handleArchiveProject}
+              onUnarchiveProject={handleUnarchiveProject}
               onEditTask={handleEditTask}
               onDeleteTask={handleDeleteTask}
               onCreateProject={handleCreateProject}
+              onBulkImport={handleBulkImport}
             />
           </div>
         )

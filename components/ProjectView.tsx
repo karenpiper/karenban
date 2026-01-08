@@ -4,17 +4,21 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, ChevronDown, ChevronUp, Building2, Calendar, X } from "lucide-react"
+import { Plus, Search, ChevronDown, ChevronUp, Building2, Calendar, X, Archive, ArchiveRestore, FileText } from "lucide-react"
 import type { Project, Task } from "../types"
+import { BulkImportDialog } from "./BulkImportDialog"
 
 interface ProjectViewProps {
   projects: Project[]
   tasks: Task[]
   onEditProject: (project: Project) => void
   onDeleteProject: (projectId: string) => void
+  onArchiveProject: (projectId: string) => void
+  onUnarchiveProject: (projectId: string) => void
   onEditTask: (task: Task) => void
   onDeleteTask: (taskId: string) => void
   onCreateProject: () => void
+  onBulkImport: (projects: Project[], tasks: Task[]) => void
 }
 
 export function ProjectView({
@@ -22,23 +26,29 @@ export function ProjectView({
   tasks,
   onEditProject,
   onDeleteProject,
+  onArchiveProject,
+  onUnarchiveProject,
   onEditTask,
   onDeleteTask,
-  onCreateProject
+  onCreateProject,
+  onBulkImport
 }: ProjectViewProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed" | "on-hold">("all")
+  const [showArchived, setShowArchived] = useState(false)
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set())
+  const [bulkImportOpen, setBulkImportOpen] = useState(false)
 
   const safeProjects = projects || []
   const safeTasks = tasks || []
 
   const filteredProjects = safeProjects.filter(project => {
+    const matchesArchived = showArchived ? project.archived === true : project.archived !== true
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.client?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === "all" || project.status === statusFilter
-    return matchesSearch && matchesStatus
+    return matchesArchived && matchesSearch && matchesStatus
   })
 
   const getProjectTasks = (projectId: string) => {
@@ -78,14 +88,31 @@ export function ProjectView({
           <h2 className="text-lg font-medium text-gray-800 mb-0.5">Projects</h2>
           <p className="text-[0.625rem] text-gray-500">View tasks organized by project</p>
         </div>
-        <Button
-          onClick={onCreateProject}
-          className="bg-blue-50/60 text-blue-700 border border-blue-200/40 rounded-xl shadow-sm hover:bg-blue-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem]"
-        >
-          <Plus className="w-3.5 h-3.5 mr-1.5" />
-          New Project
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Button
+            onClick={() => setBulkImportOpen(true)}
+            variant="ghost"
+            className="bg-gray-50/60 text-gray-700 border border-gray-200/40 rounded-xl shadow-sm hover:bg-gray-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem]"
+          >
+            <FileText className="w-3.5 h-3.5 mr-1.5" />
+            Bulk Import
+          </Button>
+          <Button
+            onClick={onCreateProject}
+            className="bg-blue-50/60 text-blue-700 border border-blue-200/40 rounded-xl shadow-sm hover:bg-blue-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem]"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            New Project
+          </Button>
+        </div>
       </div>
+
+      <BulkImportDialog
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        onImport={onBulkImport}
+        existingProjects={safeProjects}
+      />
 
       {/* Filters */}
       <div className="flex items-center gap-1.5">
@@ -108,6 +135,16 @@ export function ProjectView({
           <option value="completed">Completed</option>
           <option value="on-hold">On Hold</option>
         </select>
+        <Button
+          onClick={() => setShowArchived(!showArchived)}
+          variant="ghost"
+          className={`border border-gray-200/30 rounded-xl px-2 py-1.5 text-[0.625rem] h-8 ${
+            showArchived ? "bg-gray-100/60 text-gray-800" : "bg-white/40 text-gray-600"
+          }`}
+        >
+          <Archive className="w-3 h-3 mr-1.5" />
+          {showArchived ? "Hide Archived" : "Show Archived"}
+        </Button>
       </div>
 
       {/* Projects List */}
@@ -134,6 +171,12 @@ export function ProjectView({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-sm font-medium text-gray-800 truncate">{project.name}</h3>
+                        {project.archived && (
+                          <Badge className="bg-gray-200/80 text-gray-600 border border-gray-300/50 text-[0.625rem] px-1.5 py-0.5 rounded-full">
+                            <Archive className="w-3 h-3 mr-1" />
+                            Archived
+                          </Badge>
+                        )}
                         {project.client && (
                           <Badge className="bg-gray-100/80 text-gray-600 border border-gray-200/50 text-[0.625rem] px-1.5 py-0.5 rounded-full">
                             <Building2 className="w-3 h-3 mr-1" />
@@ -171,7 +214,7 @@ export function ProjectView({
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 ml-4">
+                  <div className="flex items-center gap-2 ml-4">
                     {projectTasks.length > 0 && projectTasks.length > 0 && (
                       <div className="w-24 bg-gray-200/60 rounded-full h-1.5">
                         <div
@@ -180,6 +223,24 @@ export function ProjectView({
                         />
                       </div>
                     )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (project.archived) {
+                          onUnarchiveProject(project.id)
+                        } else {
+                          onArchiveProject(project.id)
+                        }
+                      }}
+                      className="p-1 rounded-lg hover:bg-gray-100/60 text-gray-400 hover:text-gray-600 transition-colors"
+                      title={project.archived ? "Unarchive project" : "Archive project"}
+                    >
+                      {project.archived ? (
+                        <ArchiveRestore className="w-3.5 h-3.5" />
+                      ) : (
+                        <Archive className="w-3.5 h-3.5" />
+                      )}
+                    </button>
                     {isExpanded ? (
                       <ChevronUp className="w-4 h-4 text-gray-400" />
                     ) : (
