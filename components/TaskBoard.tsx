@@ -841,9 +841,9 @@ export function TaskBoard() {
                   
                   categoriesToShow = deduplicated
                   
-                  // Filter team members to only show if they have tasks
+                  // Filter all person categories (team and non-team) to only show if they have tasks
                   categoriesToShow = categoriesToShow.filter(category => {
-                    if (category.isPerson && category.isTeamMember === true) {
+                    if (category.isPerson) {
                       const personName = category.personName || category.name
                       const hasTasks = appState.tasks.some(task => task.assignedTo === personName)
                       return hasTasks
