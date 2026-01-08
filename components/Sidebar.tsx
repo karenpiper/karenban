@@ -9,8 +9,8 @@ import type { Project, Task } from "../types"
 interface SidebarProps {
   isCollapsed?: boolean
   onToggle?: () => void
-  currentView?: "today" | "calendar" | "team" | "projects" | "clients"
-  onViewChange?: (view: "today" | "calendar" | "team" | "projects" | "clients") => void
+  currentView?: "today" | "calendar" | "team" | "projects" | "clients" | "tasks"
+  onViewChange?: (view: "today" | "calendar" | "team" | "projects" | "clients" | "tasks") => void
   onBulkImport?: (projects: Project[], tasks: Task[]) => void
   existingProjects?: Project[]
 }
@@ -185,6 +185,18 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             >
               <Building2 className="w-3 h-3 mr-2" />
               <span className="flex-1 text-left">Client</span>
+            </Button>
+            <Button
+              variant={currentView === "tasks" ? "default" : "ghost"}
+              onClick={() => onViewChange?.("tasks")}
+              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
+                currentView === "tasks"
+                  ? "bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5 mr-2" />
+              {!isCollapsed && <span>By Task</span>}
             </Button>
           </div>
         </nav>

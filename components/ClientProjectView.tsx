@@ -66,17 +66,24 @@ export function ClientProjectView({
     return { projectTasks, unassignedTasks: tasksWithoutProject, allTasks: [...projectTasks, ...tasksWithoutProject] }
   }
 
-  // Get all unique clients from projects
+  // Get all unique clients from projects and tasks
   const allClients = useMemo(() => {
     const clients = new Set<string>()
+    // Add clients from projects
     safeProjects.forEach(p => {
       if (showArchived ? p.archived === true : p.archived !== true) {
         clients.add(p.client || "Unassigned")
       }
     })
+    // Add clients from tasks (for tasks without projects)
+    safeTasks.forEach(t => {
+      if (t.client && !t.projectId) {
+        clients.add(t.client)
+      }
+    })
     // Also check if there are unassigned tasks (only if not showing archived)
     if (!showArchived) {
-      const hasUnassignedTasks = safeTasks.some(t => !t.projectId)
+      const hasUnassignedTasks = safeTasks.some(t => !t.projectId && !t.client)
       if (hasUnassignedTasks) {
         clients.add("Unassigned")
       }

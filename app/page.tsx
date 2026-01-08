@@ -7,6 +7,7 @@ import { ProjectView } from "@/components/ProjectView"
 import { ClientProjectView } from "@/components/ClientProjectView"
 import { CalendarView } from "@/components/CalendarView"
 import { TeamView } from "@/components/TeamView"
+import { TaskListView } from "@/components/TaskListView"
 import { TaskEditDialog } from "@/components/TaskEditDialog"
 import {
   AlertDialog,
@@ -18,17 +19,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 import { loadAppState, saveAppState } from "@/data/seed"
 import type { AppState, Project, Task } from "@/types"
 
 export default function HomePage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [currentView, setCurrentView] = useState<"today" | "calendar" | "team" | "projects" | "clients">("today")
+  const [currentView, setCurrentView] = useState<"today" | "calendar" | "team" | "projects" | "clients" | "tasks">("today")
   const [appState, setAppState] = useState<AppState | null>(null)
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null)
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
   const [clientToDelete, setClientToDelete] = useState<string | null>(null)
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null)
+  const [deleteProjectWithTasks, setDeleteProjectWithTasks] = useState(false)
+  const [deleteClientWithTasks, setDeleteClientWithTasks] = useState(false)
 
   useEffect(() => {
     const state = loadAppState()
@@ -116,25 +121,56 @@ export default function HomePage() {
 
   const handleDeleteClient = (clientName: string) => {
     setClientToDelete(clientName)
+    setDeleteClientWithTasks(false)
   }
 
   const confirmDeleteClient = () => {
     if (!appState || !clientToDelete) return
     // Delete all projects for this client
     const updatedProjects = appState.projects.filter(p => (p.client || "Unassigned") !== clientToDelete)
-    // Remove projectId from tasks that belonged to deleted projects
+    // Get IDs of projects that will be deleted
     const deletedProjectIds = appState.projects
       .filter(p => (p.client || "Unassigned") === clientToDelete)
       .map(p => p.id)
-    const updatedTasks = appState.tasks.map(task => 
-      task.projectId && deletedProjectIds.includes(task.projectId) 
-        ? { ...task, projectId: undefined, client: undefined } 
-        : task
-    )
+    
+    let updatedTasks = appState.tasks
+    if (deleteClientWithTasks) {
+      // Delete all tasks that belong to this client (either through projects or directly)
+      updatedTasks = appState.tasks.filter(task => {
+        // Don't delete if task belongs to a project that's not being deleted
+        if (task.projectId && !deletedProjectIds.includes(task.projectId)) {
+          return true
+        }
+        // Delete if task belongs to a deleted project
+        if (task.projectId && deletedProjectIds.includes(task.projectId)) {
+          return false
+        }
+        // Delete if task is directly assigned to this client
+        if (task.client === clientToDelete) {
+          return false
+        }
+        return true
+      })
+    } else {
+      // Remove projectId and client from tasks that belonged to deleted projects or client
+      updatedTasks = appState.tasks.map(task => {
+        if (task.projectId && deletedProjectIds.includes(task.projectId)) {
+          // Task belonged to a deleted project - unassign it
+          return { ...task, projectId: undefined, client: undefined }
+        }
+        if (task.client === clientToDelete && !task.projectId) {
+          // Task was directly assigned to client - unassign it
+          return { ...task, client: undefined }
+        }
+        return task
+      })
+    }
+    
     const updatedState = { ...appState, projects: updatedProjects, tasks: updatedTasks }
     setAppState(updatedState)
     saveAppState(updatedState)
     setClientToDelete(null)
+    setDeleteClientWithTasks(false)
   }
 
   const handleCreateProject = () => {
@@ -255,6 +291,17 @@ export default function HomePage() {
           />
           </div>
         )
+      case "tasks":
+        return (
+          <div className="flex-1 overflow-auto p-3">
+            <TaskListView
+              tasks={appState.tasks || []}
+              projects={appState.projects || []}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
+            />
+          </div>
+        )
       default:
         return <TaskBoard />
     }
@@ -273,14 +320,44 @@ export default function HomePage() {
       {renderView()}
 
       {/* Delete Project Confirmation Dialog */}
-      <AlertDialog open={!!projectToDelete} onOpenChange={(open) => !open && setProjectToDelete(null)}>
+      <AlertDialog open={!!projectToDelete} onOpenChange={(open) => {
+        if (!open) {
+          setProjectToDelete(null)
+          setDeleteProjectWithTasks(false)
+        }
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Project</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{projectToDelete?.name}"? This will remove the project and unassign all tasks from it. This action cannot be undone.
+              Are you sure you want to delete "{projectToDelete?.name}"? 
+              {appState && projectToDelete && (
+                <span className="block mt-2 text-xs text-gray-600">
+                  This project has {appState.tasks.filter(t => t.projectId === projectToDelete.id).length} task(s).
+                </span>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="py-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="delete-project-tasks"
+                checked={deleteProjectWithTasks}
+                onCheckedChange={(checked) => setDeleteProjectWithTasks(checked === true)}
+              />
+              <Label
+                htmlFor="delete-project-tasks"
+                className="text-xs font-normal cursor-pointer"
+              >
+                Also delete all tasks in this project
+              </Label>
+            </div>
+            {!deleteProjectWithTasks && (
+              <p className="text-[0.625rem] text-gray-500 mt-1 ml-6">
+                Tasks will be kept but unassigned from the project
+              </p>
+            )}
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteProject} className="bg-red-500 hover:bg-red-600">
@@ -309,14 +386,51 @@ export default function HomePage() {
       </AlertDialog>
 
       {/* Delete Client Confirmation Dialog */}
-      <AlertDialog open={!!clientToDelete} onOpenChange={(open) => !open && setClientToDelete(null)}>
+      <AlertDialog open={!!clientToDelete} onOpenChange={(open) => {
+        if (!open) {
+          setClientToDelete(null)
+          setDeleteClientWithTasks(false)
+        }
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Client</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete all projects for "{clientToDelete}"? This will delete all projects and unassign all tasks from those projects. This action cannot be undone.
+              Are you sure you want to delete all projects for "{clientToDelete}"?
+              {appState && clientToDelete && (() => {
+                const clientProjects = appState.projects.filter(p => (p.client || "Unassigned") === clientToDelete)
+                const projectIds = clientProjects.map(p => p.id)
+                const tasksInProjects = appState.tasks.filter(t => t.projectId && projectIds.includes(t.projectId)).length
+                const tasksDirectlyAssigned = appState.tasks.filter(t => t.client === clientToDelete && !t.projectId).length
+                const totalTasks = tasksInProjects + tasksDirectlyAssigned
+                return totalTasks > 0 ? (
+                  <span className="block mt-2 text-xs text-gray-600">
+                    This will delete {clientProjects.length} project(s) and affect {totalTasks} task(s).
+                  </span>
+                ) : null
+              })()}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="py-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="delete-client-tasks"
+                checked={deleteClientWithTasks}
+                onCheckedChange={(checked) => setDeleteClientWithTasks(checked === true)}
+              />
+              <Label
+                htmlFor="delete-client-tasks"
+                className="text-xs font-normal cursor-pointer"
+              >
+                Also delete all tasks for this client
+              </Label>
+            </div>
+            {!deleteClientWithTasks && (
+              <p className="text-[0.625rem] text-gray-500 mt-1 ml-6">
+                Tasks will be kept but unassigned from projects and client
+              </p>
+            )}
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteClient} className="bg-red-500 hover:bg-red-600">
