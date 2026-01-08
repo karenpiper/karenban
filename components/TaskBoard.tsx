@@ -371,6 +371,86 @@ export function TaskBoard() {
     saveAppState(updatedState)
   }
 
+  const handleToggleTeamMember = (category: Category) => {
+    if (!appState) return
+    const isCurrentlyTeamMember = category.isTeamMember === true
+    const newIsTeamMember = !isCurrentlyTeamMember
+    
+    // Clean up duplicates: if there are both team and non-team versions of the same person, keep only one
+    const updatedColumns = appState.columns.map(col => {
+      if (col.id === 'col-followup') {
+        const personName = (category.personName || category.name).toLowerCase()
+        
+        // First, update the current category
+        let updatedCategories = col.categories.map(cat => {
+          if (cat.id === category.id) {
+            return {
+              ...cat,
+              isTeamMember: newIsTeamMember,
+              color: newIsTeamMember ? 'from-blue-400 to-blue-500' : cat.color
+            }
+          }
+          return cat
+        })
+        
+        // Remove any duplicate categories with the same name but different team status
+        const seenNames = new Map<string, Category>()
+        const cleanedCategories: Category[] = []
+        
+        // First pass: collect team members (prefer the updated one if it's now a team member)
+        updatedCategories.forEach(cat => {
+          if (cat.isPerson) {
+            const name = (cat.personName || cat.name).toLowerCase()
+            if (cat.isTeamMember === true) {
+              // If this is the category we just updated and it's now a team member, prefer it
+              if (cat.id === category.id) {
+                seenNames.set(name, cat)
+              } else if (!seenNames.has(name)) {
+                seenNames.set(name, cat)
+              }
+            }
+          }
+        })
+        
+        // Second pass: collect non-team members (only if no team member exists)
+        updatedCategories.forEach(cat => {
+          if (cat.isPerson) {
+            const name = (cat.personName || cat.name).toLowerCase()
+            if (cat.isTeamMember !== true) {
+              // If this is the category we just updated and it's now non-team, prefer it
+              if (cat.id === category.id) {
+                if (!seenNames.has(name)) {
+                  seenNames.set(name, cat)
+                } else {
+                  // Replace existing with updated one
+                  seenNames.set(name, cat)
+                }
+              } else if (!seenNames.has(name)) {
+                seenNames.set(name, cat)
+              }
+            }
+          } else {
+            // Non-person categories always included
+            cleanedCategories.push(cat)
+          }
+        })
+        
+        // Add all unique person categories
+        seenNames.forEach(cat => cleanedCategories.push(cat))
+        
+        return {
+          ...col,
+          categories: cleanedCategories
+        }
+      }
+      return col
+    })
+    
+    const updatedState = { ...appState, columns: updatedColumns }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
   const handleDeletePerson = (category: Category) => {
     setPersonToDelete(category)
     setDeletePersonWithTasks(false)
@@ -571,6 +651,15 @@ export function TaskBoard() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-white/90 backdrop-blur-xl border border-gray-200/40 shadow-md rounded-xl">
+                  {!category.archived && (
+                    <DropdownMenuItem 
+                      onClick={() => handleToggleTeamMember(category)}
+                      className="text-gray-700 text-[0.625rem] rounded-xl"
+                    >
+                      <Users className="w-3 h-3 mr-2" />
+                      {category.isTeamMember ? 'Mark as Non-Team' : 'Mark as Team Member'}
+                    </DropdownMenuItem>
+                  )}
                   {category.archived ? (
                     <DropdownMenuItem 
                       onClick={() => handleUnarchivePerson(category.id)}
