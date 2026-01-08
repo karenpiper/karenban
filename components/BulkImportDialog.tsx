@@ -270,7 +270,8 @@ export function BulkImportDialog({
               id: `task-${Date.now()}-${clientIdx}-${projectIdx}-${taskIdx}-${Math.random().toString(36).substr(2, 9)}`,
               title: taskTitle,
               priority: "medium",
-              status: "todo",
+              status: "uncategorized", // For kanban - goes to uncategorized
+              columnId: "col-uncategorized", // For kanban view
               projectId: project.id,
               client: clientItem.client, // Track client for consistency
               dueDate: today, // For calendar view
