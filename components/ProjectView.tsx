@@ -11,12 +11,13 @@ interface ProjectViewProps {
   projects: Project[]
   tasks: Task[]
   onEditProject: (project: Project) => void
-  onDeleteProject: (projectId: string) => void
+  onDeleteProject: (project: Project) => void
   onArchiveProject: (projectId: string) => void
   onUnarchiveProject: (projectId: string) => void
   onEditTask: (task: Task) => void
-  onDeleteTask: (taskId: string) => void
+  onDeleteTask: (task: Task) => void
   onCreateProject: () => void
+  onTaskDrop?: (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => void
 }
 
 export function ProjectView({
@@ -28,12 +29,14 @@ export function ProjectView({
   onUnarchiveProject,
   onEditTask,
   onDeleteTask,
-  onCreateProject
+  onCreateProject,
+  onTaskDrop
 }: ProjectViewProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed" | "on-hold">("all")
   const [showArchived, setShowArchived] = useState(false)
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set())
+  const [dragOverTarget, setDragOverTarget] = useState<string | null>(null)
 
   const safeProjects = projects || []
   const safeTasks = tasks || []
@@ -66,6 +69,41 @@ export function ProjectView({
       newExpanded.add(projectId)
     }
     setExpandedProjects(newExpanded)
+  }
+
+  const handleDragOver = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOverTarget(targetId)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const currentTarget = e.currentTarget as HTMLElement
+    const relatedTarget = e.relatedTarget as HTMLElement | null
+    
+    if (!relatedTarget || !currentTarget.contains(relatedTarget)) {
+      setDragOverTarget(null)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent, targetType: 'project' | 'remove-project', targetId?: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOverTarget(null)
+    
+    try {
+      const data = e.dataTransfer.getData("application/json")
+      if (data) {
+        const { taskId } = JSON.parse(data)
+        if (onTaskDrop) {
+          onTaskDrop(taskId, targetType, targetId)
+        }
+      }
+    } catch (err) {
+      console.error("Error parsing drag data:", err)
+    }
   }
 
   const formatDate = (date: Date) => {
@@ -132,7 +170,14 @@ export function ProjectView({
           {/* No Project Section */}
           {safeTasks.filter(t => !t.projectId).length > 0 && (
             <div 
-              className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+              className={`bg-white/60 backdrop-blur-xl border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden ${
+                dragOverTarget === "__no_project__" 
+                  ? "border-blue-400 bg-blue-50/40" 
+                  : "border-gray-200/30"
+              }`}
+              onDragOver={(e) => handleDragOver(e, "__no_project__")}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, 'remove-project')}
             >
               <button
                 onClick={() => {
@@ -156,7 +201,15 @@ export function ProjectView({
                 <div className="px-2 pb-2 pt-1.5 border-t border-gray-200/20">
                   <div className="space-y-1">
                     {safeTasks.filter(t => !t.projectId).map(task => (
-                      <div key={task.id} className="p-2 bg-white/40 rounded-lg border border-gray-200/20">
+                      <div 
+                        key={task.id} 
+                        className="p-2 bg-white/40 rounded-lg border border-gray-200/20"
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.effectAllowed = "move"
+                          e.dataTransfer.setData("application/json", JSON.stringify({ taskId: task.id, type: "task" }))
+                        }}
+                      >
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-800">{task.title}</span>
                           <div className="flex items-center gap-2">
@@ -176,7 +229,7 @@ export function ProjectView({
                       size="sm"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                onDeleteTask(task.id)
+                                onDeleteTask(task)
                               }}
                               className="h-6 w-6 p-0 text-red-500 hover:text-red-600"
                             >
@@ -200,7 +253,14 @@ export function ProjectView({
             return (
               <div 
                 key={project.id} 
-                className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                className={`bg-white/60 backdrop-blur-xl border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden ${
+                  dragOverTarget === project.id 
+                    ? "border-blue-400 bg-blue-50/40" 
+                    : "border-gray-200/30"
+                }`}
+                onDragOver={(e) => handleDragOver(e, project.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, 'project', project.id)}
               >
                 {/* Project Header - Collapsable */}
                 <button
@@ -282,6 +342,16 @@ export function ProjectView({
                         <Archive className="w-3.5 h-3.5" />
                       )}
                     </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDeleteProject(project)
+                      }}
+                      className="p-1 rounded-lg hover:bg-red-50/60 text-gray-400 hover:text-red-500 transition-colors"
+                      title="Delete project"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                     {isExpanded ? (
                       <ChevronUp className="w-4 h-4 text-gray-400" />
                     ) : (
@@ -301,16 +371,24 @@ export function ProjectView({
                         {projectTasks.map((task) => (
                           <div
                             key={task.id}
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.effectAllowed = "move"
+                              e.dataTransfer.setData("application/json", JSON.stringify({ taskId: task.id, type: "task" }))
+                            }}
+                            onClick={(e) => {
+                              if ((e.target as HTMLElement).closest('button')) return
+                              onEditTask(task)
+                            }}
                             className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
-                            onClick={() => onEditTask(task)}
                           >
                             <div className="flex items-start justify-between mb-1">
                               <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
                               <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  onDeleteTask(task.id)
-                                }}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    onDeleteTask(task)
+                                  }}
                                 className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-0.5 rounded-full"
                                 title="Delete task"
                               >

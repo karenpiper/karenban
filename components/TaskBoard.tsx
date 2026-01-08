@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Plus, Search, Filter, Calendar, Users, Bell, Settings, CheckCircle, Clock, AlertTriangle, User, X } from "lucide-react"
+import { Plus, Search, Filter, Calendar, Users, Bell, Settings, CheckCircle, Clock, AlertTriangle, User, X, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -22,6 +22,8 @@ export function TaskBoard() {
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
   const [dragOverTarget, setDragOverTarget] = useState<{ type: 'column' | 'category' | 'person', id: string } | null>(null)
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
+  const [showAddPerson, setShowAddPerson] = useState(false)
+  const [newPersonName, setNewPersonName] = useState("")
 
   useEffect(() => {
     const state = loadAppState()
@@ -223,7 +225,13 @@ export function TaskBoard() {
           setDraggedTask(null)
           setDragOverTarget(null)
         }}
-        className={`bg-white/70 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 p-2.5 mb-2.5 cursor-move ${
+        onClick={(e) => {
+          // Don't open edit if clicking delete button
+          if ((e.target as HTMLElement).closest('button')) return
+          // Trigger edit - this will be handled by parent
+          window.dispatchEvent(new CustomEvent('editTask', { detail: task }))
+        }}
+        className={`bg-white/70 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 p-2.5 mb-2.5 cursor-pointer ${
           draggedTask?.id === task.id ? 'opacity-40' : ''
         }`}
         style={{ userSelect: 'none' }}
@@ -373,9 +381,56 @@ export function TaskBoard() {
                 {columnTasks.length}
               </span>
             </div>
-            <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500">
-              <Plus className="w-3 h-3" />
-            </button>
+            {column.id === 'col-followup' && column.allowsDynamicCategories ? (
+              showAddPerson ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    value={newPersonName}
+                    onChange={(e) => setNewPersonName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddPerson()
+                      } else if (e.key === 'Escape') {
+                        setShowAddPerson(false)
+                        setNewPersonName("")
+                      }
+                    }}
+                    placeholder="Person name"
+                    className="text-xs px-2 py-1 rounded-lg border border-gray-200/40 bg-white/80 focus:outline-none focus:border-blue-400/50 w-24"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleAddPerson}
+                    className="p-1 rounded-full transition-all duration-300 bg-emerald-50/80 text-emerald-600 hover:bg-emerald-100/80"
+                    title="Add person"
+                  >
+                    <Check className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAddPerson(false)
+                      setNewPersonName("")
+                    }}
+                    className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowAddPerson(true)}
+                  className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500"
+                  title="Add person"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              )
+            ) : (
+              <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500">
+                <Plus className="w-3 h-3" />
+              </button>
+            )}
           </div>
 
           <div className="space-y-3">

@@ -15,8 +15,10 @@ interface ClientProjectViewProps {
   onArchiveProject: (projectId: string) => void
   onUnarchiveProject: (projectId: string) => void
   onEditTask: (task: Task) => void
-  onDeleteTask: (taskId: string) => void
+  onDeleteTask: (task: Task) => void
   onCreateProject: () => void
+  onTaskDrop?: (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => void
+  onDeleteClient?: (clientName: string) => void
 }
 
 export function ClientProjectView({
@@ -28,12 +30,15 @@ export function ClientProjectView({
   onUnarchiveProject,
   onEditTask,
   onDeleteTask,
-  onCreateProject
+  onCreateProject,
+  onTaskDrop,
+  onDeleteClient
 }: ClientProjectViewProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [showArchived, setShowArchived] = useState(false)
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set())
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set())
+  const [dragOverTarget, setDragOverTarget] = useState<{ type: 'client' | 'project', id: string } | null>(null)
 
   // Ensure we have valid arrays
   const safeProjects = projects || []
@@ -136,12 +141,55 @@ export function ClientProjectView({
     }
   }
 
+  const handleDragOver = (e: React.DragEvent, type: 'client' | 'project', id: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOverTarget({ type, id })
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const currentTarget = e.currentTarget as HTMLElement
+    const relatedTarget = e.relatedTarget as HTMLElement | null
+    
+    if (!relatedTarget || !currentTarget.contains(relatedTarget)) {
+      setDragOverTarget(null)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent, targetType: 'project' | 'client', targetId?: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragOverTarget(null)
+    
+    try {
+      const data = e.dataTransfer.getData("application/json")
+      if (data) {
+        const { taskId } = JSON.parse(data)
+        if (onTaskDrop) {
+          onTaskDrop(taskId, targetType, targetId)
+        }
+      }
+    } catch (err) {
+      console.error("Error parsing drag data:", err)
+    }
+  }
+
   const renderTask = (task: Task) => {
     return (
       <div
         key={task.id}
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = "move"
+          e.dataTransfer.setData("application/json", JSON.stringify({ taskId: task.id, type: "task" }))
+        }}
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest('button')) return
+          onEditTask(task)
+        }}
         className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group ml-3"
-        onClick={() => onEditTask(task)}
       >
         <div className="flex items-start justify-between mb-1">
           <div className="flex-1 min-w-0">
@@ -150,7 +198,7 @@ export function ClientProjectView({
           <button
             onClick={(e) => {
               e.stopPropagation()
-              onDeleteTask(task.id)
+              onDeleteTask(task)
             }}
             className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-0.5 rounded-full"
             title="Delete task"
@@ -241,7 +289,14 @@ export function ClientProjectView({
             return (
               <div 
                 key={clientName} 
-                className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                className={`bg-white/60 backdrop-blur-xl border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden ${
+                  dragOverTarget?.type === 'client' && dragOverTarget.id === clientName
+                    ? "border-blue-400 bg-blue-50/40" 
+                    : "border-gray-200/30"
+                }`}
+                onDragOver={(e) => handleDragOver(e, 'client', clientName)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, 'client', clientName)}
               >
                 {/* Client Header - Collapsable */}
                 <button
@@ -287,6 +342,18 @@ export function ClientProjectView({
                     ) : (
                       <ChevronDown className="w-4 h-4 text-gray-400" />
                     )}
+                    {clientName !== "Unassigned" && onDeleteClient && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onDeleteClient(clientName)
+                        }}
+                        className="p-1 rounded-lg hover:bg-red-50/60 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Delete client"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </button>
 
@@ -317,7 +384,22 @@ export function ClientProjectView({
                           return (
                             <div
                               key={project.id}
-                              className="bg-gray-50/60 rounded-lg border border-gray-200/30 overflow-hidden"
+                              className={`bg-gray-50/60 rounded-lg border overflow-hidden ${
+                                dragOverTarget?.type === 'project' && dragOverTarget.id === project.id
+                                  ? "border-blue-400 bg-blue-50/40" 
+                                  : "border-gray-200/30"
+                              }`}
+                              onDragOver={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleDragOver(e, 'project', project.id)
+                              }}
+                              onDragLeave={handleDragLeave}
+                              onDrop={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleDrop(e, 'project', project.id)
+                              }}
                             >
                               {/* Project Header - Collapsable */}
                               <button

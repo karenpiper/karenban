@@ -11,12 +11,14 @@ interface CalendarViewProps {
   tasks: Task[]
   onEditTask: (task: Task) => void
   onDeleteTask: (taskId: string) => void
+  onTaskDrop?: (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => void
 }
 
 export function CalendarView({
   tasks,
   onEditTask,
-  onDeleteTask
+  onDeleteTask,
+  onTaskDrop
 }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -111,15 +113,23 @@ export function CalendarView({
                     {selectedDateTasks.map((task) => (
                       <div
                         key={task.id}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.effectAllowed = "move"
+                          e.dataTransfer.setData("application/json", JSON.stringify({ taskId: task.id, type: "task" }))
+                        }}
+                        onClick={(e) => {
+                          if ((e.target as HTMLElement).closest('button')) return
+                          onEditTask(task)
+                        }}
                         className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
-                        onClick={() => onEditTask(task)}
                       >
                         <div className="flex items-start justify-between mb-1">
                           <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              onDeleteTask(task.id)
+                              onDeleteTask(task)
                             }}
                             className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-0.5 rounded-full"
                             title="Delete task"

@@ -13,6 +13,7 @@ interface TaskCardProps {
   onEdit?: (task: Task) => void
   onDelete?: (taskId: string) => void
   onComplete?: (taskId: string) => void
+  draggable?: boolean
 }
 
 const priorityColors = {
@@ -22,7 +23,7 @@ const priorityColors = {
   urgent: "bg-red-50/80 text-red-700 border-red-200/50",
 }
 
-export function TaskCard({ task, project, onEdit, onDelete, onComplete }: TaskCardProps) {
+export function TaskCard({ task, project, onEdit, onDelete, onComplete, draggable = false }: TaskCardProps) {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
@@ -32,8 +33,19 @@ export function TaskCard({ task, project, onEdit, onDelete, onComplete }: TaskCa
 
   const isOverdue = task.dueDate && new Date() > task.dueDate && task.status !== "done"
 
+  const handleDragStart = (e: React.DragEvent) => {
+    if (!draggable) return
+    e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData("application/json", JSON.stringify({ taskId: task.id, type: "task" }))
+    e.dataTransfer.setData("text/plain", task.id)
+  }
+
   return (
-    <Card className="bg-white/70 backdrop-blur-xl border border-gray-200/30 rounded-2xl hover:border-gray-300/50 hover:shadow-md transition-all duration-300 cursor-pointer group">
+    <Card 
+      className={`bg-white/70 backdrop-blur-xl border border-gray-200/30 rounded-2xl hover:border-gray-300/50 hover:shadow-md transition-all duration-300 group ${draggable ? "cursor-move" : "cursor-pointer"}`}
+      draggable={draggable}
+      onDragStart={handleDragStart}
+    >
       <CardContent className="p-2.5">
         <div className="flex items-start justify-between mb-1.5">
           <div className="flex-1">
