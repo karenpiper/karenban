@@ -127,6 +127,10 @@ export function TaskBoard() {
     })
 
     const updatedState = { ...appState, tasks: updatedTasks }
+    const updatedTask = updatedTasks.find(t => t.id === taskId)
+    if (updatedTask) {
+      console.log('Task after update:', updatedTask.id, 'assignedTo:', updatedTask.assignedTo, 'columnId:', updatedTask.columnId, 'categoryId:', updatedTask.categoryId)
+    }
     setAppState(updatedState)
     saveAppState(updatedState)
   }
