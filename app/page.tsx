@@ -421,7 +421,47 @@ export default function HomePage() {
       return col
     })
 
-    const updatedState = { ...appState, columns: updatedColumns }
+    // Clean up duplicates: if there are both team and non-team versions of the same person, keep only the team version
+    const cleanedColumns = updatedColumns.map(col => {
+      if (col.id === 'col-followup') {
+        const seenNames = new Map<string, Category>()
+        const cleanedCategories: Category[] = []
+        
+        // First pass: collect team members
+        col.categories.forEach(cat => {
+          if (cat.isPerson) {
+            const personName = (cat.personName || cat.name).toLowerCase()
+            if (cat.isTeamMember === true) {
+              seenNames.set(personName, cat)
+            }
+          }
+        })
+        
+        // Second pass: collect non-team members (only if no team member exists)
+        col.categories.forEach(cat => {
+          if (cat.isPerson) {
+            const personName = (cat.personName || cat.name).toLowerCase()
+            if (cat.isTeamMember !== true && !seenNames.has(personName)) {
+              seenNames.set(personName, cat)
+            }
+          } else {
+            // Non-person categories always included
+            cleanedCategories.push(cat)
+          }
+        })
+        
+        // Add all unique person categories
+        seenNames.forEach(cat => cleanedCategories.push(cat))
+        
+        return {
+          ...col,
+          categories: cleanedCategories
+        }
+      }
+      return col
+    })
+
+    const updatedState = { ...appState, columns: cleanedColumns }
     setAppState(updatedState)
     saveAppState(updatedState)
   }
