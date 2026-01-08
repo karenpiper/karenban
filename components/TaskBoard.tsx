@@ -825,9 +825,10 @@ export function TaskBoard() {
                 .filter(col => {
                   // Show follow-up column if:
                   // 1. Tasks are assigned to team members, OR
-                  // 2. Column has person categories (so you can add/manage people)
+                  // 2. Column has person categories (so you can add/manage people), OR
+                  // 3. Column allows dynamic categories (so you can add the first person)
                   if (col.id === 'col-followup') {
-                    return hasTasksAssignedToTeamMembers || hasPersonCategories
+                    return hasTasksAssignedToTeamMembers || hasPersonCategories || col.allowsDynamicCategories
                   }
                   return true
                 })
