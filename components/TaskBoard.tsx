@@ -57,9 +57,24 @@ export function TaskBoard() {
           updates.category = newCategoryId
         }
 
-        // Update assignee if moving to follow-up column
-        if (newColumnId === 'col-followup' && newAssignee) {
-          updates.assignedTo = newAssignee
+        // Update assignee if provided (regardless of column)
+        if (newAssignee !== undefined) {
+          updates.assignedTo = newAssignee || undefined
+          // If assigning to a person, also set categoryId to match the person's category
+          if (newAssignee) {
+            const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
+            const personCategory = followUpColumn?.categories.find(
+              cat => cat.isPerson && (cat.personName || cat.name) === newAssignee
+            )
+            if (personCategory) {
+              updates.categoryId = personCategory.id
+              updates.category = personCategory.id
+            }
+          } else {
+            // Unassigning - clear category
+            updates.categoryId = undefined
+            updates.category = undefined
+          }
         }
 
         // Update status based on column
@@ -430,19 +445,8 @@ export function TaskBoard() {
               <Select
                 value={task.assignedTo || ""}
                 onValueChange={(value) => {
-                  if (value) {
-                    updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, value)
-                  } else {
-                    // Unassign
-                    const updatedTasks = appState?.tasks.map(t =>
-                      t.id === task.id
-                        ? { ...t, assignedTo: undefined, categoryId: undefined, category: undefined, updatedAt: new Date() }
-                        : t
-                    ) || []
-                    const updatedState = { ...appState!, tasks: updatedTasks }
-                    setAppState(updatedState)
-                    saveAppState(updatedState)
-                  }
+                  // Use updateTaskLocation for both assign and unassign to ensure consistency
+                  updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, value || undefined)
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
