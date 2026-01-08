@@ -12,6 +12,7 @@ interface TeamViewProps {
   onEditTask: (task: Task) => void
   onDeleteTask: (task: Task) => void
   onTaskDrop?: (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => void
+  columns?: any[] // To access archived person categories
 }
 
 export function TeamView({
@@ -24,6 +25,18 @@ export function TeamView({
 
   const safeTasks = tasks || []
 
+  // Get archived person names from columns
+  const archivedPeople = useMemo(() => {
+    if (!columns) return new Set<string>()
+    const followUpColumn = columns.find((col: any) => col.id === 'col-followup')
+    if (!followUpColumn) return new Set<string>()
+    return new Set(
+      followUpColumn.categories
+        .filter((cat: any) => cat.isPerson && cat.archived)
+        .map((cat: any) => cat.personName || cat.name)
+    )
+  }, [columns])
+
   // Group tasks by assignedTo (team member)
   const tasksByTeam = useMemo(() => {
     const grouped: Record<string, Task[]> = {}
@@ -31,6 +44,10 @@ export function TeamView({
 
     safeTasks.forEach(task => {
       if (task.assignedTo) {
+        // Skip if person is archived
+        if (archivedPeople.has(task.assignedTo)) {
+          return
+        }
         const member = task.assignedTo
         if (!grouped[member]) {
           grouped[member] = []
@@ -47,7 +64,7 @@ export function TeamView({
     }
 
     return grouped
-  }, [safeTasks])
+  }, [safeTasks, archivedPeople])
 
   // Filter team members based on search
   const filteredTeamMembers = Object.keys(tasksByTeam).filter(member => {

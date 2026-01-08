@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Plus, Search, Filter, Calendar, Users, Bell, Settings, CheckCircle, Clock, AlertTriangle, User, X, Check } from "lucide-react"
+import { Plus, Search, Filter, Calendar, Users, Bell, Settings, CheckCircle, Clock, AlertTriangle, User, X, Check, Archive, Trash2, MoreVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -13,6 +13,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import type { Task, Category, Column, AppState } from "../types"
 import { loadAppState, saveAppState } from "../data/seed"
 
@@ -24,6 +30,8 @@ export function TaskBoard() {
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
   const [showAddPerson, setShowAddPerson] = useState(false)
   const [newPersonName, setNewPersonName] = useState("")
+  const [personToDelete, setPersonToDelete] = useState<Category | null>(null)
+  const [deletePersonWithTasks, setDeletePersonWithTasks] = useState(false)
 
   useEffect(() => {
     const state = loadAppState()
@@ -338,12 +346,57 @@ export function TaskBoard() {
           e.stopPropagation()
         }}
       >
-        <h4 className="text-[0.625rem] font-normal text-gray-600 uppercase tracking-wide flex items-center justify-between">
-          {category.name}
-          <span className="text-[0.625rem] bg-gray-100/80 text-gray-600 px-1.5 py-0.5 rounded-full border border-gray-200/40">
-            {categoryTasks.length}
-          </span>
-        </h4>
+        <div className="flex items-center justify-between mb-1">
+          <h4 className="text-[0.625rem] font-normal text-gray-600 uppercase tracking-wide flex items-center gap-1.5">
+            {category.name}
+            {category.archived && (
+              <span className="text-[0.5rem] bg-gray-200/80 text-gray-500 px-1 py-0.5 rounded-full">
+                Archived
+              </span>
+            )}
+          </h4>
+          <div className="flex items-center gap-1">
+            <span className="text-[0.625rem] bg-gray-100/80 text-gray-600 px-1.5 py-0.5 rounded-full border border-gray-200/40">
+              {categoryTasks.length}
+            </span>
+            {category.isPerson && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-0.5 rounded-full hover:bg-gray-100/60 text-gray-400 hover:text-gray-600 transition-colors">
+                    <MoreVertical className="w-3 h-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-white/90 backdrop-blur-xl border border-gray-200/40 shadow-md rounded-xl">
+                  {category.archived ? (
+                    <DropdownMenuItem 
+                      onClick={() => handleUnarchivePerson(category.id)}
+                      className="text-gray-700 text-[0.625rem] rounded-xl"
+                    >
+                      <Archive className="w-3 h-3 mr-2" />
+                      Unarchive
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem 
+                      onClick={() => handleArchivePerson(category.id)}
+                      className="text-gray-700 text-[0.625rem] rounded-xl"
+                    >
+                      <Archive className="w-3 h-3 mr-2" />
+                      Archive
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem 
+                    onClick={() => handleDeletePerson(category)}
+                    className="text-red-600 text-[0.625rem] rounded-xl"
+                    variant="destructive"
+                  >
+                    <Trash2 className="w-3 h-3 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        </div>
         
         {categoryTasks.map((task) => (
           <div key={task.id}>
@@ -459,7 +512,9 @@ export function TaskBoard() {
 
           <div className="space-y-3">
             {column.categories.length > 0 ? (
-              column.categories.map(category => renderCategory(column.id, category))
+              column.categories
+                .filter(category => !category.archived)
+                .map(category => renderCategory(column.id, category))
             ) : (
               // Render tasks directly in the column if no categories
               <div 

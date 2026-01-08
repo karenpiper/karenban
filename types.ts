@@ -70,6 +70,7 @@ export interface Category {
   // For dynamic people categories in Blocked column
   isPerson?: boolean
   personName?: string
+  archived?: boolean // Whether the category is archived
 }
 
 export interface Column {

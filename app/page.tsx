@@ -253,6 +253,7 @@ export default function HomePage() {
               onEditTask={handleEditTask}
               onDeleteTask={handleDeleteTask}
               onTaskDrop={handleTaskDrop}
+              columns={appState.columns || []}
             />
           </div>
         )
