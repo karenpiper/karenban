@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search, Users, Calendar, X, Plus, Check } from "lucide-react"
+import { Search, Users, Calendar, X, Plus, Check, ChevronDown, ChevronUp } from "lucide-react"
 import type { Task, Category } from "../types"
 
 interface TeamViewProps {
@@ -34,6 +34,7 @@ export function TeamView({
   const [showAddTeamMember, setShowAddTeamMember] = useState(false)
   const [showAddNonTeamMember, setShowAddNonTeamMember] = useState(false)
   const [newMemberName, setNewMemberName] = useState("")
+  const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set())
 
   const safeTasks = tasks || []
 
@@ -148,6 +149,16 @@ export function TeamView({
     return { total, completed, inProgress, blocked }
   }
 
+  const toggleExpand = (memberName: string) => {
+    const newExpanded = new Set(expandedMembers)
+    if (newExpanded.has(memberName)) {
+      newExpanded.delete(memberName)
+    } else {
+      newExpanded.add(memberName)
+    }
+    setExpandedMembers(newExpanded)
+  }
+
   return (
     <div className="space-y-2">
       {/* Header */}
@@ -259,103 +270,115 @@ export function TeamView({
         />
       </div>
 
-      {/* Team Grid */}
+      {/* Team Members List */}
       {filteredTeamMembers.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="space-y-1">
           {filteredTeamMembers.map((member) => {
             const memberTasks = tasksByTeam[member]
             const stats = getTaskStats(memberTasks)
+            const isExpanded = expandedMembers.has(member)
 
             return (
               <div
                 key={member}
                 className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
               >
-                {/* Team Member Header */}
-                <div className="p-2.5 border-b border-gray-200/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-400/70 to-violet-400/70 flex items-center justify-center shadow-sm">
-                      <Users className="w-4 h-4 text-white" />
+                {/* Team Member Row */}
+                <button
+                  onClick={() => toggleExpand(member)}
+                  className="w-full p-2.5 flex items-center justify-between hover:bg-gray-50/40 transition-colors"
+                >
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-400/70 to-violet-400/70 flex items-center justify-center shadow-sm flex-shrink-0">
+                      <Users className="w-3 h-3 text-white" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-xs font-medium text-gray-800">{member}</h3>
-                      <p className="text-[0.625rem] text-gray-500">{stats.total} {stats.total === 1 ? 'task' : 'tasks'}</p>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-[0.625rem] font-medium text-gray-800 text-left truncate">{member}</h3>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Stats */}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[0.625rem] text-gray-600 bg-gray-50/60 px-1.5 py-0.5 rounded-full border border-gray-200/40">
+                          {stats.total} tasks
+                        </span>
+                        {stats.completed > 0 && (
+                          <span className="text-[0.625rem] text-emerald-700 bg-emerald-50/60 px-1.5 py-0.5 rounded-full border border-emerald-200/40">
+                            {stats.completed} done
+                          </span>
+                        )}
+                        {stats.inProgress > 0 && (
+                          <span className="text-[0.625rem] text-blue-700 bg-blue-50/60 px-1.5 py-0.5 rounded-full border border-blue-200/40">
+                            {stats.inProgress} active
+                          </span>
+                        )}
+                      </div>
+                      {isExpanded ? (
+                        <ChevronUp className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                      )}
                     </div>
                   </div>
+                </button>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <div className="bg-gray-50/60 rounded-lg p-1.5 text-center">
-                      <div className="text-sm font-medium text-gray-800">{stats.total}</div>
-                      <div className="text-[0.625rem] text-gray-500">Total</div>
-                    </div>
-                    <div className="bg-emerald-50/60 rounded-lg p-1.5 text-center">
-                      <div className="text-sm font-medium text-emerald-700">{stats.completed}</div>
-                      <div className="text-[0.625rem] text-emerald-600">Done</div>
-                    </div>
-                    <div className="bg-blue-50/60 rounded-lg p-1.5 text-center">
-                      <div className="text-sm font-medium text-blue-700">{stats.inProgress}</div>
-                      <div className="text-[0.625rem] text-blue-600">Active</div>
-                    </div>
+                {/* Expanded Task List */}
+                {isExpanded && (
+                  <div className="border-t border-gray-200/20 px-2.5 py-2">
+                    {memberTasks.length > 0 ? (
+                      <div className="space-y-1">
+                        {memberTasks.map((task) => (
+                          <div
+                            key={task.id}
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.effectAllowed = "move"
+                              e.dataTransfer.setData("application/json", JSON.stringify({ taskId: task.id, type: "task" }))
+                            }}
+                            onClick={(e) => {
+                              if ((e.target as HTMLElement).closest('button')) return
+                              onEditTask(task)
+                            }}
+                            className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
+                          >
+                            <div className="flex items-start justify-between mb-1">
+                              <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  onDeleteTask(task)
+                                }}
+                                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-0.5 rounded-full"
+                                title="Delete task"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge className={`text-[0.625rem] px-1.5 py-0.5 rounded-full ${
+                                task.priority === 'high' ? 'bg-red-50/80 text-red-700' :
+                                task.priority === 'medium' ? 'bg-amber-50/80 text-amber-700' :
+                                'bg-emerald-50/80 text-emerald-700'
+                              }`}>
+                                {task.priority}
+                              </Badge>
+                              <span className="text-[0.625rem] text-gray-500">{task.status}</span>
+                              {task.dueDate && (
+                                <span className="text-[0.625rem] text-gray-500 flex items-center gap-0.5">
+                                  <Calendar className="w-3 h-3" />
+                                  {formatDate(task.dueDate)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-gray-500">
+                        <p className="text-[0.625rem]">No tasks</p>
+                      </div>
+                    )}
                   </div>
-                </div>
-
-                {/* Task List */}
-                <div className="p-2.5">
-                  {memberTasks.length > 0 ? (
-                    <div className="space-y-1.5 max-h-64 overflow-y-auto">
-                      {memberTasks.map((task) => (
-                        <div
-                          key={task.id}
-                          draggable
-                          onDragStart={(e) => {
-                            e.dataTransfer.effectAllowed = "move"
-                            e.dataTransfer.setData("application/json", JSON.stringify({ taskId: task.id, type: "task" }))
-                          }}
-                          onClick={(e) => {
-                            if ((e.target as HTMLElement).closest('button')) return
-                            onEditTask(task)
-                          }}
-                          className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
-                        >
-                          <div className="flex items-start justify-between mb-1">
-                            <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                onDeleteTask(task)
-                              }}
-                              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-0.5 rounded-full"
-                              title="Delete task"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge className={`text-[0.625rem] px-1.5 py-0.5 rounded-full ${
-                              task.priority === 'high' ? 'bg-red-50/80 text-red-700' :
-                              task.priority === 'medium' ? 'bg-amber-50/80 text-amber-700' :
-                              'bg-emerald-50/80 text-emerald-700'
-                            }`}>
-                              {task.priority}
-                            </Badge>
-                            <span className="text-[0.625rem] text-gray-500">{task.status}</span>
-                            {task.dueDate && (
-                              <span className="text-[0.625rem] text-gray-500 flex items-center gap-0.5">
-                                <Calendar className="w-3 h-3" />
-                                {formatDate(task.dueDate)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-6 text-gray-500">
-                      <p className="text-xs">No tasks</p>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             )
           })}
@@ -372,6 +395,124 @@ export function TeamView({
               : "Assign tasks to team members to see them here"
             }
           </p>
+        </div>
+      )}
+
+      {/* Non-Team Members Section */}
+      {Array.from(nonTeamMembers).length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-sm font-medium text-gray-800 mb-2">Non-Team Members</h3>
+          <div className="space-y-1">
+            {Array.from(nonTeamMembers).map((member) => {
+              const memberTasks = safeTasks.filter(t => t.assignedTo === member)
+              const stats = getTaskStats(memberTasks)
+              const isExpanded = expandedMembers.has(member)
+
+              return (
+                <div
+                  key={member}
+                  className="bg-gray-50/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                >
+                  {/* Non-Team Member Row */}
+                  <button
+                    onClick={() => toggleExpand(member)}
+                    className="w-full p-2.5 flex items-center justify-between hover:bg-gray-50/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-gray-400/70 to-gray-500/70 flex items-center justify-center shadow-sm flex-shrink-0">
+                        <Users className="w-3 h-3 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[0.625rem] font-medium text-gray-600 text-left truncate">{member}</h3>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {/* Stats */}
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[0.625rem] text-gray-600 bg-gray-50/60 px-1.5 py-0.5 rounded-full border border-gray-200/40">
+                            {stats.total} tasks
+                          </span>
+                          {stats.completed > 0 && (
+                            <span className="text-[0.625rem] text-emerald-700 bg-emerald-50/60 px-1.5 py-0.5 rounded-full border border-emerald-200/40">
+                              {stats.completed} done
+                            </span>
+                          )}
+                          {stats.inProgress > 0 && (
+                            <span className="text-[0.625rem] text-blue-700 bg-blue-50/60 px-1.5 py-0.5 rounded-full border border-blue-200/40">
+                              {stats.inProgress} active
+                            </span>
+                          )}
+                        </div>
+                        {isExpanded ? (
+                          <ChevronUp className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                        )}
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Expanded Task List */}
+                  {isExpanded && (
+                    <div className="border-t border-gray-200/20 px-2.5 py-2">
+                      {memberTasks.length > 0 ? (
+                        <div className="space-y-1">
+                          {memberTasks.map((task) => (
+                            <div
+                              key={task.id}
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.effectAllowed = "move"
+                                e.dataTransfer.setData("application/json", JSON.stringify({ taskId: task.id, type: "task" }))
+                              }}
+                              onClick={(e) => {
+                                if ((e.target as HTMLElement).closest('button')) return
+                                onEditTask(task)
+                              }}
+                              className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
+                            >
+                              <div className="flex items-start justify-between mb-1">
+                                <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    onDeleteTask(task)
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-0.5 rounded-full"
+                                  title="Delete task"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge className={`text-[0.625rem] px-1.5 py-0.5 rounded-full ${
+                                  task.priority === 'high' ? 'bg-red-50/80 text-red-700' :
+                                  task.priority === 'medium' ? 'bg-amber-50/80 text-amber-700' :
+                                  'bg-emerald-50/80 text-emerald-700'
+                                }`}>
+                                  {task.priority}
+                                </Badge>
+                                <span className="text-[0.625rem] text-gray-500">{task.status}</span>
+                                {task.dueDate && (
+                                  <span className="text-[0.625rem] text-gray-500 flex items-center gap-0.5">
+                                    <Calendar className="w-3 h-3" />
+                                    {formatDate(task.dueDate)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500">
+                          <p className="text-[0.625rem]">No tasks</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>
