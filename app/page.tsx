@@ -299,6 +299,13 @@ export default function HomePage() {
               projects={appState.projects || []}
               onEditTask={handleEditTask}
               onDeleteTask={handleDeleteTask}
+              onBulkDelete={(taskIds) => {
+                if (!appState) return
+                const updatedTasks = appState.tasks.filter(t => !taskIds.includes(t.id))
+                const updatedState = { ...appState, tasks: updatedTasks }
+                setAppState(updatedState)
+                saveAppState(updatedState)
+              }}
             />
           </div>
         )
