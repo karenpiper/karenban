@@ -4,7 +4,7 @@ import { GeistMono } from 'geist/font/mono'
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Task Manager - Figma Design",
+  title: "karenBan",
   description: "A modern task management application with beautiful glass morphism design",
 }
 
