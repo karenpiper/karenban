@@ -137,21 +137,34 @@ export function TaskBoard() {
   }
 
   // Add task handler
-  const handleAddTask = (categoryId: string) => {
+  const handleAddTask = (categoryId: string, columnId?: string) => {
     if (!appState) return
+    
+    // Determine the column ID
+    let targetColumnId: string
+    if (columnId) {
+      // Column ID explicitly provided (for columns without categories)
+      targetColumnId = columnId
+    } else if (categoryId) {
+      // Find column that contains this category
+      targetColumnId = appState.columns.find(col => 
+        col.categories.some(cat => cat.id === categoryId)
+      )?.id || appState.columns[0]?.id || 'col-uncategorized'
+    } else {
+      // Default to uncategorized
+      targetColumnId = 'col-uncategorized'
+    }
     
     // Create a new task
     const newTask: Task = {
-      id: `task-${Date.now()}`,
+      id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: 'New Task',
-      description: 'Task description',
-      status: 'todo',
+      description: '',
+      status: 'uncategorized',
       priority: 'medium',
-      columnId: appState.columns.find(col => 
-        col.categories.some(cat => cat.id === categoryId)
-      )?.id || appState.columns[0]?.id || 'col-standing',
-      categoryId: categoryId,
-      category: categoryId,
+      columnId: targetColumnId,
+      categoryId: categoryId || undefined,
+      category: categoryId || undefined,
       tags: [],
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -623,7 +636,7 @@ export function TaskBoard() {
                         <span className="flex items-center gap-0.5">
                           <User className="w-2.5 h-2.5" />
                           {task.assignedTo}
-                        </span>
+              </span>
                       ) : (
                         <User className="w-2.5 h-2.5 text-gray-400" />
                       )}
