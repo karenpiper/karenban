@@ -216,6 +216,9 @@ export function TaskBoard() {
   }
 
   const renderTaskCard = (task: Task) => {
+    // Get project name if task has projectId
+    const project = appState?.projects?.find(p => p.id === task.projectId)
+    
     return (
       <div 
         key={task.id} 
@@ -231,40 +234,38 @@ export function TaskBoard() {
           // Trigger edit - this will be handled by parent
           window.dispatchEvent(new CustomEvent('editTask', { detail: task }))
         }}
-        className={`bg-white/70 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 p-2.5 mb-2.5 cursor-pointer ${
+        className={`bg-white/70 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 p-2 mb-1.5 cursor-pointer ${
           draggedTask?.id === task.id ? 'opacity-40' : ''
         }`}
         style={{ userSelect: 'none' }}
       >
-        <div className="flex justify-between items-start mb-1.5">
-          <h4 className="font-normal text-xs text-gray-800 leading-relaxed">{task.title}</h4>
-          <div className="flex gap-1">
-            <button 
-              onClick={(e) => {
-                e.stopPropagation()
-                handleDeleteTask(task)
-              }}
-              className="text-gray-400/70 hover:text-red-500 p-0.5 rounded-full transition-colors"
-              title="Delete task"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          </div>
+        <div className="flex justify-between items-start mb-1">
+          <h4 className="font-normal text-[0.625rem] text-gray-800 leading-tight flex-1">{task.title}</h4>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation()
+              handleDeleteTask(task)
+            }}
+            className="text-gray-400/70 hover:text-red-500 p-0.5 rounded-full transition-colors flex-shrink-0 ml-1"
+            title="Delete task"
+          >
+            <X className="w-2.5 h-2.5" />
+          </button>
         </div>
-        <div className="flex flex-wrap gap-1 mb-1.5">
-          {task.tags?.map((tag: string, index: number) => (
-            <span key={index} className="px-1.5 py-0.5 text-[0.625rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
-              {tag}
+        {(task.client || project) && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {task.client && (
+              <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
+                {task.client}
+              </span>
+            )}
+            {project && (
+              <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
+                {project.name}
             </span>
-          ))}
+            )}
         </div>
-        <div className="flex items-center justify-between">
-          <span className={`text-[0.625rem] px-1.5 py-0.5 rounded-full font-normal ${
-            task.priority === 'high' ? 'bg-red-50/80 text-red-700 border border-red-200/50' :
-            task.priority === 'medium' ? 'bg-amber-50/80 text-amber-700 border border-amber-200/50' :
-            'bg-emerald-50/80 text-emerald-700 border border-emerald-200/50'
-          }`}>
-            {task.priority}
+        )}
           </span>
           {task.assignedTo && (
             <span className="text-[0.625rem] px-1.5 py-0.5 bg-violet-50/80 text-violet-700 rounded-full border border-violet-200/50">
@@ -301,7 +302,7 @@ export function TaskBoard() {
     return (
       <div 
         key={category.id}
-        className={`space-y-2 p-2.5 rounded-2xl border-2 border-dashed transition-all duration-300 ${
+        className={`space-y-1.5 p-2 rounded-xl border-2 border-dashed transition-all duration-300 ${
           isDragOver 
             ? 'border-blue-300/60 bg-blue-50/40' 
             : 'border-gray-200/40 hover:border-gray-300/50'
@@ -314,7 +315,7 @@ export function TaskBoard() {
           e.stopPropagation()
         }}
       >
-        <h4 className="text-xs font-normal text-gray-600 uppercase tracking-wide flex items-center justify-between">
+        <h4 className="text-[0.625rem] font-normal text-gray-600 uppercase tracking-wide flex items-center justify-between">
           {category.name}
           <span className="text-[0.625rem] bg-gray-100/80 text-gray-600 px-1.5 py-0.5 rounded-full border border-gray-200/40">
             {categoryTasks.length}
@@ -329,7 +330,7 @@ export function TaskBoard() {
         
         <button 
           onClick={() => handleAddTask(category.id)}
-          className="w-full py-1.5 text-xs text-gray-500 bg-gray-50/60 hover:bg-gray-100/80 rounded-xl border border-gray-200/40 transition-all duration-300 hover:border-gray-300/50"
+          className="w-full py-1 text-[0.625rem] text-gray-500 bg-gray-50/60 hover:bg-gray-100/80 rounded-lg border border-gray-200/40 transition-all duration-300 hover:border-gray-300/50"
         >
           <Plus className="w-3 h-3 inline mr-1.5" />
           Add task
@@ -368,15 +369,15 @@ export function TaskBoard() {
           e.stopPropagation()
         }}
       >
-        <div className={`bg-white/50 backdrop-blur-xl border-2 rounded-xl shadow-sm p-2.5 mb-2 transition-all duration-300 ${
+        <div className={`bg-white/50 backdrop-blur-xl border-2 rounded-xl shadow-sm p-2 mb-1.5 transition-all duration-300 ${
           isDragOver && column.categories.length === 0
             ? 'border-blue-300/50 bg-blue-50/30' 
             : 'border-gray-200/40'
         }`}>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${column.color} opacity-70`}></div>
-              <h3 className="font-normal text-gray-800 text-xs">{column.name}</h3>
+              <h3 className="font-normal text-gray-800 text-[0.625rem]">{column.name}</h3>
               <span className="bg-gray-100/80 text-gray-600 text-[0.625rem] px-1.5 py-0.5 rounded-full border border-gray-200/40">
                 {columnTasks.length}
               </span>
@@ -397,7 +398,7 @@ export function TaskBoard() {
                       }
                     }}
                     placeholder="Person name"
-                    className="text-xs px-2 py-1 rounded-lg border border-gray-200/40 bg-white/80 focus:outline-none focus:border-blue-400/50 w-24"
+                    className="text-[0.625rem] px-1.5 py-0.5 rounded-lg border border-gray-200/40 bg-white/80 focus:outline-none focus:border-blue-400/50 w-20"
                     autoFocus
                   />
                   <button
@@ -429,7 +430,7 @@ export function TaskBoard() {
             ) : (
               <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500">
                 <Plus className="w-3 h-3" />
-              </button>
+            </button>
             )}
           </div>
 
@@ -459,7 +460,7 @@ export function TaskBoard() {
               ))}
                 <button 
                   onClick={() => handleAddTask('')}
-                  className="w-full py-1.5 text-xs text-gray-500 bg-gray-50/60 hover:bg-gray-100/80 rounded-xl border border-gray-200/40 transition-all duration-300 hover:border-gray-300/50"
+                  className="w-full py-1 text-[0.625rem] text-gray-500 bg-gray-50/60 hover:bg-gray-100/80 rounded-lg border border-gray-200/40 transition-all duration-300 hover:border-gray-300/50"
                 >
                   <Plus className="w-3 h-3 inline mr-1.5" />
                   Add task
@@ -483,10 +484,10 @@ export function TaskBoard() {
   return (
     <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50/80 via-white/50 to-gray-50/60">
       {/* Header */}
-      <header className="bg-white/60 backdrop-blur-2xl border-b border-gray-200/30 shadow-sm p-3">
-        <div className="mb-3">
-          <h1 className="text-xl font-medium text-gray-800 mb-0.5">Task Board</h1>
-          <p className="text-xs text-gray-500">Drag and drop tasks to organize your workflow</p>
+      <header className="bg-white/60 backdrop-blur-2xl border-b border-gray-200/30 shadow-sm p-2">
+        <div className="mb-2">
+          <h1 className="text-sm font-medium text-gray-800 mb-0.5">Task Board</h1>
+          <p className="text-[0.625rem] text-gray-500">Drag and drop tasks to organize your workflow</p>
         </div>
 
         <div className="flex items-center justify-between gap-4">
@@ -499,7 +500,7 @@ export function TaskBoard() {
                 placeholder="Search tasks, descriptions, or tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="border-none outline-none bg-transparent text-xs w-full text-gray-600 placeholder-gray-400"
+                className="border-none outline-none bg-transparent text-[0.625rem] w-full text-gray-600 placeholder-gray-400"
               />
               <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400 hover:bg-gray-100/60">
                 <Filter className="w-3.5 h-3.5" />
@@ -515,23 +516,23 @@ export function TaskBoard() {
 
           {/* Filter Buttons */}
           <div className="flex gap-1.5">
-            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-3 py-1.5 text-xs text-gray-600">
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600">
               All Priority
             </button>
-            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-3 py-1.5 text-xs text-gray-600">
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600">
               All Assignees
             </button>
-            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-3 py-1.5 text-xs text-gray-600">
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600">
               This Week
             </button>
           </div>
 
           {/* Toggle Switches */}
           <div className="flex gap-1.5">
-            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-3 py-1.5 text-xs text-gray-600">
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600">
               Auto-move completed
             </button>
-            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-3 py-1.5 text-xs text-gray-600">
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600">
               Show overdue alerts
             </button>
           </div>
@@ -549,7 +550,7 @@ export function TaskBoard() {
       </header>
 
       {/* Main Content */}
-      <div className="flex gap-3 p-3">
+      <div className="flex gap-2 p-2">
         {/* Task Columns */}
         <div className="flex-1">
           <div className="flex gap-4 items-start">
@@ -562,9 +563,9 @@ export function TaskBoard() {
 
             {/* Add Column Button */}
             <div className="min-w-[280px] mt-4">
-              <div className="bg-white/30 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:bg-white/50 hover:shadow-md p-3">
-                <div className="text-xl text-gray-400/70 mb-1.5">+</div>
-                <div className="text-xs text-gray-500 font-normal">Create a new task column</div>
+              <div                 className="bg-white/30 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:bg-white/50 hover:shadow-md p-2">
+                <div className="text-sm text-gray-400/70 mb-1">+</div>
+                <div className="text-[0.625rem] text-gray-500 font-normal">Create a new task column</div>
               </div>
             </div>
           </div>
@@ -576,18 +577,18 @@ export function TaskBoard() {
       <AlertDialog open={!!taskToDelete} onOpenChange={(open) => !open && setTaskToDelete(null)}>
         <AlertDialogContent className="bg-white/90 backdrop-blur-xl border border-gray-200/40 rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm font-medium text-gray-800">Delete Task</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-gray-600">
+            <AlertDialogTitle className="text-[0.625rem] font-medium text-gray-800">Delete Task</AlertDialogTitle>
+            <AlertDialogDescription className="text-[0.625rem] text-gray-600">
               Are you sure you want to delete "{taskToDelete?.title}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel className="text-xs px-3 py-1.5 rounded-xl border border-gray-200/40 bg-white/60 hover:bg-gray-50/80">
+            <AlertDialogCancel className="text-[0.625rem] px-2 py-1 rounded-lg border border-gray-200/40 bg-white/60 hover:bg-gray-50/80">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteTask}
-              className="text-xs px-3 py-1.5 rounded-xl bg-red-50/80 text-red-700 border border-red-200/50 hover:bg-red-100/80"
+              className="text-[0.625rem] px-2 py-1 rounded-lg bg-red-50/80 text-red-700 border border-red-200/50 hover:bg-red-100/80"
             >
               Delete
             </AlertDialogAction>
