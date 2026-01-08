@@ -19,7 +19,8 @@ export function TeamView({
   tasks,
   onEditTask,
   onDeleteTask,
-  onTaskDrop
+  onTaskDrop,
+  columns = []
 }: TeamViewProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
@@ -27,7 +28,7 @@ export function TeamView({
 
   // Get archived person names from columns
   const archivedPeople = useMemo(() => {
-    if (!columns) return new Set<string>()
+    if (!columns || columns.length === 0) return new Set<string>()
     const followUpColumn = columns.find((col: any) => col.id === 'col-followup')
     if (!followUpColumn) return new Set<string>()
     return new Set(
