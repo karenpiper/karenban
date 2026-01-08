@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Task, Category, Column, AppState } from "../types"
 import { loadAppState, saveAppState } from "../data/seed"
 
@@ -393,20 +394,82 @@ export function TaskBoard() {
             <X className="w-2.5 h-2.5" />
           </button>
         </div>
-        {(task.client || project) && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {task.client && (
-              <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
-                {task.client}
-              </span>
-            )}
-            {project && (
-              <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
-                {project.name}
-              </span>
-            )}
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-1 mt-1">
+          {(task.client || project) && (
+            <>
+              {task.client && (
+                <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
+                  {task.client}
+                </span>
+              )}
+              {project && (
+                <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
+                  {project.name}
+                </span>
+              )}
+            </>
+          )}
+          {/* Quick Assign Dropdown */}
+          {(() => {
+            const followUpColumn = appState?.columns.find(col => col.id === 'col-followup')
+            const availablePeople = followUpColumn?.categories
+              .filter(cat => cat.isPerson && !cat.archived)
+              .map(cat => ({
+                name: cat.personName || cat.name,
+                isTeamMember: cat.isTeamMember || false
+              }))
+              .sort((a, b) => {
+                if (a.isTeamMember && !b.isTeamMember) return -1
+                if (!a.isTeamMember && b.isTeamMember) return 1
+                return a.name.localeCompare(b.name)
+              }) || []
+            
+            if (availablePeople.length === 0) return null
+            
+            return (
+              <Select
+                value={task.assignedTo || ""}
+                onValueChange={(value) => {
+                  if (value) {
+                    updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, value)
+                  } else {
+                    // Unassign
+                    const updatedTasks = appState?.tasks.map(t =>
+                      t.id === task.id
+                        ? { ...t, assignedTo: undefined, categoryId: undefined, category: undefined, updatedAt: new Date() }
+                        : t
+                    ) || []
+                    const updatedState = { ...appState!, tasks: updatedTasks }
+                    setAppState(updatedState)
+                    saveAppState(updatedState)
+                  }
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <SelectTrigger className="h-5 text-[0.5rem] px-1.5 py-0.5 bg-white/60 border border-gray-200/40 rounded-full hover:bg-white/80 transition-colors">
+                  <SelectValue placeholder={<User className="w-2.5 h-2.5 text-gray-400" />}>
+                    {task.assignedTo ? (
+                      <span className="flex items-center gap-0.5">
+                        <User className="w-2.5 h-2.5" />
+                        {task.assignedTo}
+                      </span>
+                    ) : (
+                      <User className="w-2.5 h-2.5 text-gray-400" />
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent onClick={(e) => e.stopPropagation()}>
+                  <SelectItem value="">Unassigned</SelectItem>
+                  {availablePeople.map((person) => (
+                    <SelectItem key={person.name} value={person.name}>
+                      {person.name} {person.isTeamMember && <span className="text-blue-600">(Team)</span>}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )
+          })()}
+        </div>
       </div>
     )
   }
@@ -734,8 +797,28 @@ export function TaskBoard() {
           <div className="flex gap-4 items-start">
             {(() => {
               console.log('Rendering columns:', appState.columns)
+              // Get team member names
+              const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
+              const teamMemberNames = new Set(
+                followUpColumn?.categories
+                  .filter(cat => cat.isPerson && cat.isTeamMember && !cat.archived)
+                  .map(cat => cat.personName || cat.name) || []
+              )
+              
+              // Check if any tasks are assigned to team members
+              const hasTasksAssignedToTeamMembers = appState.tasks.some(task => 
+                task.assignedTo && teamMemberNames.has(task.assignedTo)
+              )
+              
               return appState.columns
                 .sort((a, b) => a.order - b.order)
+                .filter(col => {
+                  // Only show follow-up column if tasks are assigned to team members
+                  if (col.id === 'col-followup') {
+                    return hasTasksAssignedToTeamMembers
+                  }
+                  return true
+                })
                 .map(renderColumn)
             })()}
 

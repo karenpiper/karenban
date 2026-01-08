@@ -274,6 +274,48 @@ export default function HomePage() {
     saveAppState(updatedState)
   }
 
+  const handleAddNonTeamMember = (name: string) => {
+    if (!appState) return
+    const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
+    if (!followUpColumn) return
+
+    // Check if non-team member already exists
+    const existingMember = followUpColumn.categories.find(
+      cat => cat.isPerson && !cat.isTeamMember && (cat.personName || cat.name)?.toLowerCase() === name.toLowerCase()
+    )
+    if (existingMember) return
+
+    // Create new non-team member category
+    const newCategory: Category = {
+      id: `cat-followup-nonteam-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: name,
+      columnId: 'col-followup',
+      color: `from-${['pink', 'indigo', 'cyan', 'violet', 'amber', 'emerald', 'rose'][Math.floor(Math.random() * 7)]}-400 to-${['pink', 'indigo', 'cyan', 'violet', 'amber', 'emerald', 'rose'][Math.floor(Math.random() * 7)]}-500`,
+      isCollapsed: false,
+      order: followUpColumn.categories.filter(cat => !cat.isTeamMember).length + 1000, // Put non-team after team members
+      taskCount: 0,
+      completedCount: 0,
+      isPerson: true,
+      personName: name,
+      isTeamMember: false // Non-team member
+    }
+
+    // Update the column with the new category
+    const updatedColumns = appState.columns.map(col => {
+      if (col.id === 'col-followup') {
+        return {
+          ...col,
+          categories: [...col.categories, newCategory]
+        }
+      }
+      return col
+    })
+
+    const updatedState = { ...appState, columns: updatedColumns }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
   const handleTaskDrop = (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => {
     if (!appState) return
     
@@ -342,6 +384,7 @@ export default function HomePage() {
               onTaskDrop={handleTaskDrop}
               columns={appState.columns || []}
               onAddTeamMember={handleAddTeamMember}
+              onAddNonTeamMember={handleAddNonTeamMember}
               onArchiveTeamMember={handleArchiveTeamMember}
               onDeleteTeamMember={handleDeleteTeamMember}
             />
@@ -545,6 +588,7 @@ export default function HomePage() {
         task={taskToEdit}
         projects={appState?.projects || []}
         onSave={handleSaveTask}
+        columns={appState?.columns || []}
       />
     </div>
   )

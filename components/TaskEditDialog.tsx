@@ -19,6 +19,7 @@ interface TaskEditDialogProps {
   task: Task | null
   projects: Project[]
   onSave: (task: Task) => void
+  columns?: any[] // To access person categories for assignee dropdown
 }
 
 export function TaskEditDialog({
@@ -26,7 +27,8 @@ export function TaskEditDialog({
   onOpenChange,
   task,
   projects,
-  onSave
+  onSave,
+  columns = []
 }: TaskEditDialogProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -86,8 +88,24 @@ export function TaskEditDialog({
     ? projects.filter(p => p.client === client || p.id === projectId)
     : projects
 
-  // Get all unique assignees from follow-up column categories (if available)
-  // For now, we'll use a text input, but this could be enhanced to use a dropdown
+  // Get all person names from follow-up column categories
+  const availableAssignees = (() => {
+    if (!columns || columns.length === 0) return []
+    const followUpColumn = columns.find((col: any) => col.id === 'col-followup')
+    if (!followUpColumn) return []
+    return followUpColumn.categories
+      .filter((cat: any) => cat.isPerson && !cat.archived)
+      .map((cat: any) => ({
+        name: cat.personName || cat.name,
+        isTeamMember: cat.isTeamMember || false
+      }))
+      .sort((a, b) => {
+        // Team members first
+        if (a.isTeamMember && !b.isTeamMember) return -1
+        if (!a.isTeamMember && b.isTeamMember) return 1
+        return a.name.localeCompare(b.name)
+      })
+  })()
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -229,13 +247,29 @@ export function TaskEditDialog({
             <Label htmlFor="assignedTo" className="text-xs font-medium text-gray-700 mb-1.5 block">
               Assignee / Owner
             </Label>
-            <Input
-              id="assignedTo"
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-              className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm text-xs h-8"
-              placeholder="Person name"
-            />
+            {availableAssignees.length > 0 ? (
+              <Select value={assignedTo} onValueChange={setAssignedTo}>
+                <SelectTrigger className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm text-xs h-8">
+                  <SelectValue placeholder="Select person" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Unassigned</SelectItem>
+                  {availableAssignees.map((person) => (
+                    <SelectItem key={person.name} value={person.name}>
+                      {person.name} {person.isTeamMember && <span className="text-blue-600">(Team)</span>}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                id="assignedTo"
+                value={assignedTo}
+                onChange={(e) => setAssignedTo(e.target.value)}
+                className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm text-xs h-8"
+                placeholder="Person name"
+              />
+            )}
           </div>
 
           {/* Priority */}

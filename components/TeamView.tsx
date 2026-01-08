@@ -14,6 +14,7 @@ interface TeamViewProps {
   onTaskDrop?: (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => void
   columns?: any[] // To access archived person categories
   onAddTeamMember?: (name: string) => void
+  onAddNonTeamMember?: (name: string) => void
   onArchiveTeamMember?: (name: string) => void
   onDeleteTeamMember?: (name: string) => void
 }
@@ -25,11 +26,13 @@ export function TeamView({
   onTaskDrop,
   columns = [],
   onAddTeamMember,
+  onAddNonTeamMember,
   onArchiveTeamMember,
   onDeleteTeamMember
 }: TeamViewProps) {
   const [searchTerm, setSearchTerm] = useState("")
-  const [showAddMember, setShowAddMember] = useState(false)
+  const [showAddTeamMember, setShowAddTeamMember] = useState(false)
+  const [showAddNonTeamMember, setShowAddNonTeamMember] = useState(false)
   const [newMemberName, setNewMemberName] = useState("")
 
   const safeTasks = tasks || []
@@ -101,8 +104,27 @@ export function TeamView({
     if (!newMemberName.trim() || !onAddTeamMember) return
     onAddTeamMember(newMemberName.trim())
     setNewMemberName("")
-    setShowAddMember(false)
+    setShowAddTeamMember(false)
   }
+
+  const handleAddNonTeamMember = () => {
+    if (!newMemberName.trim() || !onAddNonTeamMember) return
+    onAddNonTeamMember(newMemberName.trim())
+    setNewMemberName("")
+    setShowAddNonTeamMember(false)
+  }
+
+  // Get non-team members from follow-up column
+  const nonTeamMembers = useMemo(() => {
+    if (!columns || columns.length === 0) return new Set<string>()
+    const followUpColumn = columns.find((col: any) => col.id === 'col-followup')
+    if (!followUpColumn) return new Set<string>()
+    return new Set(
+      followUpColumn.categories
+        .filter((cat: any) => cat.isPerson && !cat.isTeamMember && !cat.archived)
+        .map((cat: any) => cat.personName || cat.name)
+    )
+  }, [columns])
 
   // Filter team members based on search (exclude "Unassigned" from team members list)
   const filteredTeamMembers = Object.keys(tasksByTeam).filter(member => {
@@ -134,16 +156,29 @@ export function TeamView({
           <h2 className="text-lg font-medium text-gray-800 mb-0.5">Team</h2>
           <p className="text-[0.625rem] text-gray-500">View tasks organized by team member</p>
         </div>
-        {!showAddMember && onAddTeamMember && (
-          <Button
-            onClick={() => setShowAddMember(true)}
-            className="bg-blue-50/60 text-blue-700 border border-blue-200/40 rounded-xl shadow-sm hover:bg-blue-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] h-7"
-          >
-            <Plus className="w-3 h-3 mr-1" />
-            Add Member
-          </Button>
+        {!showAddTeamMember && !showAddNonTeamMember && (
+          <div className="flex gap-1">
+            {onAddTeamMember && (
+              <Button
+                onClick={() => setShowAddTeamMember(true)}
+                className="bg-blue-50/60 text-blue-700 border border-blue-200/40 rounded-xl shadow-sm hover:bg-blue-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] h-7"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Add Team Member
+              </Button>
+            )}
+            {onAddNonTeamMember && (
+              <Button
+                onClick={() => setShowAddNonTeamMember(true)}
+                className="bg-gray-50/60 text-gray-700 border border-gray-200/40 rounded-xl shadow-sm hover:bg-gray-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] h-7"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Add Non-Team Member
+              </Button>
+            )}
+          </div>
         )}
-        {showAddMember && onAddTeamMember && (
+        {showAddTeamMember && onAddTeamMember && (
           <div className="flex items-center gap-1">
             <Input
               value={newMemberName}
@@ -152,7 +187,7 @@ export function TeamView({
                 if (e.key === 'Enter') {
                   handleAddTeamMember()
                 } else if (e.key === 'Escape') {
-                  setShowAddMember(false)
+                  setShowAddTeamMember(false)
                   setNewMemberName("")
                 }
               }}
@@ -168,7 +203,41 @@ export function TeamView({
             </Button>
             <Button
               onClick={() => {
-                setShowAddMember(false)
+                setShowAddTeamMember(false)
+                setNewMemberName("")
+              }}
+              className="p-1 h-7 w-7 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500 rounded-xl"
+            >
+              <X className="w-3 h-3" />
+            </Button>
+          </div>
+        )}
+        {showAddNonTeamMember && onAddNonTeamMember && (
+          <div className="flex items-center gap-1">
+            <Input
+              value={newMemberName}
+              onChange={(e) => setNewMemberName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleAddNonTeamMember()
+                } else if (e.key === 'Escape') {
+                  setShowAddNonTeamMember(false)
+                  setNewMemberName("")
+                }
+              }}
+              placeholder="Non-team member name"
+              className="text-[0.625rem] h-7 w-32 bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl"
+              autoFocus
+            />
+            <Button
+              onClick={handleAddNonTeamMember}
+              className="p-1 h-7 w-7 bg-emerald-50/80 text-emerald-600 hover:bg-emerald-100/80 rounded-xl"
+            >
+              <Check className="w-3 h-3" />
+            </Button>
+            <Button
+              onClick={() => {
+                setShowAddNonTeamMember(false)
                 setNewMemberName("")
               }}
               className="p-1 h-7 w-7 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500 rounded-xl"
