@@ -815,12 +815,19 @@ export function TaskBoard() {
                 task.assignedTo && teamMemberNames.has(task.assignedTo)
               )
               
+              // Check if follow-up column has any person categories (team or non-team)
+              const hasPersonCategories = followUpColumn?.categories.some(
+                cat => cat.isPerson && !cat.archived
+              ) || false
+              
               return appState.columns
                 .sort((a, b) => a.order - b.order)
                 .filter(col => {
-                  // Only show follow-up column if tasks are assigned to team members
+                  // Show follow-up column if:
+                  // 1. Tasks are assigned to team members, OR
+                  // 2. Column has person categories (so you can add/manage people)
                   if (col.id === 'col-followup') {
-                    return hasTasksAssignedToTeamMembers
+                    return hasTasksAssignedToTeamMembers || hasPersonCategories
                   }
                   return true
                 })
