@@ -557,7 +557,7 @@ export function TaskBoard() {
           >
             <X className="w-2.5 h-2.5" />
           </button>
-        </div>
+          </div>
         <div className="flex flex-wrap items-center gap-1 mt-1">
           {(task.client || project) && (
             <>
@@ -569,8 +569,8 @@ export function TaskBoard() {
               {project && (
                 <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
                   {project.name}
-          </span>
-              )}
+            </span>
+          )}
             </>
           )}
           {/* Quick Assign Dropdown */}
@@ -592,7 +592,7 @@ export function TaskBoard() {
             
             return (
               <Select
-                value={task.assignedTo ? task.assignedTo : "__unassigned__"}
+                value={task.assignedTo || "__unassigned__"}
                 onValueChange={(value) => {
                   console.log('Select value changed:', value, 'for task:', task.id, 'current assignedTo:', task.assignedTo, 'current columnId:', task.columnId, 'current categoryId:', task.categoryId)
                   // Use updateTaskLocation for both assign and unassign to ensure consistency
@@ -602,7 +602,12 @@ export function TaskBoard() {
                   // Pass the current task's column ID so the function can check if it's in follow-up
                   updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, assignee)
                 }}
-                onClick={(e) => e.stopPropagation()}
+                onOpenChange={(open) => {
+                  // Prevent task card click when opening select
+                  if (open) {
+                    // Do nothing, just prevent propagation
+                  }
+                }}
               >
                 <SelectTrigger className="h-5 text-[0.5rem] px-1.5 py-0.5 bg-white/60 border border-gray-200/40 rounded-full hover:bg-white/80 transition-colors">
                   <SelectValue placeholder={<User className="w-2.5 h-2.5 text-gray-400" />}>
@@ -610,14 +615,25 @@ export function TaskBoard() {
                       <span className="flex items-center gap-0.5">
                         <User className="w-2.5 h-2.5" />
               {task.assignedTo}
-            </span>
+              </span>
                     ) : (
                       <User className="w-2.5 h-2.5 text-gray-400" />
                     )}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent onClick={(e) => e.stopPropagation()}>
-                  <SelectItem value="__unassigned__">Unassigned</SelectItem>
+                <SelectContent 
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDownOutside={(e) => e.preventDefault()}
+                >
+                  <SelectItem 
+                    value="__unassigned__"
+                    onSelect={(e) => {
+                      e.preventDefault()
+                      console.log('Unassigned item clicked')
+                    }}
+                  >
+                    Unassigned
+                  </SelectItem>
                   {availablePeople.map((person) => (
                     <SelectItem key={person.name} value={person.name}>
                       {person.name} {person.isTeamMember && <span className="text-blue-600">(Team)</span>}
@@ -627,7 +643,7 @@ export function TaskBoard() {
               </Select>
             )
           })()}
-        </div>
+          </div>
       </div>
     )
   }
@@ -662,14 +678,14 @@ export function TaskBoard() {
             {category.isTeamMember && (
               <span className="text-[0.5rem] bg-blue-100/80 text-blue-700 px-1 py-0.5 rounded-full">
                 Team
-              </span>
+          </span>
             )}
             {category.archived && (
               <span className="text-[0.5rem] bg-gray-200/80 text-gray-500 px-1 py-0.5 rounded-full">
                 Archived
               </span>
             )}
-          </h4>
+        </h4>
           <div className="flex items-center gap-1">
             <span className="text-[0.625rem] bg-gray-100/80 text-gray-600 px-1.5 py-0.5 rounded-full border border-gray-200/40">
             {categoryTasks.length}
@@ -816,7 +832,7 @@ export function TaskBoard() {
                     className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500"
                   >
                     <X className="w-3 h-3" />
-                  </button>
+            </button>
                 </div>
               ) : (
                 <button
@@ -1056,8 +1072,8 @@ export function TaskBoard() {
           </div>
         </div>
 
-      </div>
-
+            </div>
+            
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!taskToDelete} onOpenChange={(open) => !open && setTaskToDelete(null)}>
         <AlertDialogContent className="bg-white/90 backdrop-blur-xl border border-gray-200/40 rounded-2xl">
@@ -1089,7 +1105,7 @@ export function TaskBoard() {
               Delete {personToDelete?.isTeamMember ? 'Team Member' : 'Person'}?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[0.625rem] text-gray-600">
-              {(() => {
+            {(() => {
                 const personName = personToDelete?.personName || personToDelete?.name || 'this person'
                 const taskCount = appState?.tasks.filter(t => t.assignedTo === personName).length || 0
                 return `Are you sure you want to delete ${personName}? ${taskCount > 0 ? `This person has ${taskCount} ${taskCount === 1 ? 'task' : 'tasks'} assigned.` : ''}`
@@ -1112,8 +1128,8 @@ export function TaskBoard() {
                   <label htmlFor="deletePersonWithTasks" className="text-[0.625rem] text-gray-700 cursor-pointer">
                     Also delete all {taskCount} {taskCount === 1 ? 'task' : 'tasks'} assigned to this person
                   </label>
-                </div>
-              </div>
+                    </div>
+                  </div>
             ) : null
             })()}
           <AlertDialogFooter className="gap-2">
