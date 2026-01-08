@@ -68,18 +68,24 @@ export function TaskBoard() {
             }
           } else {
             // Unassigning - clear assignee, category and move to uncategorized if currently in follow-up
+            console.log('Unassigning task:', task.id, 'columnId:', task.columnId, 'categoryId:', task.categoryId)
             updates.assignedTo = undefined
             updates.categoryId = undefined
             updates.category = undefined
             // Check if task is in follow-up column (either directly or through a person category)
-            const isInFollowUp = task.columnId === 'col-followup' || 
-              (appState.columns.find(col => col.id === 'col-followup')?.categories.some(
-                cat => cat.id === task.categoryId
-              ) ?? false)
+            const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
+            const isInFollowUpColumn = task.columnId === 'col-followup'
+            const isInFollowUpCategory = followUpColumn?.categories.some(
+              cat => cat.id === task.categoryId
+            ) ?? false
+            const isInFollowUp = isInFollowUpColumn || isInFollowUpCategory
+            console.log('Is in follow-up?', isInFollowUp, 'column:', isInFollowUpColumn, 'category:', isInFollowUpCategory)
             if (isInFollowUp) {
               updates.columnId = 'col-uncategorized' // Move back to uncategorized when unassigning from follow-up
+              console.log('Moving task to uncategorized column')
             } else {
               updates.columnId = task.columnId || newColumnId // Keep current column if not in follow-up
+              console.log('Keeping task in column:', updates.columnId)
             }
           }
         } else {
@@ -584,8 +590,10 @@ export function TaskBoard() {
               <Select
                 value={task.assignedTo ? task.assignedTo : "__unassigned__"}
                 onValueChange={(value) => {
+                  console.log('Select value changed:', value, 'for task:', task.id, 'current assignedTo:', task.assignedTo, 'current columnId:', task.columnId, 'current categoryId:', task.categoryId)
                   // Use updateTaskLocation for both assign and unassign to ensure consistency
                   const assignee = value === "__unassigned__" ? undefined : value
+                  console.log('Calling updateTaskLocation with assignee:', assignee)
                   // When unassigning, the function will automatically move to uncategorized if in follow-up
                   // Pass the current task's column ID so the function can check if it's in follow-up
                   updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, assignee)
