@@ -535,8 +535,12 @@ export function TaskBoard() {
           setDragOverTarget(null)
         }}
         onClick={(e) => {
-          // Don't open edit if clicking delete button
+          // Don't open edit if clicking delete button or select
           if ((e.target as HTMLElement).closest('button')) return
+          if ((e.target as HTMLElement).closest('[data-slot="select"]')) return
+          if ((e.target as HTMLElement).closest('[data-slot="select-trigger"]')) return
+          if ((e.target as HTMLElement).closest('[data-slot="select-content"]')) return
+          if ((e.target as HTMLElement).closest('[data-slot="select-item"]')) return
           // Trigger edit - this will be handled by parent
           window.dispatchEvent(new CustomEvent('editTask', { detail: task }))
         }}
