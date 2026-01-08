@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button"
 interface SidebarProps {
   isCollapsed?: boolean
   onToggle?: () => void
-  currentView?: "board" | "projects" | "clients"
-  onViewChange?: (view: "board" | "projects" | "clients") => void
+  currentView?: "today" | "calendar" | "team" | "projects" | "clients"
+  onViewChange?: (view: "today" | "calendar" | "team" | "projects" | "clients") => void
 }
 
 // Updated Sidebar with glass morphism effects - Force deployment
-export function Sidebar({ isCollapsed = false, onToggle, currentView = "board", onViewChange }: SidebarProps) {
+export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", onViewChange }: SidebarProps) {
   const currentDate = new Date().toLocaleDateString('en-US', { 
     weekday: 'long', 
     month: 'short', 
@@ -121,39 +121,39 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "board", 
           </h3>
           <div className="space-y-1.5">
             <Button
-              variant={currentView === "board" ? "default" : "ghost"}
-              onClick={() => onViewChange?.("board")}
+              variant={currentView === "today" ? "default" : "ghost"}
+              onClick={() => onViewChange?.("today")}
               className={`w-full flex items-center px-3 py-2 rounded-2xl text-xs font-normal transition-all duration-300 ${
-                currentView === "board"
+                currentView === "today"
                   ? "bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm"
                   : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
               }`}
             >
               <Calendar className="w-3.5 h-3.5 mr-2.5" />
               <span className="flex-1 text-left">Today</span>
-              <span className="ml-2 px-1.5 py-0.5 text-[0.625rem] font-normal bg-blue-200/50 text-blue-700 rounded-full">
-                2
-              </span>
             </Button>
             <Button
-              variant="ghost"
-              className="w-full flex items-center px-3 py-2 rounded-2xl text-xs font-normal transition-all duration-300 text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+              variant={currentView === "calendar" ? "default" : "ghost"}
+              onClick={() => onViewChange?.("calendar")}
+              className={`w-full flex items-center px-3 py-2 rounded-2xl text-xs font-normal transition-all duration-300 ${
+                currentView === "calendar"
+                  ? "bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+              }`}
             >
-              <Calendar className="w-3.5 h-3.5 mr-2.5 text-gray-400" />
-              <span className="flex-1 text-left">My calendar</span>
+              <Calendar className="w-3.5 h-3.5 mr-2.5" />
+              <span className="flex-1 text-left">Calendar</span>
             </Button>
             <Button
-              variant="ghost"
-              className="w-full flex items-center px-3 py-2 rounded-2xl text-xs font-normal transition-all duration-300 text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+              variant={currentView === "team" ? "default" : "ghost"}
+              onClick={() => onViewChange?.("team")}
+              className={`w-full flex items-center px-3 py-2 rounded-2xl text-xs font-normal transition-all duration-300 ${
+                currentView === "team"
+                  ? "bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+              }`}
             >
-              <BarChart3 className="w-3.5 h-3.5 mr-2.5 text-gray-400" />
-              <span className="flex-1 text-left">Analytics</span>
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full flex items-center px-3 py-2 rounded-2xl text-xs font-normal transition-all duration-300 text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
-            >
-              <Users className="w-3.5 h-3.5 mr-2.5 text-gray-400" />
+              <Users className="w-3.5 h-3.5 mr-2.5" />
               <span className="flex-1 text-left">Team</span>
             </Button>
             <Button
@@ -178,7 +178,7 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "board", 
               }`}
             >
               <Building2 className="w-3.5 h-3.5 mr-2.5" />
-              <span className="flex-1 text-left">By Client</span>
+              <span className="flex-1 text-left">Client</span>
             </Button>
           </div>
         </nav>

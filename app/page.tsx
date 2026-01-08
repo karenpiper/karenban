@@ -5,12 +5,14 @@ import { Sidebar } from "@/components/Sidebar"
 import { TaskBoard } from "@/components/TaskBoard"
 import { ProjectView } from "@/components/ProjectView"
 import { ClientProjectView } from "@/components/ClientProjectView"
+import { CalendarView } from "@/components/CalendarView"
+import { TeamView } from "@/components/TeamView"
 import { loadAppState } from "@/data/seed"
 import type { AppState, Project, Task } from "@/types"
 
 export default function HomePage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [currentView, setCurrentView] = useState<"board" | "projects" | "clients">("board")
+  const [currentView, setCurrentView] = useState<"today" | "calendar" | "team" | "projects" | "clients">("today")
   const [appState, setAppState] = useState<AppState | null>(null)
 
   useEffect(() => {
@@ -59,8 +61,28 @@ export default function HomePage() {
     }
 
     switch (currentView) {
-      case "board":
+      case "today":
         return <TaskBoard />
+      case "calendar":
+        return (
+          <div className="flex-1 overflow-auto p-5">
+            <CalendarView
+              tasks={appState.tasks || []}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
+            />
+          </div>
+        )
+      case "team":
+        return (
+          <div className="flex-1 overflow-auto p-5">
+            <TeamView
+              tasks={appState.tasks || []}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
+            />
+          </div>
+        )
       case "projects":
         return (
           <div className="flex-1 overflow-auto p-5">
