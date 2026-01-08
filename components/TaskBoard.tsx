@@ -262,32 +262,7 @@ export function TaskBoard() {
             {project && (
               <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
                 {project.name}
-            </span>
-            )}
-        </div>
-        )}
-          </span>
-          {task.assignedTo && (
-            <span className="text-[0.625rem] px-1.5 py-0.5 bg-violet-50/80 text-violet-700 rounded-full border border-violet-200/50">
-              {task.assignedTo}
-            </span>
-          )}
-        </div>
-        
-        {/* Duration tracking for completed tasks */}
-        {task.status === 'done' && task.durationDays && (
-          <div className="mt-1.5 pt-1.5 border-t border-gray-200/20">
-            <div className="flex items-center justify-between text-[0.625rem] text-gray-500">
-              <span>Duration:</span>
-              <span className="font-normal">
-                {task.durationDays > 1 ? `${task.durationDays} days` : `${task.durationHours} hours`}
               </span>
-            </div>
-            {task.estimatedHours && (
-              <div className="flex items-center justify-between text-[0.625rem] text-gray-400 mt-0.5">
-                <span>Estimated:</span>
-                <span>{task.estimatedHours}h</span>
-              </div>
             )}
           </div>
         )}
