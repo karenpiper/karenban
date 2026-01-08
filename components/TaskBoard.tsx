@@ -621,17 +621,8 @@ export function TaskBoard() {
                     )}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent 
-                  onClick={(e) => e.stopPropagation()}
-                  onPointerDownOutside={(e) => e.preventDefault()}
-                >
-                  <SelectItem 
-                    value="__unassigned__"
-                    onSelect={(e) => {
-                      e.preventDefault()
-                      console.log('Unassigned item clicked')
-                    }}
-                  >
+                <SelectContent onClick={(e) => e.stopPropagation()}>
+                  <SelectItem value="__unassigned__">
                     Unassigned
                   </SelectItem>
                   {availablePeople.map((person) => (
