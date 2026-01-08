@@ -310,11 +310,18 @@ export default function HomePage() {
     const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
     if (!followUpColumn) return
 
-    // Check if non-team member already exists
+    // Check if person already exists (as team member or non-team member)
     const existingMember = followUpColumn.categories.find(
-      cat => cat.isPerson && !cat.isTeamMember && (cat.personName || cat.name)?.toLowerCase() === name.toLowerCase()
+      cat => cat.isPerson && (cat.personName || cat.name)?.toLowerCase() === name.toLowerCase()
     )
-    if (existingMember) return
+    if (existingMember) {
+      // If it exists as a team member, don't create a duplicate
+      if (existingMember.isTeamMember) {
+        return
+      }
+      // If it exists as a non-team member, don't create duplicate
+      return
+    }
 
     // Create new non-team member category
     const newCategory: Category = {
