@@ -203,6 +203,8 @@ export function BulkImportDialog({
           priority: "medium",
           status: "uncategorized", // For kanban - goes to uncategorized
           columnId: "col-uncategorized", // For kanban view
+          categoryId: undefined, // Explicitly no category
+          category: undefined, // Explicitly no category
           dueDate: today, // For calendar view - shows on today's date
           // assignedTo left empty for team view - shows in unassigned
           // projectId left empty for projects/clients views
@@ -227,6 +229,8 @@ export function BulkImportDialog({
             priority: "medium",
             status: "uncategorized",
             columnId: "col-uncategorized", // For kanban - goes to uncategorized
+            categoryId: undefined, // Explicitly no category
+            category: undefined, // Explicitly no category
             // projectId left empty - will show under client without project
             client: clientItem.client, // Track which client this task belongs to
             dueDate: today, // For calendar view
@@ -272,6 +276,8 @@ export function BulkImportDialog({
               priority: "medium",
               status: "uncategorized", // For kanban - goes to uncategorized
               columnId: "col-uncategorized", // For kanban view
+              categoryId: undefined, // Explicitly no category
+              category: undefined, // Explicitly no category
               projectId: project.id,
               client: clientItem.client, // Track client for consistency
               dueDate: today, // For calendar view

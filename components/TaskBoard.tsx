@@ -244,6 +244,14 @@ export function TaskBoard() {
   // Get tasks for a specific column
   const getTasksForColumn = (columnId: string) => {
     if (!appState) return []
+    const column = appState.columns.find(col => col.id === columnId)
+    // If column has no categories, show all tasks with this columnId and no categoryId
+    // If column has categories, tasks will be filtered by category in renderColumn
+    if (column && column.categories.length === 0) {
+      return appState.tasks.filter(task => 
+        task.columnId === columnId && !task.categoryId
+      )
+    }
     return appState.tasks.filter(task => task.columnId === columnId)
   }
 
