@@ -176,34 +176,34 @@ export function TaskBoard() {
         onDragStart={(e) => handleDragStart(e, task)}
         onDragEnd={() => {}}
         onDrag={() => {}}
-        className={`bg-white/90 backdrop-blur-md border border-gray-200/40 rounded-xl shadow-md hover:shadow-lg hover:bg-white/95 transition-all duration-200 p-3 mb-3 cursor-move ${
-          draggedTask?.id === task.id ? 'opacity-50' : ''
+        className={`bg-white/70 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 p-2.5 mb-2.5 cursor-move ${
+          draggedTask?.id === task.id ? 'opacity-40' : ''
         }`}
         style={{ userSelect: 'none' }}
       >
-        <div className="flex justify-between items-start mb-2">
-          <h4 className="font-medium text-sm text-gray-900">{task.title}</h4>
+        <div className="flex justify-between items-start mb-1.5">
+          <h4 className="font-normal text-xs text-gray-800 leading-relaxed">{task.title}</h4>
           <div className="flex gap-1">
-            <button className="text-gray-400 hover:text-gray-600 p-1 rounded">×</button>
+            <button className="text-gray-400/70 hover:text-gray-500 p-0.5 rounded-full transition-colors">×</button>
           </div>
         </div>
-        <div className="flex flex-wrap gap-1 mb-2">
+        <div className="flex flex-wrap gap-1 mb-1.5">
           {task.tags?.map((tag: string, index: number) => (
-            <span key={index} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+            <span key={index} className="px-1.5 py-0.5 text-[0.625rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
               {tag}
             </span>
           ))}
         </div>
         <div className="flex items-center justify-between">
-          <span className={`text-xs px-2 py-1 rounded ${
-            task.priority === 'high' ? 'bg-red-100 text-red-800' :
-            task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-            'bg-green-100 text-green-800'
+          <span className={`text-[0.625rem] px-1.5 py-0.5 rounded-full font-normal ${
+            task.priority === 'high' ? 'bg-red-50/80 text-red-700 border border-red-200/50' :
+            task.priority === 'medium' ? 'bg-amber-50/80 text-amber-700 border border-amber-200/50' :
+            'bg-emerald-50/80 text-emerald-700 border border-emerald-200/50'
           }`}>
             {task.priority}
           </span>
           {task.assignedTo && (
-            <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded">
+            <span className="text-[0.625rem] px-1.5 py-0.5 bg-violet-50/80 text-violet-700 rounded-full border border-violet-200/50">
               {task.assignedTo}
             </span>
           )}
@@ -211,15 +211,15 @@ export function TaskBoard() {
         
         {/* Duration tracking for completed tasks */}
         {task.status === 'done' && task.durationDays && (
-          <div className="mt-2 pt-2 border-t border-gray-200/30">
-            <div className="flex items-center justify-between text-xs text-gray-600">
+          <div className="mt-1.5 pt-1.5 border-t border-gray-200/20">
+            <div className="flex items-center justify-between text-[0.625rem] text-gray-500">
               <span>Duration:</span>
-              <span className="font-medium">
+              <span className="font-normal">
                 {task.durationDays > 1 ? `${task.durationDays} days` : `${task.durationHours} hours`}
               </span>
             </div>
             {task.estimatedHours && (
-              <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+              <div className="flex items-center justify-between text-[0.625rem] text-gray-400 mt-0.5">
                 <span>Estimated:</span>
                 <span>{task.estimatedHours}h</span>
               </div>
@@ -237,18 +237,18 @@ export function TaskBoard() {
     return (
       <div 
         key={category.id}
-        className={`space-y-2 p-3 rounded-lg border-2 border-dashed transition-all duration-200 ${
+        className={`space-y-2 p-2.5 rounded-2xl border-2 border-dashed transition-all duration-300 ${
           isDragOver 
-            ? 'border-blue-400 bg-blue-50/50' 
-            : 'border-gray-200 hover:border-gray-300'
+            ? 'border-blue-300/60 bg-blue-50/40' 
+            : 'border-gray-200/40 hover:border-gray-300/50'
         }`}
         onDragOver={(e) => handleDragOver(e, 'category', category.id)}
         onDragLeave={handleDragLeave}
         onDrop={(e) => handleDrop(e, 'category', category.id)}
       >
-        <h4 className="text-sm font-medium text-gray-700 uppercase tracking-wider flex items-center justify-between">
+        <h4 className="text-xs font-normal text-gray-600 uppercase tracking-wide flex items-center justify-between">
           {category.name}
-          <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
+          <span className="text-[0.625rem] bg-gray-100/80 text-gray-600 px-1.5 py-0.5 rounded-full border border-gray-200/40">
             {categoryTasks.length}
           </span>
         </h4>
@@ -261,9 +261,9 @@ export function TaskBoard() {
         
         <button 
           onClick={() => handleAddTask(category.id)}
-          className="w-full py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors"
+          className="w-full py-1.5 text-xs text-gray-500 bg-gray-50/60 hover:bg-gray-100/80 rounded-xl border border-gray-200/40 transition-all duration-300 hover:border-gray-300/50"
         >
-          <Plus className="w-4 h-4 inline mr-2" />
+          <Plus className="w-3 h-3 inline mr-1.5" />
           Add task
         </button>
       </div>
@@ -282,21 +282,21 @@ export function TaskBoard() {
         onDragLeave={handleDragLeave}
         onDrop={(e) => handleDrop(e, 'column', column.id)}
       >
-        <div className={`bg-gray-50/60 backdrop-blur-sm border-2 rounded-2xl shadow-sm p-4 mb-4 transition-all duration-200 ${
+        <div className={`bg-white/50 backdrop-blur-xl border-2 rounded-3xl shadow-sm p-3.5 mb-3 transition-all duration-300 ${
           isDragOver 
-            ? 'border-blue-400 bg-blue-50/30' 
-            : 'border-gray-200/30'
+            ? 'border-blue-300/50 bg-blue-50/30' 
+            : 'border-gray-200/40'
         }`}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className={`w-2.5 h-2.5 rounded-full bg-gradient-to-r ${column.color}`}></div>
-              <h3 className="font-semibold text-gray-900 text-sm">{column.name}</h3>
-              <span className="bg-gray-200 text-gray-600 text-xs px-1.5 py-0.1 rounded-full">
+              <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${column.color} opacity-70`}></div>
+              <h3 className="font-normal text-gray-800 text-xs">{column.name}</h3>
+              <span className="bg-gray-100/80 text-gray-600 text-[0.625rem] px-1.5 py-0.5 rounded-full border border-gray-200/40">
                 {columnTasks.length}
               </span>
             </div>
-            <button className="p-1 rounded transition-all duration-200 bg-transparent text-gray-500 hover:bg-gray-100">
-              <Plus className="w-4 h-4" />
+            <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400/70 hover:bg-gray-100/60 hover:text-gray-500">
+              <Plus className="w-3 h-3" />
             </button>
           </div>
 
@@ -313,9 +313,9 @@ export function TaskBoard() {
               ))}
                 <button 
                   onClick={() => handleAddTask('')}
-                  className="w-full py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors"
+                  className="w-full py-1.5 text-xs text-gray-500 bg-gray-50/60 hover:bg-gray-100/80 rounded-xl border border-gray-200/40 transition-all duration-300 hover:border-gray-300/50"
                 >
-                  <Plus className="w-4 h-4 inline mr-2" />
+                  <Plus className="w-3 h-3 inline mr-1.5" />
                   Add task
                 </button>
               </div>
@@ -335,75 +335,75 @@ export function TaskBoard() {
   }
 
   return (
-    <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50/80 via-white/50 to-gray-50/60">
       {/* Header */}
-      <header className="bg-white/90 backdrop-blur-xl border-b border-gray-200/50 shadow-lg p-6">
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Task Board</h1>
-          <p className="text-sm text-gray-600">Drag and drop tasks to organize your workflow</p>
+      <header className="bg-white/60 backdrop-blur-2xl border-b border-gray-200/30 shadow-sm p-5">
+        <div className="mb-3">
+          <h1 className="text-xl font-medium text-gray-800 mb-0.5">Task Board</h1>
+          <p className="text-xs text-gray-500">Drag and drop tasks to organize your workflow</p>
         </div>
 
         <div className="flex items-center justify-between gap-4">
           {/* Search Bar */}
           <div className="flex-1 max-w-md relative">
-            <div className="bg-white/50 backdrop-blur-sm border border-gray-200/30 rounded-xl shadow-sm flex items-center gap-2 px-3 py-2">
-              <Search className="w-4 h-4 text-gray-500" />
+            <div className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm flex items-center gap-2 px-3 py-1.5">
+              <Search className="w-3.5 h-3.5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search tasks, descriptions, or tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="border-none outline-none bg-transparent text-sm w-full text-gray-700 placeholder-gray-500"
+                className="border-none outline-none bg-transparent text-xs w-full text-gray-600 placeholder-gray-400"
               />
-              <button className="p-1 rounded transition-all duration-200 bg-transparent text-gray-500 hover:bg-gray-100">
-                <Filter className="w-4 h-4" />
+              <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400 hover:bg-gray-100/60">
+                <Filter className="w-3.5 h-3.5" />
               </button>
-              <button className="p-1 rounded transition-all duration-200 bg-transparent text-gray-500 hover:bg-gray-100">
-                <Calendar className="w-4 h-4" />
+              <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400 hover:bg-gray-100/60">
+                <Calendar className="w-3.5 h-3.5" />
               </button>
-              <button className="p-1 rounded transition-all duration-200 bg-transparent text-gray-500 hover:bg-gray-100">
-                <Users className="w-4 h-4" />
+              <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400 hover:bg-gray-100/60">
+                <Users className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
           {/* Filter Buttons */}
-          <div className="flex gap-2">
-            <button className="bg-white/60 backdrop-blur-md border border-gray-200/30 rounded-xl shadow-md hover:bg-white/80 hover:shadow-lg transition-all duration-200 px-4 py-2 text-sm text-gray-700">
+          <div className="flex gap-1.5">
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-3 py-1.5 text-xs text-gray-600">
               All Priority
             </button>
-            <button className="bg-white/60 backdrop-blur-md border border-gray-200/30 rounded-xl shadow-md hover:bg-white/80 hover:shadow-lg transition-all duration-200 px-4 py-2 text-sm text-gray-700">
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-3 py-1.5 text-xs text-gray-600">
               All Assignees
             </button>
-            <button className="bg-white/60 backdrop-blur-md border border-gray-200/30 rounded-xl shadow-md hover:bg-white/80 hover:shadow-lg transition-all duration-200 px-4 py-2 text-sm text-gray-700">
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-3 py-1.5 text-xs text-gray-600">
               This Week
             </button>
           </div>
 
           {/* Toggle Switches */}
-          <div className="flex gap-2">
-            <button className="bg-white/60 backdrop-blur-md border border-gray-200/30 rounded-xl shadow-md hover:bg-white/80 hover:shadow-lg transition-all duration-200 px-4 py-2 text-sm text-gray-700">
+          <div className="flex gap-1.5">
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-3 py-1.5 text-xs text-gray-600">
               Auto-move completed
             </button>
-            <button className="bg-white/60 backdrop-blur-md border border-gray-200/30 rounded-xl shadow-md hover:bg-white/80 hover:shadow-lg transition-all duration-200 px-4 py-2 text-sm text-gray-700">
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-3 py-1.5 text-xs text-gray-600">
               Show overdue alerts
             </button>
           </div>
 
           {/* Icons */}
-          <div className="flex gap-2">
-            <button className="bg-white/60 backdrop-blur-md border border-gray-200/30 rounded-xl shadow-md hover:bg-white/80 hover:shadow-lg transition-all duration-200 p-2">
-              <Bell className="w-4 h-4 text-gray-600" />
+          <div className="flex gap-1.5">
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 p-1.5">
+              <Bell className="w-3.5 h-3.5 text-gray-500" />
             </button>
-            <button className="bg-white/60 backdrop-blur-md border border-gray-200/30 rounded-xl shadow-md hover:bg-white/80 hover:shadow-lg transition-all duration-200 p-2">
-              <Settings className="w-4 h-4 text-gray-600" />
+            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 p-1.5">
+              <Settings className="w-3.5 h-3.5 text-gray-500" />
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex gap-6 p-6">
+      <div className="flex gap-5 p-5">
         {/* Task Columns */}
         <div className="flex-1">
           <div className="flex gap-4 items-start">
@@ -416,9 +416,9 @@ export function TaskBoard() {
 
             {/* Add Column Button */}
             <div className="min-w-[280px] mt-4">
-              <div className="bg-gray-50/60 backdrop-blur-sm border border-gray-200/30 rounded-2xl shadow-sm flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:bg-gray-50/80 hover:shadow-md p-4">
-                <div className="text-2xl text-gray-400 mb-2">+</div>
-                <div className="text-sm text-gray-600 font-medium">Create a new task column</div>
+              <div className="bg-white/30 backdrop-blur-xl border border-gray-200/30 rounded-3xl shadow-sm flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:bg-white/50 hover:shadow-md p-4">
+                <div className="text-xl text-gray-400/70 mb-1.5">+</div>
+                <div className="text-xs text-gray-500 font-normal">Create a new task column</div>
               </div>
             </div>
           </div>
@@ -427,84 +427,84 @@ export function TaskBoard() {
         {/* Right Sidebar - Focus Zone & Achievements */}
         <div className="w-80 space-y-6">
           {/* Focus Zone */}
-          <div className="bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
-            <h3 className="text-xl font-bold mb-1">Focus Zone</h3>
-            <p className="text-purple-100 text-sm mb-4">Your daily inspiration</p>
+          <div className="bg-gradient-to-br from-violet-400/80 via-purple-400/70 to-blue-400/80 rounded-3xl shadow-md p-5 text-white backdrop-blur-xl">
+            <h3 className="text-base font-medium mb-0.5">Focus Zone</h3>
+            <p className="text-purple-50/90 text-xs mb-3">Your daily inspiration</p>
             
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-sm">
-                <div className="text-purple-200">12 day streak</div>
-                <div className="text-purple-200">Level 8</div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs">
+                <div className="text-purple-50/90">12 day streak</div>
+                <div className="text-purple-50/90">Level 8</div>
               </div>
-              <div className="relative w-16 h-16">
-                <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
+              <div className="relative w-14 h-14">
+                <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
                   <path
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     fill="none"
-                    stroke="rgba(255,255,255,0.3)"
-                    strokeWidth="2"
+                    stroke="rgba(255,255,255,0.25)"
+                    strokeWidth="1.5"
                   />
                   <path
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     fill="none"
                     stroke="white"
-                    strokeWidth="2"
+                    strokeWidth="1.5"
                     strokeDasharray="67"
                     strokeDashoffset="22"
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold">67%</span>
+                  <span className="text-xs font-medium">67%</span>
                 </div>
               </div>
             </div>
             
-            <div className="text-center mb-4">
-              <p className="text-purple-100 italic">"The magic happens outside your comfort zone."</p>
-              <p className="text-purple-200 text-xs">- Growth Mindset</p>
+            <div className="text-center mb-3">
+              <p className="text-purple-50/90 italic text-xs">"The magic happens outside your comfort zone."</p>
+              <p className="text-purple-50/70 text-[0.625rem]">- Growth Mindset</p>
             </div>
             
-            <div className="grid grid-cols-3 gap-2 text-center text-xs">
+            <div className="grid grid-cols-3 gap-1.5 text-center text-[0.625rem]">
               <div>
-                <div className="font-bold">8</div>
-                <div className="text-purple-200">Completed</div>
+                <div className="font-medium">8</div>
+                <div className="text-purple-50/80">Completed</div>
               </div>
               <div>
-                <div className="font-bold">4</div>
-                <div className="text-purple-200">In Progress</div>
+                <div className="font-medium">4</div>
+                <div className="text-purple-50/80">In Progress</div>
               </div>
               <div>
-                <div className="font-bold">2h</div>
-                <div className="text-purple-200">Focus Time</div>
+                <div className="font-medium">2h</div>
+                <div className="text-purple-50/80">Focus Time</div>
               </div>
             </div>
           </div>
 
           {/* Achievements */}
-          <div className="bg-white/90 backdrop-blur-md border border-gray-200/40 rounded-2xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Achievements</h3>
-              <span className="text-sm text-gray-600">2/6 Unlocked</span>
+          <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-3xl shadow-sm p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-800">Achievements</h3>
+              <span className="text-xs text-gray-500">2/6 Unlocked</span>
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {appState.achievements.map((achievement) => {
                 const IconComponent = achievement.icon as any
                 return (
-                  <div key={achievement.id} className="bg-gray-50/80 backdrop-blur-sm border border-gray-200/50 rounded-xl p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <IconComponent className={`w-4 h-4 ${achievement.isUnlocked ? 'text-yellow-500' : 'text-gray-400'}`} />
-                      <span className="text-xs font-medium text-gray-700">{achievement.name}</span>
+                  <div key={achievement.id} className="bg-gray-50/60 backdrop-blur-xl border border-gray-200/40 rounded-2xl p-2.5">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <IconComponent className={`w-3.5 h-3.5 ${achievement.isUnlocked ? 'text-amber-500/80' : 'text-gray-400/60'}`} />
+                      <span className="text-xs font-normal text-gray-700">{achievement.name}</span>
                     </div>
-                    <p className="text-xs text-gray-600 mb-2">{achievement.description}</p>
+                    <p className="text-[0.625rem] text-gray-500 mb-1.5 leading-relaxed">{achievement.description}</p>
                     <div className="flex items-center justify-between">
-                      <div className="flex-1 bg-gray-200 rounded-full h-2 mr-2">
+                      <div className="flex-1 bg-gray-200/60 rounded-full h-1.5 mr-1.5">
                         <div 
-                          className={`h-2 rounded-full ${achievement.isUnlocked ? 'bg-yellow-500' : 'bg-blue-500'}`}
+                          className={`h-1.5 rounded-full ${achievement.isUnlocked ? 'bg-amber-400/70' : 'bg-blue-400/60'}`}
                           style={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%` }}
                         ></div>
                       </div>
-                      <span className="text-xs text-gray-600">{achievement.progress}/{achievement.maxProgress}</span>
+                      <span className="text-[0.625rem] text-gray-500">{achievement.progress}/{achievement.maxProgress}</span>
                     </div>
                   </div>
                 )
@@ -513,10 +513,10 @@ export function TaskBoard() {
           </div>
 
           {/* Duration Analytics */}
-          <div className="bg-white/90 backdrop-blur-md border border-gray-200/40 rounded-2xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Performance Insights</h3>
-              <Clock className="w-5 h-5 text-gray-500" />
+          <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-3xl shadow-sm p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-800">Performance Insights</h3>
+              <Clock className="w-4 h-4 text-gray-400" />
             </div>
             
             {(() => {
@@ -532,27 +532,27 @@ export function TaskBoard() {
               )
 
               return (
-                <div className="space-y-4">
-                  <div className="bg-blue-50/80 backdrop-blur-sm border border-blue-200/50 rounded-xl p-3">
+                <div className="space-y-2.5">
+                  <div className="bg-blue-50/60 backdrop-blur-xl border border-blue-200/40 rounded-2xl p-2.5">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{avgDuration}</div>
-                      <div className="text-xs text-blue-600">Avg Days</div>
+                      <div className="text-lg font-medium text-blue-600/80">{avgDuration}</div>
+                      <div className="text-[0.625rem] text-blue-600/70">Avg Days</div>
                     </div>
                   </div>
                   
                   {fastestTask && (
-                    <div className="bg-green-50/80 backdrop-blur-sm border border-green-200/50 rounded-xl p-3">
-                      <div className="text-xs font-medium text-green-700 mb-1">Fastest Completion</div>
-                      <div className="text-sm font-semibold text-green-800">{fastestTask.title}</div>
-                      <div className="text-xs text-green-600">{fastestTask.durationDays} days</div>
+                    <div className="bg-emerald-50/60 backdrop-blur-xl border border-emerald-200/40 rounded-2xl p-2.5">
+                      <div className="text-[0.625rem] font-normal text-emerald-700/80 mb-0.5">Fastest Completion</div>
+                      <div className="text-xs font-medium text-emerald-800/90">{fastestTask.title}</div>
+                      <div className="text-[0.625rem] text-emerald-600/70">{fastestTask.durationDays} days</div>
                     </div>
                   )}
                   
                   {slowestTask && (
-                    <div className="bg-orange-50/80 backdrop-blur-sm border border-orange-200/50 rounded-xl p-3">
-                      <div className="text-xs font-medium text-orange-700 mb-1">Longest Duration</div>
-                      <div className="text-sm font-semibold text-orange-800">{slowestTask.title}</div>
-                      <div className="text-xs text-green-600">{slowestTask.durationDays} days</div>
+                    <div className="bg-amber-50/60 backdrop-blur-xl border border-amber-200/40 rounded-2xl p-2.5">
+                      <div className="text-[0.625rem] font-normal text-amber-700/80 mb-0.5">Longest Duration</div>
+                      <div className="text-xs font-medium text-amber-800/90">{slowestTask.title}</div>
+                      <div className="text-[0.625rem] text-amber-600/70">{slowestTask.durationDays} days</div>
                     </div>
                   )}
                 </div>
