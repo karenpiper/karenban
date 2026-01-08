@@ -72,6 +72,33 @@ export function BulkImportDialog({
     let currentClient: ParsedClientProject | null = null
     let currentProject: { name: string; tasks: string[] } | null = null
 
+    // Helper function to find or create client
+    const findOrCreateClient = (clientName: string): ParsedClientProject => {
+      let client = result.clients.find(c => c.client === clientName)
+      if (!client) {
+        client = {
+          client: clientName,
+          projects: [],
+          tasksWithoutProject: []
+        }
+        result.clients.push(client)
+      }
+      return client
+    }
+
+    // Helper function to find or create project within a client
+    const findOrCreateProject = (client: ParsedClientProject, projectName: string): { name: string; tasks: string[] } => {
+      let project = client.projects.find(p => p.name === projectName)
+      if (!project) {
+        project = {
+          name: projectName,
+          tasks: []
+        }
+        client.projects.push(project)
+      }
+      return project
+    }
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       const trimmed = line.trim()
@@ -82,20 +109,14 @@ export function BulkImportDialog({
         const clientName = trimmed.substring(2).trim()
         if (clientName.length === 0) continue
         
-        // Save previous client if exists
-        if (currentClient) {
-          if (currentProject) {
-            currentClient.projects.push(currentProject)
-            currentProject = null
-          }
-          result.clients.push(currentClient)
+        // Save previous project if exists
+        if (currentClient && currentProject) {
+          // Project is already added to client (via findOrCreateProject), just reset
+          currentProject = null
         }
         
-        currentClient = {
-          client: clientName,
-          projects: [],
-          tasksWithoutProject: []
-        }
+        // Find or create the client (this will merge with existing client if it exists)
+        currentClient = findOrCreateClient(clientName)
         currentProject = null
       }
       // Check for project (starts with * but not **)
@@ -107,15 +128,8 @@ export function BulkImportDialog({
           throw new Error(`Project "${projectName}" found without a client. Please add a client name with "**" first.`)
         }
         
-        // Save previous project if exists
-        if (currentProject) {
-          currentClient.projects.push(currentProject)
-        }
-        
-        currentProject = {
-          name: projectName,
-          tasks: []
-        }
+        // Find or create the project (this will merge with existing project if it exists)
+        currentProject = findOrCreateProject(currentClient, projectName)
       }
       // Check for task (starts with -)
       else if (trimmed.startsWith('-')) {
@@ -133,14 +147,6 @@ export function BulkImportDialog({
         }
       }
       // Ignore other lines
-    }
-
-    // Save last items
-    if (currentClient) {
-      if (currentProject) {
-        currentClient.projects.push(currentProject)
-      }
-      result.clients.push(currentClient)
     }
 
     return result
