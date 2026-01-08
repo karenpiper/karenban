@@ -65,8 +65,8 @@ export default function HomePage() {
         return (
           <div className="flex-1 overflow-auto p-5">
             <ProjectView
-              projects={appState.projects}
-              tasks={appState.tasks}
+              projects={appState.projects || []}
+              tasks={appState.tasks || []}
               onEditProject={handleEditProject}
               onDeleteProject={handleDeleteProject}
               onEditTask={handleEditTask}
@@ -79,8 +79,8 @@ export default function HomePage() {
         return (
           <div className="flex-1 overflow-auto p-5">
             <ClientProjectView
-              projects={appState.projects}
-              tasks={appState.tasks}
+              projects={appState.projects || []}
+              tasks={appState.tasks || []}
               onEditProject={handleEditProject}
               onDeleteProject={handleDeleteProject}
               onEditTask={handleEditTask}

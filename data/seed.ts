@@ -697,17 +697,29 @@ export const loadAppState = (): AppState => {
     if (stored) {
       const parsed = JSON.parse(stored)
       // Ensure dates are properly parsed
-      parsed.tasks = parsed.tasks.map((task: any) => ({
+      parsed.tasks = (parsed.tasks || []).map((task: any) => ({
         ...task,
         createdAt: new Date(task.createdAt),
         updatedAt: new Date(task.updatedAt),
         completedAt: task.completedAt ? new Date(task.completedAt) : undefined,
         dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
       }))
-      parsed.achievements = parsed.achievements.map((achievement: any) => ({
+      parsed.achievements = (parsed.achievements || []).map((achievement: any) => ({
         ...achievement,
         unlockedAt: achievement.unlockedAt ? new Date(achievement.unlockedAt) : undefined,
       }))
+      // Ensure projects array exists (for backward compatibility)
+      if (!parsed.projects) {
+        parsed.projects = seedAppState.projects
+      } else {
+        // Parse project dates
+        parsed.projects = parsed.projects.map((project: any) => ({
+          ...project,
+          createdAt: new Date(project.createdAt),
+          updatedAt: new Date(project.updatedAt),
+          dueDate: project.dueDate ? new Date(project.dueDate) : undefined,
+        }))
+      }
       return parsed
     }
   } catch (error) {

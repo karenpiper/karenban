@@ -30,8 +30,12 @@ export function ClientProjectView({
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed" | "on-hold">("all")
 
+  // Ensure we have valid arrays
+  const safeProjects = projects || []
+  const safeTasks = tasks || []
+
   // Filter projects
-  const filteredProjects = projects.filter(project => {
+  const filteredProjects = safeProjects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.client?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -51,7 +55,7 @@ export function ClientProjectView({
 
   // Get project tasks
   const getProjectTasks = (projectId: string) => {
-    return tasks.filter(task => task.projectId === projectId)
+    return safeTasks.filter(task => task.projectId === projectId)
   }
 
   // Get project progress
