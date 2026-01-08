@@ -195,8 +195,8 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
                   : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
               }`}
             >
-              <FileText className="w-3.5 h-3.5 mr-2" />
-              {!isCollapsed && <span>By Task</span>}
+              <FileText className="w-3 h-3 mr-2" />
+              <span className="flex-1 text-left">By Task</span>
             </Button>
           </div>
         </nav>
