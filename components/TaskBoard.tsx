@@ -1226,6 +1226,101 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Filter Dialog */}
+      <Dialog open={filterDialogOpen} onOpenChange={setFilterDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-medium text-gray-800">
+              {filterType === 'unassigned' && 'Unassigned Tasks'}
+              {filterType === 'blocked' && 'Blocked Tasks'}
+              {filterType === 'overdue' && 'Overdue Tasks'}
+            </DialogTitle>
+            <DialogDescription className="text-[0.625rem] text-gray-500">
+              {filterType === 'unassigned' && 'Tasks that are not assigned to anyone'}
+              {filterType === 'blocked' && 'Tasks in the Follow-up column'}
+              {filterType === 'overdue' && 'Tasks with due dates that have passed'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 space-y-2">
+            {(() => {
+              if (!appState || !filterType) return null
+              
+              let filteredTasks: Task[] = []
+              
+              if (filterType === 'unassigned') {
+                filteredTasks = appState.tasks.filter(t => !t.assignedTo)
+              } else if (filterType === 'blocked') {
+                filteredTasks = appState.tasks.filter(t => t.columnId === 'col-followup')
+              } else if (filterType === 'overdue') {
+                const today = new Date()
+                today.setHours(0, 0, 0, 0)
+                filteredTasks = appState.tasks.filter(t => 
+                  t.dueDate && new Date(t.dueDate) < today && t.status !== 'done'
+                )
+              }
+              
+              if (filteredTasks.length === 0) {
+                return (
+                  <div className="text-center py-8 text-[0.625rem] text-gray-500">
+                    No tasks found
+                  </div>
+                )
+              }
+              
+              return filteredTasks.map(task => {
+                const project = appState.projects?.find(p => p.id === task.projectId)
+                return (
+                  <div
+                    key={task.id}
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('editTask', { detail: task }))
+                      setFilterDialogOpen(false)
+                    }}
+                    className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 p-2 cursor-pointer"
+                  >
+                    <div className="flex justify-between items-start mb-1">
+                      <h4 className="font-normal text-[0.625rem] text-gray-800 leading-tight flex-1">{task.title}</h4>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setTaskToDelete(task)
+                        }}
+                        className="text-gray-400/70 hover:text-red-500 p-0.5 rounded-full transition-colors flex-shrink-0 ml-1"
+                        title="Delete task"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1 mt-1">
+                      {task.client && (
+                        <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
+                          {task.client}
+                        </span>
+                      )}
+                      {project && (
+                        <span className="px-1.5 py-0.5 text-[0.5rem] bg-gray-50/80 text-gray-600 rounded-full border border-gray-200/40">
+                          {project.name}
+                        </span>
+                      )}
+                      {task.assignedTo && (
+                        <span className="px-1.5 py-0.5 text-[0.5rem] bg-blue-50/80 text-blue-600 rounded-full border border-blue-200/40">
+                          {task.assignedTo}
+                        </span>
+                      )}
+                      {task.dueDate && (
+                        <span className="px-1.5 py-0.5 text-[0.5rem] bg-amber-50/80 text-amber-600 rounded-full border border-amber-200/40">
+                          {new Date(task.dueDate).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 
