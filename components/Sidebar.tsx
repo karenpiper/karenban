@@ -121,9 +121,15 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "board", 
           </h3>
           <div className="space-y-1.5">
             <Button
-              className="w-full flex items-center px-3 py-2 rounded-2xl text-xs font-normal transition-all duration-300 bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm backdrop-blur-xl hover:bg-blue-50/80 hover:shadow-md"
+              variant={currentView === "board" ? "default" : "ghost"}
+              onClick={() => onViewChange?.("board")}
+              className={`w-full flex items-center px-3 py-2 rounded-2xl text-xs font-normal transition-all duration-300 ${
+                currentView === "board"
+                  ? "bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+              }`}
             >
-              <Calendar className="w-3.5 h-3.5 mr-2.5 text-blue-600/80" />
+              <Calendar className="w-3.5 h-3.5 mr-2.5" />
               <span className="flex-1 text-left">Today</span>
               <span className="ml-2 px-1.5 py-0.5 text-[0.625rem] font-normal bg-blue-200/50 text-blue-700 rounded-full">
                 2
