@@ -30,36 +30,36 @@ export function TaskColumn({
   const totalTasks = column.categories.reduce((sum, cat) => sum + cat.taskCount, 0)
 
   return (
-    <div className="w-80 flex-shrink-0">
-      <div className="glass-panel rounded-2xl p-4 h-full">
+    <div className="w-72 flex-shrink-0">
+      <div className="bg-white border border-gray-200 rounded-md p-3 h-full shadow-sm">
         {/* Column Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${column.color}`} />
-            <h2 className="text-white font-semibold text-lg">{column.name}</h2>
-            <span className="text-white/50 text-sm">({totalTasks})</span>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className={`w-2.5 h-2.5 rounded-full ${column.color}`} />
+            <h2 className="text-gray-900 font-semibold text-base">{column.name}</h2>
+            <span className="text-gray-500 text-xs">({totalTasks})</span>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-white/60 hover:text-white/80">
-                <MoreVertical className="w-4 h-4" />
+              <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400 hover:text-gray-600">
+                <MoreVertical className="w-3 h-3" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="glass-panel border-white/20">
+            <DropdownMenuContent className="bg-white border border-gray-200 shadow-lg">
               {column.allowsDynamicCategories && (
-                <DropdownMenuItem onClick={() => onAddPersonCategory?.(column.id)} className="text-white/80">
-                  <Plus className="w-4 h-4 mr-2" />
+                <DropdownMenuItem onClick={() => onAddPersonCategory?.(column.id)} className="text-gray-700 text-xs">
+                  <Plus className="w-3 h-3 mr-2" />
                   Add Person
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem className="text-white/80">Column Settings</DropdownMenuItem>
+              <DropdownMenuItem className="text-gray-700 text-xs">Column Settings</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
         {/* Categories */}
-        <div className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <div className="space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto">
           {column.categories
             .sort((a, b) => a.order - b.order)
             .map((category) => {
