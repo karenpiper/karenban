@@ -250,29 +250,31 @@ export function TaskBoard() {
     const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
     if (!followUpColumn) return
 
-    // Check if person already exists
+    // Check if person already exists (as team member or non-team member)
     const existingPerson = followUpColumn.categories.find(
-      cat => cat.isPerson && cat.personName?.toLowerCase() === newPersonName.trim().toLowerCase()
+      cat => cat.isPerson && (cat.personName || cat.name)?.toLowerCase() === newPersonName.trim().toLowerCase()
     )
+    
     if (existingPerson) {
+      // Person already exists - don't create duplicate, just close the input
       setShowAddPerson(false)
       setNewPersonName("")
       return
     }
 
-    // Create new person category (non-team follow-up)
+    // Create new person category (non-team follow-up when added from today tab)
     const newCategory: Category = {
       id: `cat-followup-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: newPersonName.trim(),
       columnId: 'col-followup',
       color: `from-${['pink', 'indigo', 'cyan', 'violet', 'amber', 'emerald', 'rose'][Math.floor(Math.random() * 7)]}-400 to-${['pink', 'indigo', 'cyan', 'violet', 'amber', 'emerald', 'rose'][Math.floor(Math.random() * 7)]}-500`,
       isCollapsed: false,
-      order: followUpColumn.categories.length,
+      order: followUpColumn.categories.filter(cat => !cat.isTeamMember).length + 1000, // Put non-team after team members
       taskCount: 0,
       completedCount: 0,
       isPerson: true,
       personName: newPersonName.trim(),
-      isTeamMember: false // Non-team follow-up
+      isTeamMember: false // Non-team follow-up when added from today tab
     }
 
     // Update the column with the new category

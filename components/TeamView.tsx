@@ -406,12 +406,15 @@ export function TeamView({
       )}
 
       {/* Non-Team Members Section */}
-      {Array.from(nonTeamMembers).length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-sm font-medium text-gray-800 mb-2">Non-Team Members</h3>
-          <div className="space-y-1">
-            {Array.from(nonTeamMembers).map((member) => {
-              const memberTasks = safeTasks.filter(t => t.assignedTo === member)
+      {(() => {
+        // Filter out any non-team members that are actually team members (double-check)
+        const actualNonTeamMembers = Array.from(nonTeamMembers).filter(member => !teamMembers.has(member))
+        return actualNonTeamMembers.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-sm font-medium text-gray-800 mb-2">Non-Team Members</h3>
+            <div className="space-y-1">
+              {actualNonTeamMembers.map((member) => {
+                const memberTasks = safeTasks.filter(t => t.assignedTo === member)
               const stats = getTaskStats(memberTasks)
               const isExpanded = expandedMembers.has(member)
 
@@ -521,7 +524,8 @@ export function TeamView({
             })}
           </div>
         </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
