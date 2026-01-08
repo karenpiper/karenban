@@ -271,6 +271,85 @@ export function TaskBoard() {
     setNewPersonName("")
   }
 
+  const handleArchivePerson = (categoryId: string) => {
+    if (!appState) return
+    const updatedColumns = appState.columns.map(col => {
+      if (col.id === 'col-followup') {
+        return {
+          ...col,
+          categories: col.categories.map(cat =>
+            cat.id === categoryId ? { ...cat, archived: true } : cat
+          )
+        }
+      }
+      return col
+    })
+    const updatedState = { ...appState, columns: updatedColumns }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
+  const handleUnarchivePerson = (categoryId: string) => {
+    if (!appState) return
+    const updatedColumns = appState.columns.map(col => {
+      if (col.id === 'col-followup') {
+        return {
+          ...col,
+          categories: col.categories.map(cat =>
+            cat.id === categoryId ? { ...cat, archived: false } : cat
+          )
+        }
+      }
+      return col
+    })
+    const updatedState = { ...appState, columns: updatedColumns }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
+  const handleDeletePerson = (category: Category) => {
+    setPersonToDelete(category)
+    setDeletePersonWithTasks(false)
+  }
+
+  const confirmDeletePerson = () => {
+    if (!appState || !personToDelete) return
+
+    const personName = personToDelete.personName || personToDelete.name
+
+    // Update columns to remove the category
+    const updatedColumns = appState.columns.map(col => {
+      if (col.id === 'col-followup') {
+        return {
+          ...col,
+          categories: col.categories.filter(cat => cat.id !== personToDelete.id)
+        }
+      }
+      return col
+    })
+
+    // Handle tasks assigned to this person
+    let updatedTasks = appState.tasks
+    if (deletePersonWithTasks) {
+      // Delete all tasks assigned to this person
+      updatedTasks = appState.tasks.filter(task => task.assignedTo !== personName)
+    } else {
+      // Unassign tasks from this person
+      updatedTasks = appState.tasks.map(task => {
+        if (task.assignedTo === personName) {
+          return { ...task, assignedTo: undefined, categoryId: undefined, category: undefined }
+        }
+        return task
+      })
+    }
+
+    const updatedState = { ...appState, columns: updatedColumns, tasks: updatedTasks }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+    setPersonToDelete(null)
+    setDeletePersonWithTasks(false)
+  }
+
   const renderTaskCard = (task: Task) => {
     // Get project name if task has projectId
     const project = appState?.projects?.find(p => p.id === task.projectId)
