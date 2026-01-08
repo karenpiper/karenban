@@ -49,6 +49,19 @@ const config: Config = {
           "4": "var(--chart-4)",
           "5": "var(--chart-5)",
         },
+        // Override gray scale with softer, more muted values
+        gray: {
+          50: "oklch(0.98 0.002 0)",
+          100: "oklch(0.96 0.005 0)",
+          200: "oklch(0.92 0.005 0)",
+          300: "oklch(0.85 0.008 0)",
+          400: "oklch(0.6 0.008 0)",
+          500: "oklch(0.5 0.008 0)",
+          600: "oklch(0.4 0.008 0)",
+          700: "oklch(0.3 0.008 0)",
+          800: "oklch(0.25 0.008 0)",
+          900: "oklch(0.2 0.008 0)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
