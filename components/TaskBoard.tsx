@@ -47,14 +47,7 @@ export function TaskBoard() {
     const updatedTasks = appState.tasks.map((task) => {
       if (task.id === taskId) {
         const updates: Partial<Task> = {
-          columnId: newColumnId,
           updatedAt: new Date(),
-        }
-
-        // Update category if specified
-        if (newCategoryId) {
-          updates.categoryId = newCategoryId
-          updates.category = newCategoryId
         }
 
         // Update assignee if provided (regardless of column)
@@ -70,6 +63,8 @@ export function TaskBoard() {
               updates.categoryId = personCategory.id
               updates.category = personCategory.id
               updates.columnId = 'col-followup' // Move to follow-up column when assigning
+            } else {
+              updates.columnId = newColumnId // Use provided column if person not found
             }
           } else {
             // Unassigning - clear category and move to uncategorized if currently in follow-up
@@ -77,8 +72,19 @@ export function TaskBoard() {
             updates.category = undefined
             if (task.columnId === 'col-followup') {
               updates.columnId = 'col-uncategorized' // Move back to uncategorized when unassigning from follow-up
+            } else {
+              updates.columnId = task.columnId || newColumnId // Keep current column if not in follow-up
             }
           }
+        } else {
+          // No assignee change - use provided column
+          updates.columnId = newColumnId
+        }
+
+        // Update category if specified (for non-person categories)
+        if (newCategoryId && newAssignee === undefined) {
+          updates.categoryId = newCategoryId
+          updates.category = newCategoryId
         }
 
         // Update status based on column
@@ -92,11 +98,11 @@ export function TaskBoard() {
           const durationMs = completedDate.getTime() - createdDate.getTime()
           updates.durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24))
           updates.durationHours = Math.ceil(durationMs / (1000 * 60 * 60))
-        } else if (newColumnId === 'col-followup') {
+        } else if (finalColumnId === 'col-followup') {
           updates.status = 'todo'
-        } else if (newColumnId === 'col-today') {
+        } else if (finalColumnId === 'col-today') {
           updates.status = 'today'
-        } else if (newColumnId === 'col-later') {
+        } else if (finalColumnId === 'col-later') {
           updates.status = 'later'
         } else {
           updates.status = 'todo'
