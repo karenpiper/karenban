@@ -150,8 +150,44 @@ export default function HomePage() {
 
   const handleSaveTask = (updatedTask: Task) => {
     if (!appState) return
+    
+    // Handle assignment changes - update columnId and categoryId if assigning to a person
+    const taskUpdates: Partial<Task> = { ...updatedTask }
+    
+    // Check if assignedTo changed
+    const originalTask = appState.tasks.find(t => t.id === updatedTask.id)
+    const assignedToChanged = originalTask?.assignedTo !== updatedTask.assignedTo
+    
+    if (assignedToChanged) {
+      if (updatedTask.assignedTo) {
+        // Assigning to a person - move to follow-up column
+        const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
+        const personCategory = followUpColumn?.categories.find(
+          cat => cat.isPerson && (cat.personName || cat.name) === updatedTask.assignedTo
+        )
+        if (personCategory) {
+          taskUpdates.categoryId = personCategory.id
+          taskUpdates.category = personCategory.id
+          taskUpdates.columnId = 'col-followup'
+        }
+      } else {
+        // Unassigning - clear category and move to uncategorized if currently in follow-up
+        taskUpdates.categoryId = undefined
+        taskUpdates.category = undefined
+        if (originalTask?.columnId === 'col-followup') {
+          taskUpdates.columnId = 'col-uncategorized'
+        }
+      }
+    }
+    
+    const finalTask: Task = {
+      ...updatedTask,
+      ...taskUpdates,
+      updatedAt: new Date()
+    }
+    
     const updatedTasks = appState.tasks.map(t => 
-      t.id === updatedTask.id ? updatedTask : t
+      t.id === finalTask.id ? finalTask : t
     )
     const updatedState = { ...appState, tasks: updatedTasks }
     setAppState(updatedState)
