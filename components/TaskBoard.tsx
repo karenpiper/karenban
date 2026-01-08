@@ -632,8 +632,9 @@ export function TaskBoard() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      console.log('Clear assignment clicked for task:', task.id)
-                      updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, undefined)
+                      console.log('Clear assignment clicked for task:', task.id, 'current assignedTo:', task.assignedTo)
+                      // Pass empty string to explicitly trigger unassignment logic
+                      updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, "")
                     }}
                     className="p-0.5 rounded-full hover:bg-gray-200/60 text-gray-400 hover:text-red-500 transition-colors"
                     title="Unassign"
