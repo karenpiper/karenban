@@ -87,8 +87,9 @@ export function TaskBoard() {
           updates.category = newCategoryId
         }
 
-        // Update status based on column
-        if (newColumnId === 'col-done') {
+        // Update status based on column (use the column we're setting, not the parameter)
+        const finalColumnId = updates.columnId || newColumnId
+        if (finalColumnId === 'col-done') {
           updates.status = 'done'
           updates.completedAt = new Date()
           
