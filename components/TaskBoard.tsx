@@ -69,11 +69,15 @@ export function TaskBoard() {
             if (personCategory) {
               updates.categoryId = personCategory.id
               updates.category = personCategory.id
+              updates.columnId = 'col-followup' // Move to follow-up column when assigning
             }
           } else {
-            // Unassigning - clear category
+            // Unassigning - clear category and move to uncategorized if currently in follow-up
             updates.categoryId = undefined
             updates.category = undefined
+            if (task.columnId === 'col-followup') {
+              updates.columnId = 'col-uncategorized' // Move back to uncategorized when unassigning from follow-up
+            }
           }
         }
 
