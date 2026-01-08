@@ -38,6 +38,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
     description: "",
     color: "bg-blue-500",
     status: "active" as Project["status"],
+    client: "",
     dueDate: undefined as Date | undefined
   })
 
@@ -48,6 +49,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
         description: project.description || "",
         color: project.color,
         status: project.status,
+        client: project.client || "",
         dueDate: project.dueDate
       })
     }
@@ -62,6 +64,7 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
       description: formData.description.trim() || undefined,
       color: formData.color,
       status: formData.status,
+      client: formData.client.trim() || undefined,
       dueDate: formData.dueDate,
       progress: project?.progress || 0
     })
@@ -109,6 +112,19 @@ export function ProjectForm({ project, onSave, onCancel }: ProjectFormProps) {
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             className="border-gray-300"
             rows={3}
+          />
+        </div>
+
+        {/* Client */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Client
+          </label>
+          <Input
+            placeholder="Enter client name (optional)"
+            value={formData.client}
+            onChange={(e) => setFormData(prev => ({ ...prev, client: e.target.value }))}
+            className="border-gray-300"
           />
         </div>
 

@@ -22,6 +22,7 @@ export interface Project {
   description?: string
   color: string
   status: "active" | "completed" | "on-hold"
+  client?: string // Client name for organizing projects
   createdAt: Date
   updatedAt: Date
   dueDate?: Date

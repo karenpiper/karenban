@@ -1,4 +1,4 @@
-import type { Task, Category, Column, Achievement, UserStats, DailyStats, AppState } from "../types"
+import type { Task, Category, Column, Achievement, UserStats, DailyStats, AppState, Project } from "../types"
 
 // Seed Categories
 const seedCategories: Category[] = [
@@ -542,6 +542,119 @@ const generateDailyStats = (): DailyStats[] => {
   return stats
 }
 
+// Seed Projects
+const seedProjects: Project[] = [
+  {
+    id: "project-1",
+    name: "Website Redesign",
+    description: "Complete redesign of client website with modern UI/UX",
+    color: "from-blue-400 to-blue-500",
+    status: "active",
+    client: "Acme Corporation",
+    createdAt: new Date("2024-01-01T09:00:00"),
+    updatedAt: new Date("2024-01-15T17:00:00"),
+    dueDate: new Date("2024-02-15T17:00:00"),
+    progress: 45,
+    totalTasks: 12,
+    completedTasks: 5,
+  },
+  {
+    id: "project-2",
+    name: "Mobile App Development",
+    description: "Build native mobile app for iOS and Android",
+    color: "from-purple-400 to-purple-500",
+    status: "active",
+    client: "TechStart Inc",
+    createdAt: new Date("2024-01-05T10:00:00"),
+    updatedAt: new Date("2024-01-15T16:00:00"),
+    dueDate: new Date("2024-03-01T17:00:00"),
+    progress: 30,
+    totalTasks: 20,
+    completedTasks: 6,
+  },
+  {
+    id: "project-3",
+    name: "Brand Identity Package",
+    description: "Create comprehensive brand identity including logo, colors, and guidelines",
+    color: "from-pink-400 to-pink-500",
+    status: "active",
+    client: "Creative Studio",
+    createdAt: new Date("2024-01-10T09:00:00"),
+    updatedAt: new Date("2024-01-15T15:00:00"),
+    dueDate: new Date("2024-01-30T17:00:00"),
+    progress: 60,
+    totalTasks: 8,
+    completedTasks: 5,
+  },
+  {
+    id: "project-4",
+    name: "E-commerce Platform",
+    description: "Develop full-featured e-commerce solution with payment integration",
+    color: "from-green-400 to-green-500",
+    status: "active",
+    client: "Retail Solutions",
+    createdAt: new Date("2023-12-15T09:00:00"),
+    updatedAt: new Date("2024-01-14T18:00:00"),
+    dueDate: new Date("2024-02-28T17:00:00"),
+    progress: 75,
+    totalTasks: 25,
+    completedTasks: 19,
+  },
+  {
+    id: "project-5",
+    name: "Marketing Campaign",
+    description: "Q1 marketing campaign strategy and execution",
+    color: "from-orange-400 to-orange-500",
+    status: "completed",
+    client: "Acme Corporation",
+    createdAt: new Date("2023-11-01T09:00:00"),
+    updatedAt: new Date("2023-12-31T17:00:00"),
+    dueDate: new Date("2023-12-31T17:00:00"),
+    progress: 100,
+    totalTasks: 15,
+    completedTasks: 15,
+  },
+  {
+    id: "project-6",
+    name: "API Integration",
+    description: "Integrate third-party APIs for data synchronization",
+    color: "from-cyan-400 to-cyan-500",
+    status: "on-hold",
+    client: "TechStart Inc",
+    createdAt: new Date("2024-01-08T09:00:00"),
+    updatedAt: new Date("2024-01-12T14:00:00"),
+    progress: 20,
+    totalTasks: 10,
+    completedTasks: 2,
+  },
+  {
+    id: "project-7",
+    name: "Content Strategy",
+    description: "Develop content strategy and editorial calendar",
+    color: "from-indigo-400 to-indigo-500",
+    status: "active",
+    client: "Creative Studio",
+    createdAt: new Date("2024-01-12T09:00:00"),
+    updatedAt: new Date("2024-01-15T16:00:00"),
+    dueDate: new Date("2024-02-10T17:00:00"),
+    progress: 35,
+    totalTasks: 12,
+    completedTasks: 4,
+  },
+  {
+    id: "project-8",
+    name: "Internal Tooling",
+    description: "Build internal tools for team productivity",
+    color: "from-gray-400 to-gray-500",
+    status: "active",
+    createdAt: new Date("2024-01-01T09:00:00"),
+    updatedAt: new Date("2024-01-15T17:00:00"),
+    progress: 50,
+    totalTasks: 6,
+    completedTasks: 3,
+  },
+]
+
 // Seed User Stats
 const seedUserStats: UserStats = {
   totalTasksCompleted: 247,
@@ -558,6 +671,7 @@ const seedUserStats: UserStats = {
 export const seedAppState: AppState = {
   columns: seedColumns,
   tasks: seedTasks,
+  projects: seedProjects,
   achievements: seedAchievements,
   userStats: seedUserStats,
   settings: {

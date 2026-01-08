@@ -113,16 +113,35 @@ export function TaskBoard() {
 
   const handleDragOver = (e: React.DragEvent, targetType: 'column' | 'category' | 'person', targetId: string) => {
     e.preventDefault()
+    e.stopPropagation()
     e.dataTransfer.dropEffect = 'move'
     setDragOverTarget({ type: targetType, id: targetId })
   }
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Only clear if we're actually leaving the element (not just moving to a child)
+    const currentTarget = e.currentTarget as HTMLElement
+    const relatedTarget = e.relatedTarget as HTMLElement | null
+    
+    // If there's no related target, we're leaving the window - clear it
+    if (!relatedTarget) {
+      setDragOverTarget(null)
+      return
+    }
+    
+    // Check if the related target is still within the current target
+    // This prevents clearing when moving between child elements
+    if (currentTarget.contains(relatedTarget)) {
+      return // Still within the drop zone, don't clear
+    }
+    
+    // We're actually leaving the drop zone
     setDragOverTarget(null)
   }
 
   const handleDrop = (e: React.DragEvent, targetType: 'column' | 'category' | 'person', targetId: string) => {
     e.preventDefault()
+    e.stopPropagation()
     console.log('Drop event:', targetType, targetId)
     
     if (!draggedTask) return
@@ -174,8 +193,10 @@ export function TaskBoard() {
         key={task.id} 
         draggable={true}
         onDragStart={(e) => handleDragStart(e, task)}
-        onDragEnd={() => {}}
-        onDrag={() => {}}
+        onDragEnd={() => {
+          setDraggedTask(null)
+          setDragOverTarget(null)
+        }}
         className={`bg-white/70 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 p-2.5 mb-2.5 cursor-move ${
           draggedTask?.id === task.id ? 'opacity-40' : ''
         }`}
@@ -243,8 +264,12 @@ export function TaskBoard() {
             : 'border-gray-200/40 hover:border-gray-300/50'
         }`}
         onDragOver={(e) => handleDragOver(e, 'category', category.id)}
-        onDragLeave={handleDragLeave}
+        onDragLeave={(e) => handleDragLeave(e)}
         onDrop={(e) => handleDrop(e, 'category', category.id)}
+        onDragEnter={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+        }}
       >
         <h4 className="text-xs font-normal text-gray-600 uppercase tracking-wide flex items-center justify-between">
           {category.name}
@@ -278,12 +303,30 @@ export function TaskBoard() {
       <div 
         key={column.id} 
         className="min-w-[280px]"
-        onDragOver={(e) => handleDragOver(e, 'column', column.id)}
-        onDragLeave={handleDragLeave}
-        onDrop={(e) => handleDrop(e, 'column', column.id)}
+        onDragOver={(e) => {
+          // Only handle at column level if there are no categories
+          if (column.categories.length === 0) {
+            handleDragOver(e, 'column', column.id)
+          }
+        }}
+        onDragLeave={(e) => {
+          if (column.categories.length === 0) {
+            handleDragLeave(e)
+          }
+        }}
+        onDrop={(e) => {
+          // Only handle at column level if there are no categories
+          if (column.categories.length === 0) {
+            handleDrop(e, 'column', column.id)
+          }
+        }}
+        onDragEnter={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+        }}
       >
         <div className={`bg-white/50 backdrop-blur-xl border-2 rounded-3xl shadow-sm p-3.5 mb-3 transition-all duration-300 ${
-          isDragOver 
+          isDragOver && column.categories.length === 0
             ? 'border-blue-300/50 bg-blue-50/30' 
             : 'border-gray-200/40'
         }`}>
@@ -305,7 +348,20 @@ export function TaskBoard() {
               column.categories.map(category => renderCategory(column.id, category))
             ) : (
               // Render tasks directly in the column if no categories
-              <div className="space-y-2">
+              <div 
+                className="space-y-2"
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  handleDragOver(e, 'column', column.id)
+                }}
+                onDragLeave={(e) => handleDragLeave(e)}
+                onDrop={(e) => handleDrop(e, 'column', column.id)}
+                onDragEnter={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+              >
                 {columnTasks.map((task) => (
                 <div key={task.id}>
                   {renderTaskCard(task)}
