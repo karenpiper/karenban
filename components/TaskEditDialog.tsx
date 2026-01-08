@@ -250,11 +250,12 @@ export function TaskEditDialog({
                   onChange={(e) => setNewProjectName(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && newProjectName.trim() && onCreateProject) {
-                      onCreateProject(newProjectName.trim(), client || undefined)
-                      // Find the newly created project
-                      const newProject = projects.find(p => p.name === newProjectName.trim() && (!client || p.client === client))
+                      const newProject = onCreateProject(newProjectName.trim(), client || undefined)
                       if (newProject) {
                         setProjectId(newProject.id)
+                        if (newProject.client) {
+                          setClient(newProject.client)
+                        }
                       }
                       setShowNewProject(false)
                       setNewProjectName("")
@@ -270,11 +271,12 @@ export function TaskEditDialog({
                 <Button
                   onClick={() => {
                     if (newProjectName.trim() && onCreateProject) {
-                      onCreateProject(newProjectName.trim(), client || undefined)
-                      // Find the newly created project
-                      const newProject = projects.find(p => p.name === newProjectName.trim() && (!client || p.client === client))
+                      const newProject = onCreateProject(newProjectName.trim(), client || undefined)
                       if (newProject) {
                         setProjectId(newProject.id)
+                        if (newProject.client) {
+                          setClient(newProject.client)
+                        }
                       }
                       setShowNewProject(false)
                       setNewProjectName("")
