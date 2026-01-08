@@ -189,11 +189,12 @@ export function TaskEditDialog({
             <Label htmlFor="project" className="text-xs font-medium text-gray-700 mb-1.5 block">
               Project
             </Label>
-            <Select value={projectId} onValueChange={(value) => {
-              setProjectId(value)
+            <Select value={projectId || "__none__"} onValueChange={(value) => {
+              const actualValue = value === "__none__" ? "" : value
+              setProjectId(actualValue)
               // Update client when project is selected
-              if (value) {
-                const selectedProject = projects.find(p => p.id === value)
+              if (actualValue) {
+                const selectedProject = projects.find(p => p.id === actualValue)
                 if (selectedProject?.client) {
                   setClient(selectedProject.client)
                 }
@@ -203,7 +204,7 @@ export function TaskEditDialog({
                 <SelectValue placeholder="Select project" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No project</SelectItem>
+                <SelectItem value="__none__">No project</SelectItem>
                 {projects.filter(p => !p.archived).map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name} {project.client && `(${project.client})`}
@@ -218,12 +219,13 @@ export function TaskEditDialog({
             <Label htmlFor="client" className="text-xs font-medium text-gray-700 mb-1.5 block">
               Client
             </Label>
-            <Select value={client} onValueChange={(value) => {
-              setClient(value)
+            <Select value={client || "__none__"} onValueChange={(value) => {
+              const actualValue = value === "__none__" ? "" : value
+              setClient(actualValue)
               // Clear project if client doesn't match
               if (projectId) {
                 const selectedProject = projects.find(p => p.id === projectId)
-                if (selectedProject && selectedProject.client !== value) {
+                if (selectedProject && selectedProject.client !== actualValue) {
                   setProjectId("")
                 }
               }
@@ -232,7 +234,7 @@ export function TaskEditDialog({
                 <SelectValue placeholder="Select client" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No client</SelectItem>
+                <SelectItem value="__none__">No client</SelectItem>
                 {uniqueClients.map((clientName) => (
                   <SelectItem key={clientName} value={clientName}>
                     {clientName}
