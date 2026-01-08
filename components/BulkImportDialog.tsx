@@ -70,67 +70,70 @@ export function BulkImportDialog({
     
     let currentClient: ParsedClientProject | null = null
     let currentProject: { name: string; tasks: string[] } | null = null
-    let lastWasClient = false // Track if last non-empty line was a client name
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       const trimmed = line.trim()
-      if (trimmed.length === 0) {
-        lastWasClient = false
-        continue
-      }
+      if (trimmed.length === 0) continue
 
-      const isTask = trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*')
-      const content = isTask ? trimmed.substring(1).trim() : trimmed
-
-      if (content.length === 0) continue
-
-      if (!isTask) {
-        // It's either a client name or project name
-        if (!currentClient || lastWasClient) {
-          // New client (either first one, or previous line was also a client)
-          if (currentClient) {
-            // Save previous client
-            if (currentProject) {
-              currentClient.projects.push(currentProject)
-              currentProject = null
-            }
-            result.clients.push(currentClient)
-          }
-          currentClient = {
-            client: content,
-            projects: []
-          }
-          currentProject = null
-          lastWasClient = true
-        } else {
-          // Project name (we have a client, and last line wasn't a client)
+      // Check for client (starts with **)
+      if (trimmed.startsWith('**')) {
+        const clientName = trimmed.substring(2).trim()
+        if (clientName.length === 0) continue
+        
+        // Save previous client if exists
+        if (currentClient) {
           if (currentProject) {
-            // Save previous project
             currentClient.projects.push(currentProject)
+            currentProject = null
           }
-          currentProject = {
-            name: content,
-            tasks: []
-          }
-          lastWasClient = false
+          result.clients.push(currentClient)
         }
-      } else {
-        // It's a task
-        lastWasClient = false
+        
+        currentClient = {
+          client: clientName,
+          projects: []
+        }
+        currentProject = null
+      }
+      // Check for project (starts with * but not **)
+      else if (trimmed.startsWith('*') && !trimmed.startsWith('**')) {
+        const projectName = trimmed.substring(1).trim()
+        if (projectName.length === 0) continue
+        
+        if (!currentClient) {
+          throw new Error(`Project "${projectName}" found without a client. Please add a client name with "**" first.`)
+        }
+        
+        // Save previous project if exists
+        if (currentProject) {
+          currentClient.projects.push(currentProject)
+        }
+        
+        currentProject = {
+          name: projectName,
+          tasks: []
+        }
+      }
+      // Check for task (starts with -)
+      else if (trimmed.startsWith('-')) {
+        const taskText = trimmed.substring(1).trim()
+        if (taskText.length === 0) continue
+        
         if (currentProject) {
           // Task belongs to current project
-          currentProject.tasks.push(content)
+          currentProject.tasks.push(taskText)
         } else if (currentClient) {
           // Task without project - create a default project for this client
           currentProject = {
             name: `${currentClient.client} Tasks`,
-            tasks: [content]
+            tasks: [taskText]
           }
         } else {
-          throw new Error(`Task "${content}" found without a client. Please add a client name first.`)
+          throw new Error(`Task "${taskText}" found without a client. Please add a client name with "**" first.`)
         }
       }
+      // Ignore other lines
     }
 
     // Save last items
@@ -163,7 +166,7 @@ export function BulkImportDialog({
       } else {
         const parsed = parseByClients(text)
         if (parsed.clients.length === 0) {
-          setError("No valid data found. Format should be:\nClient Name\nProject Name\n- Task 1\n- Task 2")
+          setError("No valid data found. Format should be:\n**Client Name\n*Project Name\n- Task 1\n- Task 2")
           return
         }
         setParsedByClients(parsed)
@@ -327,14 +330,14 @@ export function BulkImportDialog({
               placeholder={
                 mode === "tasks"
                   ? `- Task 1\n- Task 2\n- Task 3\n- Task 4`
-                  : `Client Name\nProject Name\n- Task 1\n- Task 2\nProject Name 2\n- Task 3\n- Task 4`
+                  : `**Client Name\n*Project Name\n- Task 1\n- Task 2\n*Project Name 2\n- Task 3\n- Task 4`
               }
               className="min-h-[200px] text-xs font-mono bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl"
             />
             <p className="text-[0.625rem] text-gray-500 mt-1">
               {mode === "tasks" 
                 ? "Format: List of tasks, each starting with \"- \""
-                : "Format: Client name, then project names, then tasks with \"- \" prefix"}
+                : "Format: **Client name, *Project name, then tasks with \"- \" prefix"}
             </p>
           </div>
 
