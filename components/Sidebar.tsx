@@ -64,62 +64,6 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
           )}
         </div>
 
-        {/* Status Section */}
-        {!isCollapsed && (
-          <div className="p-3 border-b border-gray-200/20">
-            <h3 className="text-[0.625rem] font-normal text-gray-500 uppercase tracking-wide mb-2">
-              Status
-            </h3>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between p-1.5 rounded-xl border border-gray-200/30 transition-all duration-300 hover:bg-gray-50/60 hover:shadow-sm">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-3 h-3 text-emerald-500/80" />
-                  <span className="text-[0.625rem] text-gray-600">T+1 Complete</span>
-                </div>
-                <span className="text-[0.625rem] font-normal text-gray-700 bg-gray-100/80 px-1.5 py-0.5 rounded-full border border-gray-200/40">
-                  -
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-1.5 rounded-xl border border-gray-200/30 transition-all duration-300 hover:bg-gray-50/60 hover:shadow-sm">
-                <div className="flex items-center space-x-2">
-                  <Clock className="w-3 h-3 text-blue-500/80" />
-                  <span className="text-[0.625rem] text-gray-600">T+day</span>
-                </div>
-                <span className="text-[0.625rem] font-normal text-gray-700 bg-gray-100/80 px-1.5 py-0.5 rounded-full border border-gray-200/40">
-                  -
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-1.5 rounded-xl border border-gray-200/30 transition-all duration-300 hover:bg-gray-50/60 hover:shadow-sm">
-                <div className="flex items-center space-x-2">
-                  <User className="w-3 h-3 text-orange-500/80" />
-                  <span className="text-[0.625rem] text-gray-600">Unassigned</span>
-                </div>
-                <span className="text-[0.625rem] font-medium text-white bg-gray-800/80 px-1.5 py-0.5 rounded-full">
-                  8
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-1.5 rounded-xl border border-gray-200/30 transition-all duration-300 hover:bg-gray-50/60 hover:shadow-sm">
-                <div className="flex items-center space-x-2">
-                  <AlertTriangle className="w-3 h-3 text-red-500/80" />
-                  <span className="text-[0.625rem] text-gray-600">Blocked</span>
-                </div>
-                <span className="text-[0.625rem] font-medium text-white bg-gray-800/80 px-1.5 py-0.5 rounded-full">
-                  8
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-1.5 rounded-xl border border-gray-200/30 transition-all duration-300 hover:bg-gray-50/60 hover:shadow-sm">
-                <div className="flex items-center space-x-2">
-                  <AlertTriangle className="w-3 h-3 text-red-500/80" />
-                  <span className="text-[0.625rem] text-gray-600">Overdue</span>
-                </div>
-                <span className="text-[0.625rem] font-medium text-white bg-gray-800/80 px-1.5 py-0.5 rounded-full">
-                  3
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Navigation */}
         <nav className="flex-1 p-3">
           <h3 className="text-[0.625rem] font-normal text-gray-500 uppercase tracking-wide mb-2">

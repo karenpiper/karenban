@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import type { Task, Category, Column, AppState } from "../types"
 import { saveAppState } from "../data/seed"
 
@@ -37,6 +38,8 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
   const [newPersonName, setNewPersonName] = useState("")
   const [personToDelete, setPersonToDelete] = useState<Category | null>(null)
   const [deletePersonWithTasks, setDeletePersonWithTasks] = useState(false)
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false)
+  const [filterType, setFilterType] = useState<'unassigned' | 'blocked' | 'overdue' | null>(null)
 
   // Update task properties when dragged to new location
   const updateTaskLocation = (taskId: string, newColumnId: string, newCategoryId?: string, newAssignee?: string) => {
