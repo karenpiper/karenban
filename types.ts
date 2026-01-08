@@ -41,6 +41,7 @@ export interface Task {
   columnId?: string
   categoryId?: string
   projectId?: string // Optional project assignment
+  client?: string // Optional client assignment (for tasks without projects)
   createdAt: Date
   updatedAt?: Date
   completedAt?: Date

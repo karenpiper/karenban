@@ -26,6 +26,7 @@ interface ParsedClientProject {
     name: string
     tasks: string[]
   }[]
+  tasksWithoutProject: string[] // Tasks directly under client without a project
 }
 
 interface ParsedByClients {
@@ -92,7 +93,8 @@ export function BulkImportDialog({
         
         currentClient = {
           client: clientName,
-          projects: []
+          projects: [],
+          tasksWithoutProject: []
         }
         currentProject = null
       }
@@ -124,11 +126,8 @@ export function BulkImportDialog({
           // Task belongs to current project
           currentProject.tasks.push(taskText)
         } else if (currentClient) {
-          // Task without project - create a default project for this client
-          currentProject = {
-            name: `${currentClient.client} Tasks`,
-            tasks: [taskText]
-          }
+          // Task without project - add directly to client's tasksWithoutProject
+          currentClient.tasksWithoutProject.push(taskText)
         } else {
           throw new Error(`Task "${taskText}" found without a client. Please add a client name with "**" first.`)
         }
@@ -187,13 +186,21 @@ export function BulkImportDialog({
     if (mode === "tasks") {
       if (parsedTasks.length === 0) return
       
-      // Create tasks without projects (unassigned)
+      // Create tasks without projects - assign to all views
+      const today = new Date()
+      today.setHours(0, 0, 0, 0) // Set to start of today
+      
       parsedTasks.forEach((item, idx) => {
         const task: Task = {
           id: `task-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 9)}`,
           title: item.title,
           priority: "medium",
-          status: "todo",
+          status: "uncategorized", // For kanban - goes to uncategorized
+          columnId: "col-uncategorized", // For kanban view
+          dueDate: today, // For calendar view - shows on today's date
+          // assignedTo left empty for team view - shows in unassigned
+          // projectId left empty for projects/clients views
+          // client left empty for tasks mode
           createdAt: now,
           updatedAt: now
         }
@@ -202,7 +209,28 @@ export function BulkImportDialog({
     } else {
       if (parsedByClients.clients.length === 0) return
 
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
       parsedByClients.clients.forEach((clientItem, clientIdx) => {
+        // Handle tasks without projects first
+        clientItem.tasksWithoutProject.forEach((taskTitle, taskIdx) => {
+          const task: Task = {
+            id: `task-${Date.now()}-${clientIdx}-no-proj-${taskIdx}-${Math.random().toString(36).substr(2, 9)}`,
+            title: taskTitle,
+            priority: "medium",
+            status: "uncategorized",
+            columnId: "col-uncategorized", // For kanban - goes to uncategorized
+            // projectId left empty - will show under client without project
+            client: clientItem.client, // Track which client this task belongs to
+            dueDate: today, // For calendar view
+            createdAt: now,
+            updatedAt: now
+          }
+          newTasks.push(task)
+        })
+
+        // Handle projects and their tasks
         clientItem.projects.forEach((projectItem, projectIdx) => {
           // Find or create project
           let project = existingProjects.find(
@@ -238,6 +266,8 @@ export function BulkImportDialog({
               priority: "medium",
               status: "todo",
               projectId: project.id,
+              client: clientItem.client, // Track client for consistency
+              dueDate: today, // For calendar view
               createdAt: now,
               updatedAt: now
             }
@@ -258,7 +288,7 @@ export function BulkImportDialog({
   const totalTasks = mode === "tasks" 
     ? parsedTasks.length
     : parsedByClients.clients.reduce((sum, client) => 
-        sum + client.projects.reduce((pSum, proj) => pSum + proj.tasks.length, 0), 0)
+        sum + client.tasksWithoutProject.length + client.projects.reduce((pSum, proj) => pSum + proj.tasks.length, 0), 0)
   
   const hasParsedData = mode === "tasks" 
     ? parsedTasks.length > 0
@@ -406,6 +436,22 @@ export function BulkImportDialog({
                             )}
                           </div>
                           <div className="ml-5 space-y-2">
+                            {/* Tasks without projects */}
+                            {clientItem.tasksWithoutProject.length > 0 && (
+                              <div className="border-l-2 border-gray-200/30 pl-2">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-[0.625rem] font-medium text-gray-700 italic">No Project</span>
+                                </div>
+                                <ul className="ml-4 space-y-0.5">
+                                  {clientItem.tasksWithoutProject.map((task, taskIdx) => (
+                                    <li key={taskIdx} className="text-[0.625rem] text-gray-600">
+                                      • {task}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {/* Projects */}
                             {clientItem.projects.map((projectItem, projectIdx) => {
                               const isNewProject = !existingProjects.some(
                                 p => p.client === clientItem.client && 

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, ChevronDown, ChevronUp, Building2, Calendar, X, Archive, ArchiveRestore } from "lucide-react"
+import { Plus, Search, ChevronDown, ChevronUp, Building2, Calendar, X, Archive, ArchiveRestore, Pencil } from "lucide-react"
 import type { Project, Task } from "../types"
 
 interface ProjectViewProps {
@@ -127,8 +127,70 @@ export function ProjectView({
       </div>
 
       {/* Projects List */}
-      {filteredProjects.length > 0 ? (
+      {filteredProjects.length > 0 || (safeTasks.filter(t => !t.projectId).length > 0) ? (
         <div className="space-y-2">
+          {/* No Project Section */}
+          {safeTasks.filter(t => !t.projectId).length > 0 && (
+            <div 
+              className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+            >
+              <button
+                onClick={() => {
+                  const noProjectId = "__no_project__"
+                  toggleExpand(noProjectId)
+                }}
+                className="w-full p-2.5 flex items-center justify-between hover:bg-gray-50/40 transition-colors"
+              >
+                <div className="flex items-center gap-2 flex-1 text-left">
+                  <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 opacity-70"></div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-medium text-gray-800">No Project</h3>
+                    <div className="flex items-center gap-3 text-[0.625rem] text-gray-500 mt-1">
+                      <span>{safeTasks.filter(t => !t.projectId).length} tasks</span>
+                    </div>
+                  </div>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${expandedProjects.has("__no_project__") ? "rotate-180" : ""}`} />
+              </button>
+              {expandedProjects.has("__no_project__") && (
+                <div className="px-2 pb-2 pt-1.5 border-t border-gray-200/20">
+                  <div className="space-y-1">
+                    {safeTasks.filter(t => !t.projectId).map(task => (
+                      <div key={task.id} className="p-2 bg-white/40 rounded-lg border border-gray-200/20">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-800">{task.title}</span>
+                          <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onEditTask(task)
+                              }}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Pencil className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onDeleteTask(task.id)
+                              }}
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-600"
+                            >
+                              <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+                  </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+                  </div>
+          )}
           {filteredProjects.map((project) => {
             const projectTasks = getProjectTasks(project.id)
             const progress = getProjectProgress(project.id)
@@ -162,14 +224,14 @@ export function ProjectView({
                             {project.client}
                           </Badge>
                         )}
-                        <Badge className={
+                  <Badge className={
                           project.status === "active" ? "bg-emerald-50/80 text-emerald-700 border border-emerald-200/50 text-[0.625rem] px-1.5 py-0.5 rounded-full" :
                           project.status === "completed" ? "bg-blue-50/80 text-blue-700 border border-blue-200/50 text-[0.625rem] px-1.5 py-0.5 rounded-full" :
                           "bg-amber-50/80 text-amber-700 border border-amber-200/50 text-[0.625rem] px-1.5 py-0.5 rounded-full"
-                        }>
-                          {project.status === "active" ? "Active" :
-                           project.status === "completed" ? "Completed" : "On Hold"}
-                        </Badge>
+                  }>
+                    {project.status === "active" ? "Active" :
+                     project.status === "completed" ? "Completed" : "On Hold"}
+                  </Badge>
                       </div>
                       <div className="flex items-center gap-3 text-[0.625rem] text-gray-500">
                         <span>{projectTasks.length} {projectTasks.length === 1 ? 'task' : 'tasks'}</span>
@@ -181,16 +243,16 @@ export function ProjectView({
                             <span>{progress}% done</span>
                           </>
                         )}
-                        {project.dueDate && (
+                  {project.dueDate && (
                           <>
                             <span>•</span>
                             <span className="flex items-center gap-0.5">
                               <Calendar className="w-3 h-3" />
                               {formatDate(project.dueDate)}
-                            </span>
+                    </span>
                           </>
-                        )}
-                      </div>
+                  )}
+                </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 ml-4">
@@ -277,9 +339,9 @@ export function ProjectView({
                     ) : (
                       <div className="text-center py-6 text-gray-500">
                         <p className="text-xs">No tasks in this project</p>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                </div>
                 )}
               </div>
             )
@@ -310,4 +372,4 @@ export function ProjectView({
       )}
     </div>
   )
-}
+} 

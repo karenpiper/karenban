@@ -41,7 +41,8 @@ export function ClientProjectView({
 
   // Get all tasks for a client
   // - Tasks through projects (with projectId matching client's projects)
-  // - Unassigned tasks (no projectId) that should be shown at client level
+  // - Tasks without projects but with client field matching this client
+  // - Unassigned tasks (no projectId, no client) shown under "Unassigned" client only
   const getClientTasks = (clientName: string) => {
     const clientProjects = safeProjects.filter(p => 
       (p.client || "Unassigned") === clientName && 
@@ -52,14 +53,12 @@ export function ClientProjectView({
     // Tasks assigned to projects for this client
     const projectTasks = safeTasks.filter(task => task.projectId && projectIds.includes(task.projectId))
     
-    // Unassigned tasks (no projectId) - these will be shown at the top
-    // Note: We're showing ALL unassigned tasks for now, but you might want to filter by client somehow
-    // For now, unassigned tasks are shown under "Unassigned" client only
-    const unassignedTasks = clientName === "Unassigned" 
-      ? safeTasks.filter(task => !task.projectId)
-      : []
+    // Tasks without projects but assigned to this client
+    const tasksWithoutProject = clientName === "Unassigned"
+      ? safeTasks.filter(task => !task.projectId && !task.client)
+      : safeTasks.filter(task => !task.projectId && task.client === clientName)
     
-    return { projectTasks, unassignedTasks, allTasks: [...projectTasks, ...unassignedTasks] }
+    return { projectTasks, unassignedTasks: tasksWithoutProject, allTasks: [...projectTasks, ...tasksWithoutProject] }
   }
 
   // Get all unique clients from projects
