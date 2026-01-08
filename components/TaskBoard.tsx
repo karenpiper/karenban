@@ -67,10 +67,16 @@ export function TaskBoard() {
               updates.columnId = newColumnId // Use provided column if person not found
             }
           } else {
-            // Unassigning - clear category and move to uncategorized if currently in follow-up
+            // Unassigning - clear assignee, category and move to uncategorized if currently in follow-up
+            updates.assignedTo = undefined
             updates.categoryId = undefined
             updates.category = undefined
-            if (task.columnId === 'col-followup') {
+            // Check if task is in follow-up column (either directly or through a person category)
+            const isInFollowUp = task.columnId === 'col-followup' || 
+              (appState.columns.find(col => col.id === 'col-followup')?.categories.some(
+                cat => cat.id === task.categoryId
+              ) ?? false)
+            if (isInFollowUp) {
               updates.columnId = 'col-uncategorized' // Move back to uncategorized when unassigning from follow-up
             } else {
               updates.columnId = task.columnId || newColumnId // Keep current column if not in follow-up
@@ -580,7 +586,6 @@ export function TaskBoard() {
                 onValueChange={(value) => {
                   // Use updateTaskLocation for both assign and unassign to ensure consistency
                   const assignee = value === "__unassigned__" ? undefined : value
-                  console.log('Unassigning task:', task.id, 'from:', task.assignedTo, 'to:', assignee, 'current column:', task.columnId)
                   // When unassigning, the function will automatically move to uncategorized if in follow-up
                   // Pass the current task's column ID so the function can check if it's in follow-up
                   updateTaskLocation(task.id, task.columnId || 'col-uncategorized', undefined, assignee)
