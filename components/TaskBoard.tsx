@@ -432,8 +432,17 @@ export function TaskBoard() {
         }}
       >
         <div className="flex items-center justify-between mb-1">
-          <h4 className="text-[0.625rem] font-normal text-gray-600 uppercase tracking-wide flex items-center gap-1.5">
+          <h4 className={`text-[0.625rem] font-normal uppercase tracking-wide flex items-center gap-1.5 ${
+            category.isTeamMember 
+              ? 'text-blue-600 font-medium' 
+              : 'text-gray-600'
+          }`}>
             {category.name}
+            {category.isTeamMember && (
+              <span className="text-[0.5rem] bg-blue-100/80 text-blue-700 px-1 py-0.5 rounded-full">
+                Team
+              </span>
+            )}
             {category.archived && (
               <span className="text-[0.5rem] bg-gray-200/80 text-gray-500 px-1 py-0.5 rounded-full">
                 Archived
@@ -599,6 +608,12 @@ export function TaskBoard() {
             {column.categories.length > 0 ? (
               column.categories
                 .filter(category => !category.archived)
+                .sort((a, b) => {
+                  // Team members first, then non-team follow-ups
+                  if (a.isTeamMember && !b.isTeamMember) return -1
+                  if (!a.isTeamMember && b.isTeamMember) return 1
+                  return a.order - b.order
+                })
                 .map(category => renderCategory(column.id, category))
             ) : (
               // Render tasks directly in the column if no categories
