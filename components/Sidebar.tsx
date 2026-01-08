@@ -1,17 +1,23 @@
 "use client"
 
-import { Home, Calendar, BarChart3, Users, Settings, ChevronLeft, CheckCircle, Clock, AlertTriangle, User, Building2, FolderKanban } from "lucide-react"
+import { useState } from "react"
+import { Home, Calendar, BarChart3, Users, Settings, ChevronLeft, CheckCircle, Clock, AlertTriangle, User, Building2, FolderKanban, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { BulkImportDialog } from "./BulkImportDialog"
+import type { Project, Task } from "../types"
 
 interface SidebarProps {
   isCollapsed?: boolean
   onToggle?: () => void
   currentView?: "today" | "calendar" | "team" | "projects" | "clients"
   onViewChange?: (view: "today" | "calendar" | "team" | "projects" | "clients") => void
+  onBulkImport?: (projects: Project[], tasks: Task[]) => void
+  existingProjects?: Project[]
 }
 
 // Updated Sidebar with glass morphism effects - Force deployment
-export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", onViewChange }: SidebarProps) {
+export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", onViewChange, onBulkImport, existingProjects = [] }: SidebarProps) {
+  const [bulkImportOpen, setBulkImportOpen] = useState(false)
   const currentDate = new Date().toLocaleDateString('en-US', { 
     weekday: 'long', 
     month: 'short', 
@@ -183,6 +189,20 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
           </div>
         </nav>
 
+        {/* Actions */}
+        {!isCollapsed && (
+          <div className="p-3 border-t border-gray-200/20">
+            <Button
+              onClick={() => setBulkImportOpen(true)}
+              variant="ghost"
+              className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-gray-600 hover:text-gray-800 rounded-xl transition-all duration-300 hover:bg-gray-50/60 hover:shadow-sm mb-1.5"
+            >
+              <FileText className="w-3 h-3 mr-2 text-gray-500" />
+              Bulk Import
+            </Button>
+          </div>
+        )}
+
         {/* Settings */}
         <div className="p-3 border-t border-gray-200/20">
           <Button
@@ -194,6 +214,15 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
           </Button>
         </div>
       </div>
+
+      {onBulkImport && (
+        <BulkImportDialog
+          open={bulkImportOpen}
+          onOpenChange={setBulkImportOpen}
+          onImport={onBulkImport}
+          existingProjects={existingProjects}
+        />
+      )}
     </aside>
   )
 }

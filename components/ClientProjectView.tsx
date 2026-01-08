@@ -4,9 +4,8 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Building2, ChevronDown, ChevronUp, Calendar, X, FolderKanban, Archive, ArchiveRestore, FileText } from "lucide-react"
+import { Plus, Search, Building2, ChevronDown, ChevronUp, Calendar, X, FolderKanban, Archive, ArchiveRestore } from "lucide-react"
 import type { Project, Task } from "../types"
-import { BulkImportDialog } from "./BulkImportDialog"
 
 interface ClientProjectViewProps {
   projects: Project[]
@@ -18,7 +17,6 @@ interface ClientProjectViewProps {
   onEditTask: (task: Task) => void
   onDeleteTask: (taskId: string) => void
   onCreateProject: () => void
-  onBulkImport: (projects: Project[], tasks: Task[]) => void
 }
 
 export function ClientProjectView({
@@ -30,14 +28,12 @@ export function ClientProjectView({
   onUnarchiveProject,
   onEditTask,
   onDeleteTask,
-  onCreateProject,
-  onBulkImport
+  onCreateProject
 }: ClientProjectViewProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [showArchived, setShowArchived] = useState(false)
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set())
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set())
-  const [bulkImportOpen, setBulkImportOpen] = useState(false)
 
   // Ensure we have valid arrays
   const safeProjects = projects || []
@@ -191,31 +187,14 @@ export function ClientProjectView({
           <h2 className="text-lg font-medium text-gray-800 mb-0.5">Client</h2>
           <p className="text-[0.625rem] text-gray-500">View tasks organized by client and project</p>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Button
-            onClick={() => setBulkImportOpen(true)}
-            variant="ghost"
-            className="bg-gray-50/60 text-gray-700 border border-gray-200/40 rounded-xl shadow-sm hover:bg-gray-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem]"
-          >
-            <FileText className="w-3.5 h-3.5 mr-1.5" />
-            Bulk Import
-          </Button>
-          <Button
-            onClick={onCreateProject}
-            className="bg-blue-50/60 text-blue-700 border border-blue-200/40 rounded-xl shadow-sm hover:bg-blue-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem]"
-          >
-            <Plus className="w-3.5 h-3.5 mr-1.5" />
-            New Project
-          </Button>
-        </div>
+        <Button
+          onClick={onCreateProject}
+          className="bg-blue-50/60 text-blue-700 border border-blue-200/40 rounded-xl shadow-sm hover:bg-blue-50/80 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem]"
+        >
+          <Plus className="w-3.5 h-3.5 mr-1.5" />
+          New Project
+        </Button>
       </div>
-
-      <BulkImportDialog
-        open={bulkImportOpen}
-        onOpenChange={setBulkImportOpen}
-        onImport={onBulkImport}
-        existingProjects={safeProjects}
-      />
 
       {/* Filters */}
       <div className="flex items-center gap-1.5">

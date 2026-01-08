@@ -125,7 +125,6 @@ export default function HomePage() {
               onEditTask={handleEditTask}
               onDeleteTask={handleDeleteTask}
               onCreateProject={handleCreateProject}
-              onBulkImport={handleBulkImport}
             />
           </div>
         )
@@ -142,7 +141,6 @@ export default function HomePage() {
               onEditTask={handleEditTask}
               onDeleteTask={handleDeleteTask}
               onCreateProject={handleCreateProject}
-              onBulkImport={handleBulkImport}
             />
           </div>
         )
@@ -158,6 +156,8 @@ export default function HomePage() {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentView={currentView}
         onViewChange={setCurrentView}
+        onBulkImport={handleBulkImport}
+        existingProjects={appState?.projects || []}
       />
       {renderView()}
     </div>
