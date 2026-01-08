@@ -87,12 +87,15 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    const handleEditTaskEvent = (e: CustomEvent) => {
-      handleEditTask(e.detail)
+    const handleEditTaskEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<Task>
+      if (customEvent.detail) {
+        setTaskToEdit(customEvent.detail)
+      }
     }
-    window.addEventListener('editTask', handleEditTaskEvent as EventListener)
+    window.addEventListener('editTask', handleEditTaskEvent)
     return () => {
-      window.removeEventListener('editTask', handleEditTaskEvent as EventListener)
+      window.removeEventListener('editTask', handleEditTaskEvent)
     }
   }, [])
 
