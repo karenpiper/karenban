@@ -345,7 +345,7 @@ export function TeamView({
                               if ((e.target as HTMLElement).closest('button')) return
                               onEditTask(task)
                             }}
-                            className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
+                            className="bg-gradient-to-br from-gray-50/60 via-gray-50/50 to-white/40 rounded-lg p-2 hover:from-gray-100/80 hover:via-gray-100/70 hover:to-white/50 transition-all duration-300 cursor-pointer group"
                           >
                             <div className="flex items-start justify-between mb-1">
                               <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
@@ -478,7 +478,7 @@ export function TeamView({
                                 if ((e.target as HTMLElement).closest('button')) return
                                 onEditTask(task)
                               }}
-                              className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
+                              className="bg-gradient-to-br from-gray-50/60 via-gray-50/50 to-white/40 rounded-lg p-2 hover:from-gray-100/80 hover:via-gray-100/70 hover:to-white/50 transition-all duration-300 cursor-pointer group"
                             >
                               <div className="flex items-start justify-between mb-1">
                                 <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
