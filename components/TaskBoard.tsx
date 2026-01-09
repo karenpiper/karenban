@@ -567,7 +567,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
           // Trigger edit - this will be handled by parent
           window.dispatchEvent(new CustomEvent('editTask', { detail: task }))
         }}
-        className={`bg-white/70 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 p-2 mb-1.5 cursor-pointer ${
+        className={`bg-gradient-to-br from-white/70 via-white/60 to-gray-50/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md hover:from-white/80 hover:via-white/70 hover:to-gray-50/50 transition-all duration-300 p-2 mb-1.5 cursor-pointer ${
           draggedTask?.id === task.id ? 'opacity-40' : ''
         }`}
         style={{ userSelect: 'none' }}
@@ -1039,7 +1039,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                         {unassignedCount}
                       </span>
                     )}
-                  </button>
+            </button>
                   <button 
                     onClick={() => {
                       setFilterType('blocked')
@@ -1054,7 +1054,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                         {blockedCount}
                       </span>
                     )}
-                  </button>
+            </button>
                   <button 
                     onClick={() => {
                       setFilterType('overdue')
@@ -1069,7 +1069,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                         {overdueCount}
                       </span>
                     )}
-                  </button>
+            </button>
                 </>
               )
             })()}
@@ -1147,7 +1147,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
           </div>
         </div>
 
-            </div>
+              </div>
             
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!taskToDelete} onOpenChange={(open) => !open && setTaskToDelete(null)}>
@@ -1203,8 +1203,8 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                   <label htmlFor="deletePersonWithTasks" className="text-[0.625rem] text-gray-700 cursor-pointer">
                     Also delete all {taskCount} {taskCount === 1 ? 'task' : 'tasks'} assigned to this person
                   </label>
-                    </div>
-                  </div>
+                </div>
+              </div>
             ) : null
             })()}
           <AlertDialogFooter className="gap-2">
@@ -1270,7 +1270,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
               
               return filteredTasks.map(task => {
                 const project = appState.projects?.find(p => p.id === task.projectId)
-                return (
+              return (
                   <div
                     key={task.id}
                     onClick={() => {
@@ -1314,8 +1314,8 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                         </span>
                       )}
                     </div>
-                  </div>
-                )
+                </div>
+              )
               })
             })()}
           </div>

@@ -288,7 +288,7 @@ export function TeamView({
             return (
               <div
                 key={member}
-                className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                className="bg-gradient-to-br from-white/60 via-white/50 to-gray-50/30 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
               >
                 {/* Team Member Row */}
                 <button
@@ -421,7 +421,7 @@ export function TeamView({
               return (
                 <div
                   key={member}
-                  className="bg-gray-50/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                  className="bg-gradient-to-br from-gray-50/60 via-gray-50/50 to-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
                 >
                   {/* Non-Team Member Row */}
                   <button
