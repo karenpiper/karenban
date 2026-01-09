@@ -567,7 +567,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
           // Trigger edit - this will be handled by parent
           window.dispatchEvent(new CustomEvent('editTask', { detail: task }))
         }}
-        className={`bg-gradient-to-br from-white/70 via-white/60 to-gray-50/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md hover:from-white/80 hover:via-white/70 hover:to-gray-50/50 transition-all duration-300 p-2 mb-1.5 cursor-pointer ${
+        className={`bg-white/70 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 p-2 mb-1.5 cursor-pointer ${
           draggedTask?.id === task.id ? 'opacity-40' : ''
         }`}
         style={{ userSelect: 'none' }}
@@ -980,7 +980,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
   }
 
   return (
-    <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50/80 via-white/50 to-gray-50/60">
+    <div className="flex-1 overflow-auto bg-gradient-to-br from-blue-50/40 via-violet-50/30 to-purple-50/40">
       {/* Header */}
       <header className="bg-white/60 backdrop-blur-2xl border-b border-gray-200/30 shadow-sm p-2">
         <div className="mb-2">
@@ -1277,7 +1277,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                       window.dispatchEvent(new CustomEvent('editTask', { detail: task }))
                       setFilterDialogOpen(false)
                     }}
-                    className="bg-gradient-to-br from-white/60 via-white/50 to-gray-50/30 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md hover:from-white/80 hover:via-white/70 hover:to-gray-50/50 transition-all duration-300 p-2 cursor-pointer"
+                    className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 p-2 cursor-pointer"
                   >
                     <div className="flex justify-between items-start mb-1">
                       <h4 className="font-normal text-[0.625rem] text-gray-800 leading-tight flex-1">{task.title}</h4>

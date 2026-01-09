@@ -115,7 +115,7 @@ export function ProjectView({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 bg-gradient-to-br from-blue-50/40 via-violet-50/30 to-purple-50/40 min-h-screen p-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -253,9 +253,9 @@ export function ProjectView({
             return (
               <div 
                 key={project.id} 
-                className={`bg-gradient-to-br from-white/60 via-white/50 to-gray-50/30 backdrop-blur-xl border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden ${
+                className={`bg-white/60 backdrop-blur-xl border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden ${
                   dragOverTarget === project.id 
-                    ? "border-blue-400 bg-gradient-to-br from-blue-50/40 via-blue-50/30 to-blue-50/20" 
+                    ? "border-blue-400 bg-blue-50/40" 
                     : "border-gray-200/30"
                 }`}
                 onDragOver={(e) => handleDragOver(e, project.id)}

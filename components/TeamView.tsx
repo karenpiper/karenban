@@ -167,7 +167,7 @@ export function TeamView({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 bg-gradient-to-br from-blue-50/40 via-violet-50/30 to-purple-50/40 min-h-screen p-2">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div>
@@ -288,7 +288,7 @@ export function TeamView({
             return (
               <div
                 key={member}
-                className="bg-gradient-to-br from-white/60 via-white/50 to-gray-50/30 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
               >
                 {/* Team Member Row */}
                 <button
@@ -345,7 +345,7 @@ export function TeamView({
                               if ((e.target as HTMLElement).closest('button')) return
                               onEditTask(task)
                             }}
-                            className="bg-gradient-to-br from-gray-50/60 via-gray-50/50 to-white/40 rounded-lg p-2 hover:from-gray-100/80 hover:via-gray-100/70 hover:to-white/50 transition-all duration-300 cursor-pointer group"
+                            className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
                           >
                             <div className="flex items-start justify-between mb-1">
                               <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
@@ -421,7 +421,7 @@ export function TeamView({
               return (
                 <div
                   key={member}
-                  className="bg-gradient-to-br from-gray-50/60 via-gray-50/50 to-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                  className="bg-gray-50/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
                 >
                   {/* Non-Team Member Row */}
                   <button
@@ -478,7 +478,7 @@ export function TeamView({
                                 if ((e.target as HTMLElement).closest('button')) return
                                 onEditTask(task)
                               }}
-                              className="bg-gradient-to-br from-gray-50/60 via-gray-50/50 to-white/40 rounded-lg p-2 hover:from-gray-100/80 hover:via-gray-100/70 hover:to-white/50 transition-all duration-300 cursor-pointer group"
+                              className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group"
                             >
                               <div className="flex items-start justify-between mb-1">
                                 <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>

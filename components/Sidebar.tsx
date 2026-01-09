@@ -25,10 +25,10 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
   })
 
   return (
-    <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white/60 backdrop-blur-2xl border-r border-gray-200/30 shadow-sm transition-all duration-300 ease-out h-screen flex-shrink-0 sticky top-0`}>
+    <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-gradient-to-b from-blue-500/90 via-violet-500/85 to-purple-500/90 backdrop-blur-2xl border-r border-blue-400/30 shadow-lg transition-all duration-300 ease-out h-screen flex-shrink-0 sticky top-0`}>
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="p-3 border-b border-gray-200/20">
+        <div className="p-3 border-b border-white/20">
           <div className="flex items-center justify-between mb-2">
             {!isCollapsed && (
               <div className="flex items-center space-x-2">
@@ -43,7 +43,7 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             )}
             <button
               onClick={onToggle}
-              className="p-1 rounded-lg hover:bg-gray-100/60 text-gray-400 hover:text-gray-600 transition-all duration-300 hover:shadow-sm backdrop-blur-sm"
+              className="p-1 rounded-lg hover:bg-white/20 text-white/60 hover:text-white transition-all duration-300 hover:shadow-sm backdrop-blur-sm"
             >
               {isCollapsed ? <ChevronLeft className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
             </button>
@@ -52,13 +52,13 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
           {/* Task Summary */}
           {!isCollapsed && (
             <div className="grid grid-cols-2 gap-1.5">
-              <div className="bg-gray-50/60 backdrop-blur-xl border border-gray-200/40 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-2">
-                <div className="text-lg font-medium text-gray-800">24</div>
-                <div className="text-[0.625rem] text-gray-500">Total Tasks</div>
+              <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-2">
+                <div className="text-lg font-medium text-white">24</div>
+                <div className="text-[0.625rem] text-white/80">Total Tasks</div>
               </div>
-              <div className="bg-gray-50/60 backdrop-blur-xl border border-gray-200/40 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-2">
-                <div className="text-lg font-medium text-gray-800">8</div>
-                <div className="text-[0.625rem] text-gray-500">Due Today</div>
+              <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-2">
+                <div className="text-lg font-medium text-white">8</div>
+                <div className="text-[0.625rem] text-white/80">Due Today</div>
               </div>
             </div>
           )}
@@ -66,7 +66,7 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
 
         {/* Navigation */}
         <nav className="flex-1 p-3">
-          <h3 className="text-[0.625rem] font-normal text-gray-500 uppercase tracking-wide mb-2">
+          <h3 className="text-[0.625rem] font-normal text-white/80 uppercase tracking-wide mb-2">
             Views
           </h3>
           <div className="space-y-1">
@@ -75,8 +75,8 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
               onClick={() => onViewChange?.("today")}
               className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
                 currentView === "today"
-                  ? "bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
+                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
               }`}
             >
               <Calendar className="w-3 h-3 mr-2" />
@@ -87,8 +87,8 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
               onClick={() => onViewChange?.("calendar")}
               className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
                 currentView === "calendar"
-                  ? "bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
+                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
               }`}
             >
               <Calendar className="w-3 h-3 mr-2" />
@@ -99,8 +99,8 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
               onClick={() => onViewChange?.("team")}
               className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
                 currentView === "team"
-                  ? "bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
+                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
               }`}
             >
               <Users className="w-3 h-3 mr-2" />
@@ -111,8 +111,8 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
               onClick={() => onViewChange?.("projects")}
               className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
                 currentView === "projects"
-                  ? "bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
+                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
               }`}
             >
               <FolderKanban className="w-3 h-3 mr-2" />
@@ -123,8 +123,8 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
               onClick={() => onViewChange?.("clients")}
               className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
                 currentView === "clients"
-                  ? "bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
+                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
               }`}
             >
               <Building2 className="w-3 h-3 mr-2" />
@@ -135,8 +135,8 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
               onClick={() => onViewChange?.("tasks")}
               className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
                 currentView === "tasks"
-                  ? "bg-blue-50/60 text-blue-700 border border-blue-200/40 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-50/60 hover:text-gray-800 border border-transparent hover:border-gray-200/30"
+                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
+                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
               }`}
             >
               <FileText className="w-3 h-3 mr-2" />
@@ -151,7 +151,7 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               onClick={() => setBulkImportOpen(true)}
               variant="ghost"
-              className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-gray-600 hover:text-gray-800 rounded-xl transition-all duration-300 hover:bg-gray-50/60 hover:shadow-sm mb-1.5"
+              className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-white/80 hover:text-white rounded-xl transition-all duration-300 hover:bg-white/20 hover:shadow-sm mb-1.5"
             >
               <FileText className="w-3 h-3 mr-2 text-gray-500" />
               Bulk Import
@@ -163,7 +163,7 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
         <div className="p-3 border-t border-gray-200/20">
           <Button
             variant="ghost"
-            className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-gray-500 hover:text-gray-700 rounded-xl transition-all duration-300 hover:bg-gray-50/60 hover:shadow-sm"
+            className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-white/80 hover:text-white rounded-xl transition-all duration-300 hover:bg-white/20 hover:shadow-sm"
           >
             <Settings className="w-3 h-3 mr-2 text-gray-400" />
             {!isCollapsed && "Settings"}

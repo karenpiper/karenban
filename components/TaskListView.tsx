@@ -172,7 +172,7 @@ export function TaskListView({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 bg-gradient-to-br from-blue-50/40 via-violet-50/30 to-purple-50/40 min-h-screen p-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -204,7 +204,7 @@ export function TaskListView({
       </div>
 
       {/* Table */}
-      <div className="bg-gradient-to-br from-white/60 via-white/50 to-gray-50/30 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>

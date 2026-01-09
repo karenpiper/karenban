@@ -196,7 +196,7 @@ export function ClientProjectView({
           if ((e.target as HTMLElement).closest('button')) return
           onEditTask(task)
         }}
-        className="bg-gradient-to-br from-gray-50/60 via-gray-50/50 to-white/40 rounded-lg p-2 hover:from-gray-100/80 hover:via-gray-100/70 hover:to-white/50 transition-all duration-300 cursor-pointer group ml-3"
+        className="bg-gray-50/60 rounded-lg p-2 hover:bg-gray-100/80 transition-colors cursor-pointer group ml-3"
       >
         <div className="flex items-start justify-between mb-1">
           <div className="flex-1 min-w-0">
@@ -234,7 +234,7 @@ export function ClientProjectView({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 bg-gradient-to-br from-blue-50/40 via-violet-50/30 to-purple-50/40 min-h-screen p-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -296,9 +296,9 @@ export function ClientProjectView({
             return (
               <div 
                 key={clientName} 
-                className={`bg-gradient-to-br from-white/60 via-white/50 to-gray-50/30 backdrop-blur-xl border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden ${
+                className={`bg-white/60 backdrop-blur-xl border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden ${
                   dragOverTarget?.type === 'client' && dragOverTarget.id === clientName
-                    ? "border-blue-400 bg-gradient-to-br from-blue-50/40 via-blue-50/30 to-blue-50/20" 
+                    ? "border-blue-400 bg-blue-50/40" 
                     : "border-gray-200/30"
                 }`}
                 onDragOver={(e) => handleDragOver(e, 'client', clientName)}
@@ -391,9 +391,9 @@ export function ClientProjectView({
                           return (
                             <div
                               key={project.id}
-                              className={`bg-gradient-to-br from-gray-50/60 via-gray-50/50 to-white/40 rounded-lg border overflow-hidden ${
+                              className={`bg-gray-50/60 rounded-lg border overflow-hidden ${
                                 dragOverTarget?.type === 'project' && dragOverTarget.id === project.id
-                                  ? "border-blue-400 bg-gradient-to-br from-blue-50/40 via-blue-50/30 to-blue-50/20" 
+                                  ? "border-blue-400 bg-blue-50/40" 
                                   : "border-gray-200/30"
                               }`}
                               onDragOver={(e) => {
