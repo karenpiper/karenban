@@ -1091,7 +1091,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
   }
 
   return (
-    <div className="flex-1 overflow-auto bg-gradient-to-br from-blue-50/40 via-violet-50/30 to-purple-50/40">
+    <div className="flex-1 overflow-auto bg-mgmt-beige">
       {/* Header */}
       <header className="bg-white/60 backdrop-blur-2xl border-b border-gray-200/30 shadow-sm p-2">
         <div className="mb-2">
