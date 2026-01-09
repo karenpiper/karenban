@@ -670,17 +670,32 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
       >
         <div className="flex justify-between items-start mb-1">
           <h4 className="font-normal text-[0.625rem] text-gray-800 leading-tight flex-1">{task.title}</h4>
-          <button 
-            onClick={(e) => {
-              e.stopPropagation()
-              handleDeleteTask(task)
-            }}
-            className="text-gray-400/70 hover:text-red-500 p-0.5 rounded-full transition-colors flex-shrink-0 ml-1"
-            title="Delete task"
-          >
-            <X className="w-2.5 h-2.5" />
-          </button>
+          <div className="flex items-center gap-1 flex-shrink-0 ml-1">
+            {task.status !== 'done' && task.columnId !== 'col-done' && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  // Move task to done column
+                  updateTaskLocation(task.id, 'col-done')
+                }}
+                className="text-gray-400/70 hover:text-green-500 p-0.5 rounded-full transition-colors"
+                title="Mark as done"
+              >
+                <Check className="w-2.5 h-2.5" />
+              </button>
+            )}
+            <button 
+              onClick={(e) => {
+                e.stopPropagation()
+                handleDeleteTask(task)
+              }}
+              className="text-gray-400/70 hover:text-red-500 p-0.5 rounded-full transition-colors"
+              title="Delete task"
+            >
+              <X className="w-2.5 h-2.5" />
+            </button>
           </div>
+        </div>
         <div className="flex flex-wrap items-center gap-1 mt-1">
           {(task.client || project) && (
             <>
