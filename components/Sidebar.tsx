@@ -32,12 +32,12 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
           <div className="flex items-center justify-between mb-2">
             {!isCollapsed && (
               <div className="flex items-center space-x-2">
-                <div className="h-7 w-7 rounded-xl bg-gradient-to-br from-blue-400/80 via-violet-400/70 to-purple-500/80 flex items-center justify-center shadow-md backdrop-blur-xl">
+                <div className="h-7 w-7 rounded-xl bg-white/20 backdrop-blur-xl flex items-center justify-center shadow-md border border-white/30">
                   <Home className="w-3.5 h-3.5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-medium text-gray-800">Task Manager</h2>
-                  <p className="text-[0.625rem] text-gray-500">{currentDate}</p>
+                  <h2 className="text-sm font-medium text-white">Task Manager</h2>
+                  <p className="text-[0.625rem] text-white/80">{currentDate}</p>
                 </div>
               </div>
             )}
