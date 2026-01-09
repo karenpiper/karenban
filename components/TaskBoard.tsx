@@ -172,7 +172,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
     }
   }
 
-  // Auto-move completed tasks when status changes to 'done'
+  // Auto-move completed tasks when status changes to 'done' (only when auto-move is enabled)
   React.useEffect(() => {
     if (autoMoveEnabled && appState) {
       // Check if any tasks have status 'done' but aren't in col-done
@@ -181,10 +181,14 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
       )
       
       if (needsMoving) {
-        handleAutoMoveCompleted()
+        // Use a small delay to avoid infinite loops
+        const timeoutId = setTimeout(() => {
+          handleAutoMoveCompleted()
+        }, 100)
+        return () => clearTimeout(timeoutId)
       }
     }
-  }, [appState?.tasks, autoMoveEnabled])
+  }, [appState?.tasks?.length, autoMoveEnabled]) // Only depend on tasks length to avoid infinite loops
 
   // Add task handler
   const handleAddTask = (categoryId: string, columnId?: string) => {
