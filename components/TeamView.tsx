@@ -167,7 +167,7 @@ export function TeamView({
   }
 
   return (
-    <div className="space-y-2 bg-gradient-to-br from-blue-50/40 via-violet-50/30 to-purple-50/40 min-h-screen p-2">
+    <div className="space-y-2 bg-mgmt-beige min-h-screen p-2">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div>

@@ -4,39 +4,48 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.99 0.005 0);
+  /* MGMT Design System Colors */
+  --mgmt-yellow: #e8f142;
+  --mgmt-green: #2d9d78;
+  --mgmt-pink: #f5c8e8;
+  --mgmt-purple: #c7b3e5;
+  --mgmt-beige: #f4e8d8;
+  --mgmt-lime: #d4e157;
+  --mgmt-sage: #5a8c6f;
+  
+  --background: #f4e8d8; /* Beige background */
   --foreground: oklch(0.25 0.01 0);
   --card: oklch(0.995 0.003 0);
   --card-foreground: oklch(0.25 0.01 0);
   --popover: oklch(0.995 0.003 0);
   --popover-foreground: oklch(0.25 0.01 0);
-  --primary: oklch(0.35 0.08 250);
+  --primary: #2d9d78; /* Green */
   --primary-foreground: oklch(0.98 0.002 0);
-  --secondary: oklch(0.96 0.01 0);
+  --secondary: #f5c8e8; /* Pink */
   --secondary-foreground: oklch(0.35 0.01 0);
   --muted: oklch(0.96 0.008 0);
   --muted-foreground: oklch(0.5 0.01 0);
-  --accent: oklch(0.94 0.02 280);
+  --accent: #c7b3e5; /* Purple */
   --accent-foreground: oklch(0.35 0.01 0);
   --destructive: oklch(0.65 0.12 25);
   --destructive-foreground: oklch(0.98 0.002 0);
   --border: oklch(0.92 0.008 0);
   --input: oklch(0.94 0.01 0);
-  --ring: oklch(0.65 0.05 250);
-  --chart-1: oklch(0.7 0.12 180);
-  --chart-2: oklch(0.65 0.08 240);
-  --chart-3: oklch(0.55 0.06 300);
-  --chart-4: oklch(0.75 0.1 60);
-  --chart-5: oklch(0.7 0.1 20);
-  --radius: 0.5rem;
-  --sidebar: oklch(0.98 0.003 0);
-  --sidebar-foreground: oklch(0.25 0.01 0);
-  --sidebar-primary: oklch(0.4 0.08 250);
+  --ring: #c7b3e5; /* Purple */
+  --chart-1: #2d9d78; /* Green */
+  --chart-2: #c7b3e5; /* Purple */
+  --chart-3: #f5c8e8; /* Pink */
+  --chart-4: #e8f142; /* Yellow */
+  --chart-5: #d4e157; /* Lime */
+  --radius: 1rem; /* More rounded corners */
+  --sidebar: #c7b3e5; /* Purple sidebar */
+  --sidebar-foreground: oklch(0.98 0.002 0);
+  --sidebar-primary: #2d9d78; /* Green */
   --sidebar-primary-foreground: oklch(0.98 0.002 0);
-  --sidebar-accent: oklch(0.95 0.01 0);
+  --sidebar-accent: #f5c8e8; /* Pink */
   --sidebar-accent-foreground: oklch(0.35 0.01 0);
   --sidebar-border: oklch(0.92 0.008 0);
-  --sidebar-ring: oklch(0.65 0.05 250);
+  --sidebar-ring: #c7b3e5; /* Purple */
 }
 
 .dark {
@@ -107,24 +116,36 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 10px;
-    line-height: 1.3;
+    line-height: 1.6; /* Relaxed line-height for body */
     letter-spacing: -0.01em;
     font-weight: 400;
-    /* Soft, organic background gradient */
-    background: linear-gradient(135deg, oklch(0.99 0.005 0) 0%, oklch(0.98 0.008 280) 100%);
+    /* MGMT beige background */
+    background: #f4e8d8;
     min-height: 100vh;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-weight: 500;
-    letter-spacing: -0.02em;
+    font-family: var(--font-outfit), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.03em; /* Tight tracking */
+    line-height: 1.2;
   }
   
-  h1 { font-size: 1rem; }
-  h2 { font-size: 0.875rem; }
-  h3 { font-size: 0.75rem; }
-  h4 { font-size: 0.6875rem; }
-  h5 { font-size: 0.625rem; }
-  h6 { font-size: 0.5625rem; }
+  h1 { 
+    font-size: 1.25rem; /* 2xl equivalent */
+    font-weight: 800; /* Extrabold */
+  }
+  h2 { 
+    font-size: 1rem; /* xl */
+    font-weight: 700; /* Bold */
+  }
+  h3 { 
+    font-size: 0.875rem; /* lg */
+    font-weight: 700; /* Bold */
+  }
+  h4 { font-size: 0.75rem; }
+  h5 { font-size: 0.6875rem; }
+  h6 { font-size: 0.625rem; }
 }

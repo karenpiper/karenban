@@ -1,11 +1,23 @@
 import type { Metadata } from "next"
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
+import { Inter, Outfit } from 'next/font/google'
 import "./globals.css"
+
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+const outfit = Outfit({ 
+  subsets: ['latin'],
+  variable: '--font-outfit',
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
+})
 
 export const metadata: Metadata = {
   title: "karenBan",
-  description: "A modern task management application with beautiful glass morphism design",
+  description: "A vibrant, playful task management application with the MGMT design system",
 }
 
 export default function RootLayout({
@@ -14,13 +26,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
       <head>
         <style>{`
-          html {
-            font-family: ${GeistSans.style.fontFamily};
-            --font-sans: ${GeistSans.variable};
-            --font-mono: ${GeistMono.variable};
+          :root {
+            --font-inter: ${inter.style.fontFamily};
+            --font-outfit: ${outfit.style.fontFamily};
           }
         `}</style>
       </head>

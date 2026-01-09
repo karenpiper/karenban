@@ -49,6 +49,16 @@ const config: Config = {
           "4": "var(--chart-4)",
           "5": "var(--chart-5)",
         },
+        // MGMT Design System Colors
+        mgmt: {
+          yellow: "#e8f142",
+          green: "#2d9d78",
+          pink: "#f5c8e8",
+          purple: "#c7b3e5",
+          beige: "#f4e8d8",
+          lime: "#d4e157",
+          sage: "#5a8c6f",
+        },
         // Override gray scale with softer, more muted values
         gray: {
           50: "oklch(0.98 0.002 0)",
@@ -70,6 +80,11 @@ const config: Config = {
         xl: "calc(var(--radius) + 4px)",
         "2xl": "calc(var(--radius) + 8px)",
         "3xl": "calc(var(--radius) + 12px)",
+        "4xl": "calc(var(--radius) + 16px)",
+      },
+      fontFamily: {
+        sans: ["var(--font-inter)", "sans-serif"],
+        heading: ["var(--font-outfit)", "sans-serif"],
       },
       fontSize: {
         xs: ["0.625rem", { lineHeight: "1.3", letterSpacing: "-0.01em" }],
