@@ -165,7 +165,7 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             variant="ghost"
             className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-white/80 hover:text-white rounded-xl transition-all duration-300 hover:bg-white/20 hover:shadow-sm"
           >
-            <Settings className="w-3 h-3 mr-2 text-gray-400" />
+            <Settings className="w-3 h-3 mr-2 text-white/60" />
             {!isCollapsed && "Settings"}
           </Button>
         </div>
