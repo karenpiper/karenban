@@ -42,7 +42,7 @@ export function TaskCard({ task, project, onEdit, onDelete, onComplete, draggabl
 
   return (
     <Card 
-      className={`bg-gradient-to-br from-white/70 via-white/60 to-gray-50/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl hover:border-gray-300/50 hover:shadow-md hover:from-white/80 hover:via-white/70 hover:to-gray-50/50 transition-all duration-300 group ${draggable ? "cursor-move" : "cursor-pointer"}`}
+      className={`bg-white/70 backdrop-blur-xl border border-gray-200/30 rounded-2xl hover:border-gray-300/50 hover:shadow-md transition-all duration-300 group ${draggable ? "cursor-move" : "cursor-pointer"}`}
       draggable={draggable}
       onDragStart={handleDragStart}
     >

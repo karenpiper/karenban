@@ -40,6 +40,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
   const [deletePersonWithTasks, setDeletePersonWithTasks] = useState(false)
   const [filterDialogOpen, setFilterDialogOpen] = useState(false)
   const [filterType, setFilterType] = useState<'unassigned' | 'blocked' | 'overdue' | null>(null)
+  const [autoMoveEnabled, setAutoMoveEnabled] = useState(false)
 
   // Update task properties when dragged to new location
   const updateTaskLocation = (taskId: string, newColumnId: string, newCategoryId?: string, newAssignee?: string) => {
@@ -136,6 +137,54 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
     onUpdateState(updatedState)
     saveAppState(updatedState)
   }
+
+  // Auto-move completed tasks to done column
+  const handleAutoMoveCompleted = () => {
+    if (!appState) return
+
+    const updatedTasks = appState.tasks.map((task) => {
+      // If task has status 'done' but is not in col-done, move it there
+      if (task.status === 'done' && task.columnId !== 'col-done') {
+        const now = new Date()
+        return {
+          ...task,
+          columnId: 'col-done',
+          categoryId: undefined, // Remove category assignment when moving to done
+          completedAt: task.completedAt || now,
+          updatedAt: now
+        }
+      }
+      return task
+    })
+
+    const updatedState = { ...appState, tasks: updatedTasks }
+    onUpdateState(updatedState)
+    saveAppState(updatedState)
+  }
+
+  // Handle auto-move toggle
+  const handleToggleAutoMove = () => {
+    const newState = !autoMoveEnabled
+    setAutoMoveEnabled(newState)
+    if (newState) {
+      // When enabling, immediately move all done tasks
+      handleAutoMoveCompleted()
+    }
+  }
+
+  // Auto-move completed tasks when status changes to 'done'
+  React.useEffect(() => {
+    if (autoMoveEnabled && appState) {
+      // Check if any tasks have status 'done' but aren't in col-done
+      const needsMoving = appState.tasks.some(
+        task => task.status === 'done' && task.columnId !== 'col-done'
+      )
+      
+      if (needsMoving) {
+        handleAutoMoveCompleted()
+      }
+    }
+  }, [appState?.tasks, autoMoveEnabled])
 
   // Add task handler
   const handleAddTask = (categoryId: string, columnId?: string) => {
@@ -1077,7 +1126,14 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
 
           {/* Toggle Switches */}
           <div className="flex gap-1.5">
-            <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600">
+            <button 
+              onClick={handleToggleAutoMove}
+              className={`backdrop-blur-xl border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] ${
+                autoMoveEnabled
+                  ? "bg-blue-50/80 border-blue-200/50 text-blue-700"
+                  : "bg-white/40 border-gray-200/30 text-gray-600 hover:bg-white/60"
+              }`}
+            >
               Auto-move completed
             </button>
             <button className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600">
