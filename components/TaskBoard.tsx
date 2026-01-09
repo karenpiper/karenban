@@ -1277,7 +1277,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                       window.dispatchEvent(new CustomEvent('editTask', { detail: task }))
                       setFilterDialogOpen(false)
                     }}
-                    className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md hover:bg-white/80 transition-all duration-300 p-2 cursor-pointer"
+                    className="bg-gradient-to-br from-white/60 via-white/50 to-gray-50/30 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md hover:from-white/80 hover:via-white/70 hover:to-gray-50/50 transition-all duration-300 p-2 cursor-pointer"
                   >
                     <div className="flex justify-between items-start mb-1">
                       <h4 className="font-normal text-[0.625rem] text-gray-800 leading-tight flex-1">{task.title}</h4>
