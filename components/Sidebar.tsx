@@ -160,7 +160,7 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
         )}
 
         {/* Settings */}
-        <div className="p-3 border-t border-gray-200/20">
+        <div className="p-3 border-t border-white/20">
           <Button
             variant="ghost"
             className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-white/80 hover:text-white rounded-xl transition-all duration-300 hover:bg-white/20 hover:shadow-sm"
