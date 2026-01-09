@@ -140,16 +140,41 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
 
   // Auto-move completed tasks to done column
   const handleAutoMoveCompleted = () => {
-    if (!appState) return
+    if (!appState) {
+      console.log('Auto-move: No appState')
+      return
+    }
+
+    console.log('Auto-move: Checking tasks...', appState.tasks.length)
+    
+    const tasksToMove = appState.tasks.filter(task => {
+      const isDone = task.status === 'done' || task.status === 'completed'
+      const notInDoneColumn = task.columnId !== 'col-done'
+      const result = isDone && notInDoneColumn
+      if (result) {
+        console.log('Auto-move: Found task to move:', task.id, 'status:', task.status, 'columnId:', task.columnId)
+      }
+      return result
+    })
+
+    console.log('Auto-move: Found', tasksToMove.length, 'tasks to move')
+
+    if (tasksToMove.length === 0) {
+      console.log('Auto-move: No tasks to move')
+      return
+    }
 
     const updatedTasks = appState.tasks.map((task) => {
-      // If task has status 'done' but is not in col-done, move it there
-      if (task.status === 'done' && task.columnId !== 'col-done') {
+      // If task has status 'done' or 'completed' but is not in col-done, move it there
+      const isDone = task.status === 'done' || task.status === 'completed'
+      if (isDone && task.columnId !== 'col-done') {
         const now = new Date()
+        console.log('Auto-move: Moving task', task.id, 'from', task.columnId, 'to col-done')
         return {
           ...task,
           columnId: 'col-done',
           categoryId: undefined, // Remove category assignment when moving to done
+          status: 'done', // Ensure status is 'done'
           completedAt: task.completedAt || now,
           updatedAt: now
         }
@@ -158,18 +183,20 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
     })
 
     const updatedState = { ...appState, tasks: updatedTasks }
+    console.log('Auto-move: Updating state with', updatedTasks.filter(t => t.columnId === 'col-done').length, 'tasks in done column')
     onUpdateState(updatedState)
     saveAppState(updatedState)
   }
 
   // Handle auto-move toggle
   const handleToggleAutoMove = () => {
+    console.log('Auto-move: Button clicked, current state:', autoMoveEnabled)
     const newState = !autoMoveEnabled
     setAutoMoveEnabled(newState)
-    if (newState) {
-      // When enabling, immediately move all done tasks
-      handleAutoMoveCompleted()
-    }
+    console.log('Auto-move: New state:', newState)
+    // Always run the move function when clicked (whether enabling or disabling)
+    // This allows manual triggering even if already enabled
+    handleAutoMoveCompleted()
   }
 
   // Auto-move completed tasks when status changes to 'done' (only when auto-move is enabled)
