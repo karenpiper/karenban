@@ -147,7 +147,7 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
 
         {/* Actions */}
         {!isCollapsed && (
-          <div className="p-3 border-t border-gray-200/20">
+          <div className="p-3 border-t border-white/20">
             <Button
               onClick={() => setBulkImportOpen(true)}
               variant="ghost"
