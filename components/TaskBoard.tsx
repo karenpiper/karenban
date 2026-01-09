@@ -147,12 +147,18 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
 
     console.log('Auto-move: Checking tasks...', appState.tasks.length)
     
+    // Find the "Done" category in the Today column
+    const todayColumn = appState.columns.find(col => col.id === 'col-today')
+    const doneCategory = todayColumn?.categories.find(cat => cat.name === 'Done' || cat.id === 'cat-today-done')
+    const doneCategoryId = doneCategory?.id
+
     const tasksToMove = appState.tasks.filter(task => {
-      const isDone = task.status === 'done' || task.status === 'completed'
+      const isDoneStatus = task.status === 'done' || task.status === 'completed'
+      const isInDoneCategory = doneCategoryId && task.categoryId === doneCategoryId
       const notInDoneColumn = task.columnId !== 'col-done'
-      const result = isDone && notInDoneColumn
+      const result = (isDoneStatus || isInDoneCategory) && notInDoneColumn
       if (result) {
-        console.log('Auto-move: Found task to move:', task.id, 'status:', task.status, 'columnId:', task.columnId)
+        console.log('Auto-move: Found task to move:', task.id, 'status:', task.status, 'columnId:', task.columnId, 'categoryId:', task.categoryId, 'reason:', isDoneStatus ? 'status' : 'category')
       }
       return result
     })
@@ -164,12 +170,22 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
       return
     }
 
+    // Find the "Done" category in the Today column
+    const todayColumn = appState.columns.find(col => col.id === 'col-today')
+    const doneCategory = todayColumn?.categories.find(cat => cat.name === 'Done' || cat.id === 'cat-today-done')
+    const doneCategoryId = doneCategory?.id
+
     const updatedTasks = appState.tasks.map((task) => {
-      // If task has status 'done' or 'completed' but is not in col-done, move it there
-      const isDone = task.status === 'done' || task.status === 'completed'
-      if (isDone && task.columnId !== 'col-done') {
+      // Check if task should be moved:
+      // 1. Has status 'done' or 'completed' but is not in col-done
+      // 2. Is in the "Done" category within Today column
+      const isDoneStatus = task.status === 'done' || task.status === 'completed'
+      const isInDoneCategory = doneCategoryId && task.categoryId === doneCategoryId
+      const notInDoneColumn = task.columnId !== 'col-done'
+      
+      if ((isDoneStatus || isInDoneCategory) && notInDoneColumn) {
         const now = new Date()
-        console.log('Auto-move: Moving task', task.id, 'from', task.columnId, 'to col-done')
+        console.log('Auto-move: Moving task', task.id, 'from', task.columnId, 'to col-done', 'reason:', isDoneStatus ? 'status' : 'category')
         return {
           ...task,
           columnId: 'col-done',
