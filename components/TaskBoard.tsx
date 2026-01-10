@@ -918,14 +918,14 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
       >
         <div className={`bg-white/50 backdrop-blur-xl border-2 rounded-xl shadow-sm p-2 mb-1.5 transition-all duration-300 ${
           isDragOver && column.categories.length === 0
-            ? 'border-blue-300/50 bg-blue-50/30' 
-            : 'border-gray-200/40'
+            ? 'border-mgmt-green/50 bg-mgmt-green/20' 
+            : 'border-mgmt-purple/30'
         }`}>
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${column.color} opacity-70`}></div>
-              <h3 className="font-normal text-gray-800 text-[0.625rem]">{column.name}</h3>
-              <span className="bg-gray-100/80 text-gray-600 text-[0.625rem] px-1.5 py-0.5 rounded-full border border-gray-200/40">
+              <h3 className="font-bold text-gray-800 text-[0.625rem] font-heading">{column.name}</h3>
+              <span className="bg-mgmt-purple/20 text-mgmt-purple text-[0.625rem] px-1.5 py-0.5 rounded-full border-2 border-mgmt-purple/30 font-bold">
                 {columnTasks.length}
               </span>
             </div>
@@ -1090,8 +1090,8 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
       {/* Header */}
       <header className="bg-white/60 backdrop-blur-2xl border-b border-gray-200/30 shadow-sm p-2">
         <div className="mb-2">
-          <h1 className="text-sm font-medium text-gray-800 mb-0.5">karenBan</h1>
-          <p className="text-[0.625rem] text-gray-500">Drag and drop tasks to organize your workflow</p>
+          <h1 className="text-sm font-bold text-gray-800 mb-0.5 font-heading">karenBan</h1>
+          <p className="text-[0.625rem] text-gray-600 font-medium">Drag and drop tasks to organize your workflow</p>
         </div>
 
         <div className="flex items-center justify-between gap-4">
@@ -1136,12 +1136,12 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                       setFilterType('unassigned')
                       setFilterDialogOpen(true)
                     }}
-                    className="bg-mgmt-pink/80 backdrop-blur-xl border border-mgmt-pink/50 rounded-xl shadow-sm hover:bg-mgmt-pink hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
+                    className="bg-mgmt-yellow/80 backdrop-blur-xl border-2 border-mgmt-yellow/50 rounded-xl shadow-md hover:bg-mgmt-yellow hover:shadow-lg transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
                   >
                     <User className="w-3 h-3" />
                     Unassigned
                     {unassignedCount > 0 && (
-                      <span className="bg-gray-800/80 text-white px-1.5 py-0.5 rounded-full text-[0.5rem]">
+                      <span className="bg-mgmt-sage text-white px-1.5 py-0.5 rounded-full text-[0.5rem] font-bold">
                         {unassignedCount}
                       </span>
                     )}
@@ -1151,12 +1151,12 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                       setFilterType('blocked')
                       setFilterDialogOpen(true)
                     }}
-                    className="bg-mgmt-pink/80 backdrop-blur-xl border border-mgmt-pink/50 rounded-xl shadow-sm hover:bg-mgmt-pink hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
+                    className="bg-mgmt-pink/80 backdrop-blur-xl border-2 border-mgmt-pink/50 rounded-xl shadow-md hover:bg-mgmt-pink hover:shadow-lg transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
                   >
                     <AlertTriangle className="w-3 h-3" />
                     Blocked
                     {blockedCount > 0 && (
-                      <span className="bg-gray-800/80 text-white px-1.5 py-0.5 rounded-full text-[0.5rem]">
+                      <span className="bg-mgmt-sage text-white px-1.5 py-0.5 rounded-full text-[0.5rem] font-bold">
                         {blockedCount}
                       </span>
                     )}
@@ -1166,12 +1166,12 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                       setFilterType('overdue')
                       setFilterDialogOpen(true)
                     }}
-                    className="bg-mgmt-pink/80 backdrop-blur-xl border border-mgmt-pink/50 rounded-xl shadow-sm hover:bg-mgmt-pink hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
+                    className="bg-mgmt-lime/80 backdrop-blur-xl border-2 border-mgmt-lime/50 rounded-xl shadow-md hover:bg-mgmt-lime hover:shadow-lg transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
                   >
                     <Clock className="w-3 h-3" />
                     Overdue
                     {overdueCount > 0 && (
-                      <span className="bg-red-500/80 text-white px-1.5 py-0.5 rounded-full text-[0.5rem]">
+                      <span className="bg-mgmt-green text-white px-1.5 py-0.5 rounded-full text-[0.5rem] font-bold">
                         {overdueCount}
                       </span>
                     )}
