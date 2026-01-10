@@ -1136,7 +1136,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                       setFilterType('unassigned')
                       setFilterDialogOpen(true)
                     }}
-                    className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600 flex items-center gap-1"
+                    className="bg-mgmt-pink/80 backdrop-blur-xl border border-mgmt-pink/50 rounded-xl shadow-sm hover:bg-mgmt-pink hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
                   >
                     <User className="w-3 h-3" />
                     Unassigned
@@ -1151,7 +1151,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                       setFilterType('blocked')
                       setFilterDialogOpen(true)
                     }}
-                    className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600 flex items-center gap-1"
+                    className="bg-mgmt-pink/80 backdrop-blur-xl border border-mgmt-pink/50 rounded-xl shadow-sm hover:bg-mgmt-pink hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
                   >
                     <AlertTriangle className="w-3 h-3" />
                     Blocked
@@ -1166,7 +1166,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                       setFilterType('overdue')
                       setFilterDialogOpen(true)
                     }}
-                    className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:bg-white/60 hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-600 flex items-center gap-1"
+                    className="bg-mgmt-pink/80 backdrop-blur-xl border border-mgmt-pink/50 rounded-xl shadow-sm hover:bg-mgmt-pink hover:shadow-md transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
                   >
                     <Clock className="w-3 h-3" />
                     Overdue

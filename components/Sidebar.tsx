@@ -52,13 +52,13 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
           {/* Task Summary */}
           {!isCollapsed && (
             <div className="grid grid-cols-2 gap-1.5">
-              <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-2">
-                <div className="text-lg font-medium text-white">24</div>
-                <div className="text-[0.625rem] text-white/80">Total Tasks</div>
+              <div className="bg-mgmt-yellow/80 backdrop-blur-xl border-2 border-mgmt-yellow/50 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-2">
+                <div className="text-lg font-bold text-gray-800">24</div>
+                <div className="text-[0.625rem] text-gray-700 font-medium">Total Tasks</div>
               </div>
-              <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-2">
-                <div className="text-lg font-medium text-white">8</div>
-                <div className="text-[0.625rem] text-white/80">Due Today</div>
+              <div className="bg-mgmt-lime/80 backdrop-blur-xl border-2 border-mgmt-lime/50 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-2">
+                <div className="text-lg font-bold text-gray-800">8</div>
+                <div className="text-[0.625rem] text-gray-700 font-medium">Due Today</div>
               </div>
             </div>
           )}
@@ -85,10 +85,10 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               variant={currentView === "calendar" ? "default" : "ghost"}
               onClick={() => onViewChange?.("calendar")}
-              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
+              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 ${
                 currentView === "calendar"
-                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
-                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
+                  ? "bg-mgmt-green text-white border-2 border-mgmt-green/50 shadow-md"
+                  : "text-white/90 hover:bg-mgmt-green/30 hover:text-white border-2 border-transparent hover:border-mgmt-green/30"
               }`}
             >
               <Calendar className="w-3 h-3 mr-2" />
@@ -97,10 +97,10 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               variant={currentView === "team" ? "default" : "ghost"}
               onClick={() => onViewChange?.("team")}
-              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
+              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 ${
                 currentView === "team"
-                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
-                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
+                  ? "bg-mgmt-green text-white border-2 border-mgmt-green/50 shadow-md"
+                  : "text-white/90 hover:bg-mgmt-green/30 hover:text-white border-2 border-transparent hover:border-mgmt-green/30"
               }`}
             >
               <Users className="w-3 h-3 mr-2" />
@@ -109,10 +109,10 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               variant={currentView === "projects" ? "default" : "ghost"}
               onClick={() => onViewChange?.("projects")}
-              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
+              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 ${
                 currentView === "projects"
-                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
-                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
+                  ? "bg-mgmt-green text-white border-2 border-mgmt-green/50 shadow-md"
+                  : "text-white/90 hover:bg-mgmt-green/30 hover:text-white border-2 border-transparent hover:border-mgmt-green/30"
               }`}
             >
               <FolderKanban className="w-3 h-3 mr-2" />
@@ -121,10 +121,10 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               variant={currentView === "clients" ? "default" : "ghost"}
               onClick={() => onViewChange?.("clients")}
-              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
+              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 ${
                 currentView === "clients"
-                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
-                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
+                  ? "bg-mgmt-green text-white border-2 border-mgmt-green/50 shadow-md"
+                  : "text-white/90 hover:bg-mgmt-green/30 hover:text-white border-2 border-transparent hover:border-mgmt-green/30"
               }`}
             >
               <Building2 className="w-3 h-3 mr-2" />
@@ -133,10 +133,10 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               variant={currentView === "tasks" ? "default" : "ghost"}
               onClick={() => onViewChange?.("tasks")}
-              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
+              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 ${
                 currentView === "tasks"
-                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
-                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
+                  ? "bg-mgmt-green text-white border-2 border-mgmt-green/50 shadow-md"
+                  : "text-white/90 hover:bg-mgmt-green/30 hover:text-white border-2 border-transparent hover:border-mgmt-green/30"
               }`}
             >
               <FileText className="w-3 h-3 mr-2" />
@@ -151,7 +151,7 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               onClick={() => setBulkImportOpen(true)}
               variant="ghost"
-              className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-white/80 hover:text-white rounded-xl transition-all duration-300 hover:bg-white/20 hover:shadow-sm mb-1.5"
+              className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-white/90 hover:text-white rounded-xl transition-all duration-300 hover:bg-mgmt-green/30 hover:shadow-sm mb-1.5 font-medium border-2 border-transparent hover:border-mgmt-green/30"
             >
               <FileText className="w-3 h-3 mr-2 text-white/60" />
               Bulk Import
@@ -163,7 +163,7 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
         <div className="p-3 border-t border-white/20">
           <Button
             variant="ghost"
-            className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-white/80 hover:text-white rounded-xl transition-all duration-300 hover:bg-white/20 hover:shadow-sm"
+            className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-white/90 hover:text-white rounded-xl transition-all duration-300 hover:bg-mgmt-green/30 hover:shadow-sm font-medium border-2 border-transparent hover:border-mgmt-green/30"
           >
             <Settings className="w-3 h-3 mr-2 text-white/60" />
             {!isCollapsed && "Settings"}
