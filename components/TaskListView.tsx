@@ -13,6 +13,7 @@ interface TaskListViewProps {
   projects: Project[]
   onEditTask: (task: Task) => void
   onDeleteTask: (task: Task) => void
+  onMarkTaskDone?: (taskId: string) => void
   onBulkDelete?: (taskIds: string[]) => void
 }
 

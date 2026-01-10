@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, ChevronDown, ChevronUp, Building2, Calendar, X, Archive, ArchiveRestore, Pencil } from "lucide-react"
+import { Plus, Search, ChevronDown, ChevronUp, Building2, Calendar, X, Archive, ArchiveRestore, Pencil, Check } from "lucide-react"
 import type { Project, Task } from "../types"
 
 interface ProjectViewProps {
@@ -16,6 +16,7 @@ interface ProjectViewProps {
   onUnarchiveProject: (projectId: string) => void
   onEditTask: (task: Task) => void
   onDeleteTask: (task: Task) => void
+  onMarkTaskDone?: (taskId: string) => void
   onCreateProject: () => void
   onTaskDrop?: (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => void
 }

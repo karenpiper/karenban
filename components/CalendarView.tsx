@@ -4,13 +4,14 @@ import { useState, useMemo } from "react"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, X, Check } from "lucide-react"
 import type { Task } from "../types"
 
 interface CalendarViewProps {
   tasks: Task[]
   onEditTask: (task: Task) => void
   onDeleteTask: (taskId: string) => void
+  onMarkTaskDone?: (taskId: string) => void
   onTaskDrop?: (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => void
 }
 
@@ -130,16 +131,30 @@ export function CalendarView({
                       >
                         <div className="flex items-start justify-between mb-1">
                           <h4 className="text-[0.625rem] font-medium text-gray-800 flex-1">{task.title}</h4>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              onDeleteTask(task)
-                            }}
-                            className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-0.5 rounded-full"
-                            title="Delete task"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            {task.status !== 'done' && task.status !== 'completed' && task.columnId !== 'col-done' && onMarkTaskDone && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  onMarkTaskDone(task.id)
+                                }}
+                                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-green-500 transition-all p-0.5 rounded-full"
+                                title="Mark as done"
+                              >
+                                <Check className="w-3 h-3" />
+                              </button>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onDeleteTask(task)
+                              }}
+                              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-0.5 rounded-full"
+                              title="Delete task"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge className={`text-[0.625rem] px-1.5 py-0.5 rounded-full ${

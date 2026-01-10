@@ -135,6 +135,32 @@ export default function HomePage() {
     setTaskToEdit(task)
   }
 
+  const handleMarkTaskDone = (taskId: string) => {
+    if (!appState) return
+    
+    const updatedTasks = appState.tasks.map((task) => {
+      if (task.id === taskId) {
+        return {
+          ...task,
+          status: 'done' as const,
+          columnId: 'col-done',
+          categoryId: undefined,
+          category: undefined,
+          completedAt: new Date(),
+          updatedAt: new Date(),
+          // Calculate duration from creation to completion
+          durationDays: task.createdAt ? Math.ceil((new Date().getTime() - new Date(task.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : undefined,
+          durationHours: task.createdAt ? Math.ceil((new Date().getTime() - new Date(task.createdAt).getTime()) / (1000 * 60 * 60)) : undefined,
+        }
+      }
+      return task
+    })
+    
+    const updatedState = { ...appState, tasks: updatedTasks }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
   useEffect(() => {
     const handleEditTaskEvent = (e: Event) => {
       const customEvent = e as CustomEvent<Task>

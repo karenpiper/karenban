@@ -16,6 +16,7 @@ interface ClientProjectViewProps {
   onUnarchiveProject: (projectId: string) => void
   onEditTask: (task: Task) => void
   onDeleteTask: (task: Task) => void
+  onMarkTaskDone?: (taskId: string) => void
   onCreateProject: () => void
   onTaskDrop?: (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => void
   onDeleteClient?: (clientName: string) => void
@@ -30,6 +31,7 @@ export function ClientProjectView({
   onUnarchiveProject,
   onEditTask,
   onDeleteTask,
+  onMarkTaskDone,
   onCreateProject,
   onTaskDrop,
   onDeleteClient
@@ -210,16 +212,30 @@ export function ClientProjectView({
           <div className="flex-1 min-w-0">
             <h4 className="text-[0.625rem] font-medium text-gray-800 mb-0.5">{task.title}</h4>
           </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onDeleteTask(task)
-            }}
-            className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-0.5 rounded-full"
-            title="Delete task"
-          >
-            <X className="w-3 h-3" />
-          </button>
+          <div className="flex items-center gap-1">
+            {task.status !== 'done' && task.status !== 'completed' && task.columnId !== 'col-done' && onMarkTaskDone && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onMarkTaskDone(task.id)
+                }}
+                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-green-500 transition-all p-0.5 rounded-full"
+                title="Mark as done"
+              >
+                <Check className="w-3 h-3" />
+              </button>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onDeleteTask(task)
+              }}
+              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-0.5 rounded-full"
+              title="Delete task"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Badge className={`text-[0.625rem] px-1.5 py-0.5 rounded-full ${

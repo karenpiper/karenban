@@ -4,13 +4,14 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search, Users, Calendar, X, Plus, Check, ChevronDown, ChevronUp } from "lucide-react"
+import { Search, Users, Calendar, X, Plus, Check, ChevronDown, ChevronUp, CheckCircle } from "lucide-react"
 import type { Task, Category } from "../types"
 
 interface TeamViewProps {
   tasks: Task[]
   onEditTask: (task: Task) => void
   onDeleteTask: (task: Task) => void
+  onMarkTaskDone?: (taskId: string) => void
   onTaskDrop?: (taskId: string, targetType: 'project' | 'client' | 'remove-project', targetId?: string) => void
   columns?: any[] // To access archived person categories
   onAddTeamMember?: (name: string) => void
