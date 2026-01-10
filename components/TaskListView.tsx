@@ -54,6 +54,11 @@ export function TaskListView({
   // Filter and sort tasks
   const filteredAndSortedTasks = useMemo(() => {
     let filtered = safeTasks.filter(task => {
+      // Exclude done tasks
+      if (task.status === 'done' || task.columnId === 'col-done') {
+        return false
+      }
+      
       const matchesSearch = 
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||

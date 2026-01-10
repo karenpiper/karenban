@@ -48,6 +48,7 @@ export function ClientProjectView({
   // - Tasks through projects (with projectId matching client's projects)
   // - Tasks without projects but with client field matching this client
   // - Unassigned tasks (no projectId, no client) shown under "Unassigned" client only
+  // - Exclude done tasks (status === 'done' or columnId === 'col-done')
   const getClientTasks = (clientName: string) => {
     const clientProjects = safeProjects.filter(p => 
       (p.client || "Unassigned") === clientName && 
@@ -55,13 +56,18 @@ export function ClientProjectView({
     )
     const projectIds = clientProjects.map(p => p.id)
     
+    // Filter out done tasks
+    const activeTasks = safeTasks.filter(task => 
+      task.status !== 'done' && task.columnId !== 'col-done'
+    )
+    
     // Tasks assigned to projects for this client
-    const projectTasks = safeTasks.filter(task => task.projectId && projectIds.includes(task.projectId))
+    const projectTasks = activeTasks.filter(task => task.projectId && projectIds.includes(task.projectId))
     
     // Tasks without projects but assigned to this client
     const tasksWithoutProject = clientName === "Unassigned"
-      ? safeTasks.filter(task => !task.projectId && !task.client)
-      : safeTasks.filter(task => !task.projectId && task.client === clientName)
+      ? activeTasks.filter(task => !task.projectId && !task.client)
+      : activeTasks.filter(task => !task.projectId && task.client === clientName)
     
     return { projectTasks, unassignedTasks: tasksWithoutProject, allTasks: [...projectTasks, ...tasksWithoutProject] }
   }

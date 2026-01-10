@@ -68,6 +68,11 @@ export function TeamView({
     const unassigned: Task[] = []
 
     safeTasks.forEach(task => {
+      // Exclude done tasks
+      if (task.status === 'done' || task.columnId === 'col-done') {
+        return
+      }
+      
       if (task.assignedTo) {
         // Skip if person is archived
         if (archivedPeople.has(task.assignedTo)) {
