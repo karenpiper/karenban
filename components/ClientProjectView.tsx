@@ -81,15 +81,15 @@ export function ClientProjectView({
         clients.add(p.client || "Unassigned")
       }
     })
-    // Add clients from tasks (for tasks without projects)
+    // Add clients from tasks (for tasks without projects, excluding done tasks)
     safeTasks.forEach(t => {
-      if (t.client && !t.projectId) {
+      if (t.client && !t.projectId && t.status !== 'done' && t.columnId !== 'col-done') {
         clients.add(t.client)
       }
     })
-    // Also check if there are unassigned tasks (only if not showing archived)
+    // Also check if there are unassigned tasks (only if not showing archived, excluding done)
     if (!showArchived) {
-      const hasUnassignedTasks = safeTasks.some(t => !t.projectId && !t.client)
+      const hasUnassignedTasks = safeTasks.some(t => !t.projectId && !t.client && t.status !== 'done' && t.columnId !== 'col-done')
       if (hasUnassignedTasks) {
         clients.add("Unassigned")
       }

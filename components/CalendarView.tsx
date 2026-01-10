@@ -25,10 +25,14 @@ export function CalendarView({
 
   const safeTasks = tasks || []
 
-  // Group tasks by date
+  // Group tasks by date (excluding done tasks)
   const tasksByDate = useMemo(() => {
     const grouped: Record<string, Task[]> = {}
     safeTasks.forEach(task => {
+      // Exclude done tasks
+      if (task.status === 'done' || task.columnId === 'col-done') {
+        return
+      }
       if (task.dueDate) {
         const dateKey = new Date(task.dueDate).toDateString()
         if (!grouped[dateKey]) {
