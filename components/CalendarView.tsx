@@ -29,8 +29,8 @@ export function CalendarView({
   const tasksByDate = useMemo(() => {
     const grouped: Record<string, Task[]> = {}
     safeTasks.forEach(task => {
-      // Exclude done tasks
-      if (task.status === 'done' || task.columnId === 'col-done') {
+      // Exclude done/completed tasks
+      if (task.status === 'done' || task.status === 'completed' || task.columnId === 'col-done') {
         return
       }
       if (task.dueDate) {

@@ -56,9 +56,11 @@ export function ClientProjectView({
     )
     const projectIds = clientProjects.map(p => p.id)
     
-    // Filter out done tasks
+    // Filter out done/completed tasks
     const activeTasks = safeTasks.filter(task => 
-      task.status !== 'done' && task.columnId !== 'col-done'
+      task.status !== 'done' && 
+      task.status !== 'completed' && 
+      task.columnId !== 'col-done'
     )
     
     // Tasks assigned to projects for this client
@@ -81,15 +83,15 @@ export function ClientProjectView({
         clients.add(p.client || "Unassigned")
       }
     })
-    // Add clients from tasks (for tasks without projects, excluding done tasks)
+    // Add clients from tasks (for tasks without projects, excluding done/completed tasks)
     safeTasks.forEach(t => {
-      if (t.client && !t.projectId && t.status !== 'done' && t.columnId !== 'col-done') {
+      if (t.client && !t.projectId && t.status !== 'done' && t.status !== 'completed' && t.columnId !== 'col-done') {
         clients.add(t.client)
       }
     })
-    // Also check if there are unassigned tasks (only if not showing archived, excluding done)
+    // Also check if there are unassigned tasks (only if not showing archived, excluding done/completed)
     if (!showArchived) {
-      const hasUnassignedTasks = safeTasks.some(t => !t.projectId && !t.client && t.status !== 'done' && t.columnId !== 'col-done')
+      const hasUnassignedTasks = safeTasks.some(t => !t.projectId && !t.client && t.status !== 'done' && t.status !== 'completed' && t.columnId !== 'col-done')
       if (hasUnassignedTasks) {
         clients.add("Unassigned")
       }

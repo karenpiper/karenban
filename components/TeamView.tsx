@@ -68,8 +68,8 @@ export function TeamView({
     const unassigned: Task[] = []
 
     safeTasks.forEach(task => {
-      // Exclude done tasks
-      if (task.status === 'done' || task.columnId === 'col-done') {
+      // Exclude done/completed tasks
+      if (task.status === 'done' || task.status === 'completed' || task.columnId === 'col-done') {
         return
       }
       

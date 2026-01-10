@@ -51,10 +51,11 @@ export function ProjectView({
   })
 
   const getProjectTasks = (projectId: string) => {
-    // Exclude done tasks from project view
+    // Exclude done/completed tasks from project view
     return safeTasks.filter(task => 
       task.projectId === projectId && 
       task.status !== 'done' && 
+      task.status !== 'completed' && 
       task.columnId !== 'col-done'
     )
   }
