@@ -51,13 +51,13 @@ const config: Config = {
         },
         // MGMT Design System Colors
         mgmt: {
-          yellow: "#e8f142",
-          green: "#2d9d78",
-          pink: "#f5c8e8",
-          purple: "#c7b3e5",
-          beige: "#f4e8d8",
-          lime: "#d4e157",
-          sage: "#5a8c6f",
+          yellow: "var(--mgmt-yellow)",
+          green: "var(--mgmt-green)",
+          pink: "var(--mgmt-pink)",
+          purple: "var(--mgmt-purple)",
+          beige: "var(--mgmt-beige)",
+          lime: "var(--mgmt-lime)",
+          sage: "var(--mgmt-sage)",
         },
         // Override gray scale with softer, more muted values
         gray: {

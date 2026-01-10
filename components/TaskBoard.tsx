@@ -1088,7 +1088,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
   return (
     <div className="flex-1 overflow-auto bg-mgmt-beige">
       {/* Header */}
-      <header className="bg-white/60 backdrop-blur-2xl border-b border-gray-200/30 shadow-sm p-2">
+      <header className="bg-white/90 backdrop-blur-2xl border-b-2 border-mgmt-purple/30 shadow-md p-2">
         <div className="mb-2">
           <h1 className="text-sm font-bold text-gray-800 mb-0.5 font-heading">karenBan</h1>
           <p className="text-[0.625rem] text-gray-600 font-medium">Drag and drop tasks to organize your workflow</p>

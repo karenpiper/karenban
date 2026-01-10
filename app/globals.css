@@ -108,6 +108,13 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-mgmt-yellow: var(--mgmt-yellow);
+  --color-mgmt-green: var(--mgmt-green);
+  --color-mgmt-pink: var(--mgmt-pink);
+  --color-mgmt-purple: var(--mgmt-purple);
+  --color-mgmt-beige: var(--mgmt-beige);
+  --color-mgmt-lime: var(--mgmt-lime);
+  --color-mgmt-sage: var(--mgmt-sage);
 }
 
 @layer base {
