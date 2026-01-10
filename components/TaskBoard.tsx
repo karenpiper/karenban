@@ -877,7 +877,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
         
         <button 
           onClick={() => handleAddTask(category.id)}
-          className="w-full py-1 text-[0.625rem] text-gray-500 bg-gray-50/60 hover:bg-gray-100/80 rounded-lg border border-gray-200/40 transition-all duration-300 hover:border-gray-300/50"
+          className="w-full py-1 text-[0.625rem] text-gray-700 bg-mgmt-beige hover:bg-mgmt-purple/20 rounded-lg border-2 border-mgmt-purple/30 transition-all duration-300 hover:border-mgmt-purple/50 font-medium"
         >
           <Plus className="w-3 h-3 inline mr-1.5" />
           Add task
