@@ -1188,15 +1188,19 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
           <div className="flex gap-1.5">
             <button 
               onClick={handleToggleAutoMove}
-              className={`backdrop-blur-xl border-2 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 px-2 py-1 text-[0.625rem] font-medium ${
+              className={`border-2 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 px-3 py-1.5 text-[0.625rem] font-bold whitespace-nowrap ${
                 autoMoveEnabled
-                  ? "bg-mgmt-green text-white border-mgmt-green/50"
-                  : "bg-mgmt-purple/80 text-gray-800 border-mgmt-purple/50 hover:bg-mgmt-purple"
+                  ? "text-white border-[#2d9d78]"
+                  : "text-gray-900 border-[#c7b3e5] hover:bg-[#b8a0d9]"
               }`}
+              style={autoMoveEnabled ? { backgroundColor: '#2d9d78' } : { backgroundColor: '#c7b3e5' }}
             >
               Auto-move completed
             </button>
-            <button className="bg-mgmt-pink/80 backdrop-blur-xl border-2 border-mgmt-pink/50 rounded-xl shadow-md hover:bg-mgmt-pink hover:shadow-lg transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 font-medium">
+            <button 
+              className="border-2 border-[#f5c8e8] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 px-3 py-1.5 text-[0.625rem] text-gray-900 font-bold whitespace-nowrap"
+              style={{ backgroundColor: '#f5c8e8' }}
+            >
               Show overdue alerts
             </button>
           </div>

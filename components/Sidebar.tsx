@@ -25,7 +25,7 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
   })
 
   return (
-    <aside className={`${isCollapsed ? 'w-16' : 'w-64'} bg-mgmt-purple backdrop-blur-2xl border-r border-mgmt-purple/50 shadow-lg transition-all duration-300 ease-out h-screen flex-shrink-0 sticky top-0`}>
+    <aside className={`${isCollapsed ? 'w-16' : 'w-64'} backdrop-blur-2xl border-r shadow-lg transition-all duration-300 ease-out h-screen flex-shrink-0 sticky top-0`} style={{ backgroundColor: '#c7b3e5', borderColor: 'rgba(199, 179, 229, 0.5)' }}>
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="p-3 border-b border-white/20">
