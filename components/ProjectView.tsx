@@ -221,6 +221,20 @@ export function ProjectView({
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-800">{task.title}</span>
                           <div className="flex items-center gap-2">
+                    {task.status !== 'done' && task.status !== 'completed' && task.columnId !== 'col-done' && onMarkTaskDone && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onMarkTaskDone(task.id)
+                        }}
+                        className="h-6 w-6 p-0 text-gray-500 hover:text-green-500"
+                        title="Mark as done"
+                      >
+                        <Check className="w-3 h-3" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"

@@ -351,6 +351,20 @@ export function TaskListView({
                     </td>
                     <td className="p-2">
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {task.status !== 'done' && task.status !== 'completed' && task.columnId !== 'col-done' && onMarkTaskDone && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              onMarkTaskDone(task.id)
+                            }}
+                            className="h-6 w-6 p-0 text-gray-500 hover:text-green-500"
+                            title="Mark as done"
+                          >
+                            <Check className="w-3 h-3" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
