@@ -24,6 +24,7 @@ export function TeamView({
   tasks,
   onEditTask,
   onDeleteTask,
+  onMarkTaskDone,
   onTaskDrop,
   columns = [],
   onAddTeamMember,
