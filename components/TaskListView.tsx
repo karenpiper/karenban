@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowUpDown, ArrowUp, ArrowDown, Search, Calendar, User, Building2, FolderKanban, X, Pencil, Trash2 } from "lucide-react"
+import { ArrowUpDown, ArrowUp, ArrowDown, Search, Calendar, User, Building2, FolderKanban, X, Pencil, Trash2, Check } from "lucide-react"
 import type { Task, Project } from "../types"
 
 interface TaskListViewProps {
@@ -121,12 +121,19 @@ export function TaskListView({
     return filtered
   }, [safeTasks, safeProjects, searchTerm, sortField, sortDirection])
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric"
-    }).format(date)
+  const formatDate = (date: Date | string) => {
+    // Ensure we have a Date object
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) {
+      return '—'
+    }
+    // Use manual formatting to avoid hydration issues
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const month = months[dateObj.getMonth()]
+    const day = dateObj.getDate()
+    const year = dateObj.getFullYear()
+    return `${month} ${day}, ${year}`
   }
 
   // Bulk selection functions - defined AFTER filteredAndSortedTasks
@@ -394,7 +401,7 @@ export function TaskListView({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center">
+                  <td colSpan={10} className="p-8 text-center">
                     <div className="text-xs text-gray-500">
                       {searchTerm ? "No tasks found matching your search" : "No tasks"}
                     </div>
