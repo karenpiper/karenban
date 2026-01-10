@@ -52,13 +52,13 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
           {/* Task Summary */}
           {!isCollapsed && (
             <div className="grid grid-cols-2 gap-1.5">
-              <div className="bg-mgmt-yellow/80 backdrop-blur-xl border-2 border-mgmt-yellow/50 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-2">
-                <div className="text-lg font-bold text-gray-800">24</div>
-                <div className="text-[0.625rem] text-gray-700 font-medium">Total Tasks</div>
+              <div className="backdrop-blur-xl border-2 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-2" style={{ backgroundColor: '#e8f142', borderColor: 'rgba(232, 241, 66, 0.5)' }}>
+                <div className="text-lg font-bold text-gray-900">24</div>
+                <div className="text-[0.625rem] text-gray-800 font-medium">Total Tasks</div>
               </div>
-              <div className="bg-mgmt-lime/80 backdrop-blur-xl border-2 border-mgmt-lime/50 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-2">
-                <div className="text-lg font-bold text-gray-800">8</div>
-                <div className="text-[0.625rem] text-gray-700 font-medium">Due Today</div>
+              <div className="backdrop-blur-xl border-2 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-2" style={{ backgroundColor: '#d4e157', borderColor: 'rgba(212, 225, 87, 0.5)' }}>
+                <div className="text-lg font-bold text-gray-900">8</div>
+                <div className="text-[0.625rem] text-gray-800 font-medium">Due Today</div>
               </div>
             </div>
           )}
