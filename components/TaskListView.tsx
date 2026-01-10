@@ -25,6 +25,7 @@ export function TaskListView({
   projects,
   onEditTask,
   onDeleteTask,
+  onMarkTaskDone,
   onBulkDelete
 }: TaskListViewProps) {
   const [searchTerm, setSearchTerm] = useState("")

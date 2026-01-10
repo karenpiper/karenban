@@ -19,6 +19,7 @@ export function CalendarView({
   tasks,
   onEditTask,
   onDeleteTask,
+  onMarkTaskDone,
   onTaskDrop
 }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())

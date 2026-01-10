@@ -590,6 +590,7 @@ export default function HomePage() {
               tasks={appState.tasks || []}
               onEditTask={handleEditTask}
               onDeleteTask={handleDeleteTask}
+              onMarkTaskDone={handleMarkTaskDone}
               onTaskDrop={handleTaskDrop}
             />
           </div>
