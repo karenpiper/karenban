@@ -170,11 +170,6 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
       return
     }
 
-    // Find the "Done" category in the Today column
-    const todayColumn = appState.columns.find(col => col.id === 'col-today')
-    const doneCategory = todayColumn?.categories.find(cat => cat.name === 'Done' || cat.id === 'cat-today-done')
-    const doneCategoryId = doneCategory?.id
-
     const updatedTasks = appState.tasks.map((task) => {
       // Check if task should be moved:
       // 1. Has status 'done' or 'completed' but is not in col-done
