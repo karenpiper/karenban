@@ -916,7 +916,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
           e.stopPropagation()
         }}
       >
-        <div className={`bg-white/50 backdrop-blur-xl border-2 rounded-xl shadow-sm p-2 mb-1.5 transition-all duration-300 ${
+        <div className={`bg-white/90 backdrop-blur-xl border-2 rounded-xl shadow-md p-2 mb-1.5 transition-all duration-300 ${
           isDragOver && column.categories.length === 0
             ? 'border-mgmt-green/50 bg-mgmt-green/20' 
             : 'border-mgmt-purple/30'
