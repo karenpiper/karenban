@@ -657,6 +657,7 @@ export default function HomePage() {
               projects={appState.projects || []}
               onEditTask={handleEditTask}
               onDeleteTask={handleDeleteTask}
+              onMarkTaskDone={handleMarkTaskDone}
               onBulkDelete={(taskIds) => {
                 if (!appState) return
                 const updatedTasks = appState.tasks.filter(t => !taskIds.includes(t.id))
