@@ -1119,7 +1119,7 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
           </div>
 
           {/* Filter Buttons */}
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 items-center">
             {(() => {
               const unassignedCount = appState?.tasks.filter(t => !t.assignedTo).length || 0
               const blockedCount = appState?.tasks.filter(t => t.columnId === 'col-followup').length || 0
@@ -1136,46 +1136,49 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
                       setFilterType('unassigned')
                       setFilterDialogOpen(true)
                     }}
-                    className="bg-mgmt-yellow/80 backdrop-blur-xl border-2 border-mgmt-yellow/50 rounded-xl shadow-md hover:bg-mgmt-yellow hover:shadow-lg transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
+                    className="bg-[#e8f142] border-2 border-[#e8f142] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 px-3 py-1.5 text-[0.625rem] text-gray-900 flex items-center gap-1.5 font-bold whitespace-nowrap"
+                    style={{ backgroundColor: '#e8f142' }}
                   >
-                    <User className="w-3 h-3" />
-                    Unassigned
+                    <User className="w-3.5 h-3.5" />
+                    <span>Unassigned</span>
                     {unassignedCount > 0 && (
-                      <span className="bg-mgmt-sage text-white px-1.5 py-0.5 rounded-full text-[0.5rem] font-bold">
+                      <span className="bg-[#5a8c6f] text-white px-2 py-0.5 rounded-full text-[0.5rem] font-bold">
                         {unassignedCount}
                       </span>
                     )}
-            </button>
+                  </button>
                   <button 
                     onClick={() => {
                       setFilterType('blocked')
                       setFilterDialogOpen(true)
                     }}
-                    className="bg-mgmt-pink/80 backdrop-blur-xl border-2 border-mgmt-pink/50 rounded-xl shadow-md hover:bg-mgmt-pink hover:shadow-lg transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
+                    className="bg-[#f5c8e8] border-2 border-[#f5c8e8] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 px-3 py-1.5 text-[0.625rem] text-gray-900 flex items-center gap-1.5 font-bold whitespace-nowrap"
+                    style={{ backgroundColor: '#f5c8e8' }}
                   >
-                    <AlertTriangle className="w-3 h-3" />
-                    Blocked
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Blocked</span>
                     {blockedCount > 0 && (
-                      <span className="bg-mgmt-sage text-white px-1.5 py-0.5 rounded-full text-[0.5rem] font-bold">
+                      <span className="bg-[#5a8c6f] text-white px-2 py-0.5 rounded-full text-[0.5rem] font-bold">
                         {blockedCount}
                       </span>
                     )}
-            </button>
+                  </button>
                   <button 
                     onClick={() => {
                       setFilterType('overdue')
                       setFilterDialogOpen(true)
                     }}
-                    className="bg-mgmt-lime/80 backdrop-blur-xl border-2 border-mgmt-lime/50 rounded-xl shadow-md hover:bg-mgmt-lime hover:shadow-lg transition-all duration-300 px-2 py-1 text-[0.625rem] text-gray-800 flex items-center gap-1 font-medium"
+                    className="bg-[#d4e157] border-2 border-[#d4e157] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 px-3 py-1.5 text-[0.625rem] text-gray-900 flex items-center gap-1.5 font-bold whitespace-nowrap"
+                    style={{ backgroundColor: '#d4e157' }}
                   >
-                    <Clock className="w-3 h-3" />
-                    Overdue
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Overdue</span>
                     {overdueCount > 0 && (
-                      <span className="bg-mgmt-green text-white px-1.5 py-0.5 rounded-full text-[0.5rem] font-bold">
+                      <span className="bg-[#2d9d78] text-white px-2 py-0.5 rounded-full text-[0.5rem] font-bold">
                         {overdueCount}
                       </span>
                     )}
-            </button>
+                  </button>
                 </>
               )
             })()}
