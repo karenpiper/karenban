@@ -641,6 +641,7 @@ export default function HomePage() {
             onUnarchiveProject={handleUnarchiveProject}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
+            onMarkTaskDone={handleMarkTaskDone}
             onCreateProject={handleCreateProject}
             onTaskDrop={handleTaskDrop}
             onDeleteClient={handleDeleteClient}
