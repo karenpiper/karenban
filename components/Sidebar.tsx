@@ -73,11 +73,20 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               variant={currentView === "today" ? "default" : "ghost"}
               onClick={() => onViewChange?.("today")}
-              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-normal transition-all duration-300 ${
-                currentView === "today"
-                  ? "bg-white/30 text-white border border-white/40 shadow-sm"
-                  : "text-white/80 hover:bg-white/20 hover:text-white border border-transparent hover:border-white/20"
-              }`}
+              className="w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 text-white border-2 shadow-md"
+              style={currentView === "today" ? { backgroundColor: '#2d9d78', borderColor: 'rgba(45, 157, 120, 0.5)' } : { borderColor: 'transparent' }}
+              onMouseEnter={(e) => {
+                if (currentView !== "today") {
+                  e.currentTarget.style.backgroundColor = 'rgba(45, 157, 120, 0.3)'
+                  e.currentTarget.style.borderColor = 'rgba(45, 157, 120, 0.3)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentView !== "today") {
+                  e.currentTarget.style.backgroundColor = ''
+                  e.currentTarget.style.borderColor = ''
+                }
+              }}
             >
               <Calendar className="w-3 h-3 mr-2" />
               <span className="flex-1 text-left">Today</span>
@@ -85,11 +94,20 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               variant={currentView === "calendar" ? "default" : "ghost"}
               onClick={() => onViewChange?.("calendar")}
-              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 ${
-                currentView === "calendar"
-                  ? "bg-mgmt-green text-white border-2 border-mgmt-green/50 shadow-md"
-                  : "text-white/90 hover:bg-mgmt-green/30 hover:text-white border-2 border-transparent hover:border-mgmt-green/30"
-              }`}
+              className="w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 text-white border-2 shadow-md"
+              style={currentView === "calendar" ? { backgroundColor: '#2d9d78', borderColor: 'rgba(45, 157, 120, 0.5)' } : { borderColor: 'transparent' }}
+              onMouseEnter={(e) => {
+                if (currentView !== "calendar") {
+                  e.currentTarget.style.backgroundColor = 'rgba(45, 157, 120, 0.3)'
+                  e.currentTarget.style.borderColor = 'rgba(45, 157, 120, 0.3)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentView !== "calendar") {
+                  e.currentTarget.style.backgroundColor = ''
+                  e.currentTarget.style.borderColor = ''
+                }
+              }}
             >
               <Calendar className="w-3 h-3 mr-2" />
               <span className="flex-1 text-left">Calendar</span>
@@ -97,11 +115,20 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               variant={currentView === "team" ? "default" : "ghost"}
               onClick={() => onViewChange?.("team")}
-              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 ${
-                currentView === "team"
-                  ? "bg-mgmt-green text-white border-2 border-mgmt-green/50 shadow-md"
-                  : "text-white/90 hover:bg-mgmt-green/30 hover:text-white border-2 border-transparent hover:border-mgmt-green/30"
-              }`}
+              className="w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 text-white border-2 shadow-md"
+              style={currentView === "team" ? { backgroundColor: '#2d9d78', borderColor: 'rgba(45, 157, 120, 0.5)' } : { borderColor: 'transparent' }}
+              onMouseEnter={(e) => {
+                if (currentView !== "team") {
+                  e.currentTarget.style.backgroundColor = 'rgba(45, 157, 120, 0.3)'
+                  e.currentTarget.style.borderColor = 'rgba(45, 157, 120, 0.3)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentView !== "team") {
+                  e.currentTarget.style.backgroundColor = ''
+                  e.currentTarget.style.borderColor = ''
+                }
+              }}
             >
               <Users className="w-3 h-3 mr-2" />
               <span className="flex-1 text-left">Team</span>
@@ -109,11 +136,20 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               variant={currentView === "projects" ? "default" : "ghost"}
               onClick={() => onViewChange?.("projects")}
-              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 ${
-                currentView === "projects"
-                  ? "bg-mgmt-green text-white border-2 border-mgmt-green/50 shadow-md"
-                  : "text-white/90 hover:bg-mgmt-green/30 hover:text-white border-2 border-transparent hover:border-mgmt-green/30"
-              }`}
+              className="w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 text-white border-2 shadow-md"
+              style={currentView === "projects" ? { backgroundColor: '#2d9d78', borderColor: 'rgba(45, 157, 120, 0.5)' } : { borderColor: 'transparent' }}
+              onMouseEnter={(e) => {
+                if (currentView !== "projects") {
+                  e.currentTarget.style.backgroundColor = 'rgba(45, 157, 120, 0.3)'
+                  e.currentTarget.style.borderColor = 'rgba(45, 157, 120, 0.3)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentView !== "projects") {
+                  e.currentTarget.style.backgroundColor = ''
+                  e.currentTarget.style.borderColor = ''
+                }
+              }}
             >
               <FolderKanban className="w-3 h-3 mr-2" />
               <span className="flex-1 text-left">Projects</span>
@@ -121,11 +157,20 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               variant={currentView === "clients" ? "default" : "ghost"}
               onClick={() => onViewChange?.("clients")}
-              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 ${
-                currentView === "clients"
-                  ? "bg-mgmt-green text-white border-2 border-mgmt-green/50 shadow-md"
-                  : "text-white/90 hover:bg-mgmt-green/30 hover:text-white border-2 border-transparent hover:border-mgmt-green/30"
-              }`}
+              className="w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 text-white border-2 shadow-md"
+              style={currentView === "clients" ? { backgroundColor: '#2d9d78', borderColor: 'rgba(45, 157, 120, 0.5)' } : { borderColor: 'transparent' }}
+              onMouseEnter={(e) => {
+                if (currentView !== "clients") {
+                  e.currentTarget.style.backgroundColor = 'rgba(45, 157, 120, 0.3)'
+                  e.currentTarget.style.borderColor = 'rgba(45, 157, 120, 0.3)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentView !== "clients") {
+                  e.currentTarget.style.backgroundColor = ''
+                  e.currentTarget.style.borderColor = ''
+                }
+              }}
             >
               <Building2 className="w-3 h-3 mr-2" />
               <span className="flex-1 text-left">Client</span>
@@ -133,11 +178,20 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
             <Button
               variant={currentView === "tasks" ? "default" : "ghost"}
               onClick={() => onViewChange?.("tasks")}
-              className={`w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 ${
-                currentView === "tasks"
-                  ? "bg-mgmt-green text-white border-2 border-mgmt-green/50 shadow-md"
-                  : "text-white/90 hover:bg-mgmt-green/30 hover:text-white border-2 border-transparent hover:border-mgmt-green/30"
-              }`}
+              className="w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 text-white border-2 shadow-md"
+              style={currentView === "tasks" ? { backgroundColor: '#2d9d78', borderColor: 'rgba(45, 157, 120, 0.5)' } : { borderColor: 'transparent' }}
+              onMouseEnter={(e) => {
+                if (currentView !== "tasks") {
+                  e.currentTarget.style.backgroundColor = 'rgba(45, 157, 120, 0.3)'
+                  e.currentTarget.style.borderColor = 'rgba(45, 157, 120, 0.3)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentView !== "tasks") {
+                  e.currentTarget.style.backgroundColor = ''
+                  e.currentTarget.style.borderColor = ''
+                }
+              }}
             >
               <FileText className="w-3 h-3 mr-2" />
               <span className="flex-1 text-left">By Task</span>
