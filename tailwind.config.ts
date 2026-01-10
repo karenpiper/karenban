@@ -49,15 +49,15 @@ const config: Config = {
           "4": "var(--chart-4)",
           "5": "var(--chart-5)",
         },
-        // MGMT Design System Colors
+        // MGMT Design System Colors - using hex directly for opacity support
         mgmt: {
-          yellow: "var(--mgmt-yellow)",
-          green: "var(--mgmt-green)",
-          pink: "var(--mgmt-pink)",
-          purple: "var(--mgmt-purple)",
-          beige: "var(--mgmt-beige)",
-          lime: "var(--mgmt-lime)",
-          sage: "var(--mgmt-sage)",
+          yellow: "#e8f142",
+          green: "#2d9d78",
+          pink: "#f5c8e8",
+          purple: "#c7b3e5",
+          beige: "#f4e8d8",
+          lime: "#d4e157",
+          sage: "#5a8c6f",
         },
         // Override gray scale with softer, more muted values
         gray: {
