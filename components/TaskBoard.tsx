@@ -1097,22 +1097,22 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
         <div className="flex items-center justify-between gap-4">
           {/* Search Bar */}
           <div className="flex-1 max-w-md relative">
-            <div className="bg-white/40 backdrop-blur-xl border border-gray-200/30 rounded-2xl shadow-sm flex items-center gap-2 px-3 py-1.5">
-              <Search className="w-3.5 h-3.5 text-gray-400" />
+            <div className="bg-white/90 backdrop-blur-xl border-2 border-mgmt-purple/30 rounded-2xl shadow-md flex items-center gap-2 px-3 py-1.5 hover:border-mgmt-purple/50 transition-all">
+              <Search className="w-3.5 h-3.5 text-mgmt-purple" />
               <input
                 type="text"
                 placeholder="Search tasks, descriptions, or tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="border-none outline-none bg-transparent text-[0.625rem] w-full text-gray-600 placeholder-gray-400"
+                className="border-none outline-none bg-transparent text-[0.625rem] w-full text-gray-800 placeholder-gray-500 font-medium"
               />
-              <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400 hover:bg-gray-100/60">
+              <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-mgmt-purple hover:bg-mgmt-purple/20">
                 <Filter className="w-3.5 h-3.5" />
               </button>
-              <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400 hover:bg-gray-100/60">
+              <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-mgmt-purple hover:bg-mgmt-purple/20">
                 <Calendar className="w-3.5 h-3.5" />
               </button>
-              <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-gray-400 hover:bg-gray-100/60">
+              <button className="p-1 rounded-full transition-all duration-300 bg-transparent text-mgmt-purple hover:bg-mgmt-purple/20">
                 <Users className="w-3.5 h-3.5" />
               </button>
             </div>
