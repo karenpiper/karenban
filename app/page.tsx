@@ -601,6 +601,7 @@ export default function HomePage() {
               tasks={appState.tasks || []}
               onEditTask={handleEditTask}
               onDeleteTask={handleDeleteTask}
+              onMarkTaskDone={handleMarkTaskDone}
               onTaskDrop={handleTaskDrop}
               columns={appState.columns || []}
               onAddTeamMember={handleAddTeamMember}
@@ -622,6 +623,7 @@ export default function HomePage() {
             onUnarchiveProject={handleUnarchiveProject}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
+            onMarkTaskDone={handleMarkTaskDone}
             onCreateProject={handleCreateProject}
             onTaskDrop={handleTaskDrop}
           />

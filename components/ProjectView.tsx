@@ -30,6 +30,7 @@ export function ProjectView({
   onUnarchiveProject,
   onEditTask,
   onDeleteTask,
+  onMarkTaskDone,
   onCreateProject,
   onTaskDrop
 }: ProjectViewProps) {
