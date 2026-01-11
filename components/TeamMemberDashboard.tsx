@@ -157,11 +157,14 @@ export function TeamMemberDashboard({
   }
 
   const handleAddReviewCycle = () => {
+    const startDate = new Date()
+    const endDate = new Date()
+    endDate.setMonth(endDate.getMonth() + 6) // 6 months from start
     const newReview: TeamMemberReviewCycle = {
       id: `review-${Date.now()}`,
-      type: "quarterly",
-      startDate: new Date(),
-      endDate: new Date(),
+      type: "6-month",
+      startDate,
+      endDate,
       createdAt: new Date(),
     }
     setEditingReview(newReview)
@@ -635,7 +638,7 @@ export function TeamMemberDashboard({
                   <div key={review.id} className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="font-medium text-sm text-gray-800 capitalize">{review.type} Review</div>
+                        <div className="font-medium text-sm text-gray-800">6-Month Review</div>
                         <div className="text-xs text-gray-600 mt-1">
                           {format(review.startDate, "MMM d, yyyy")} - {format(review.endDate, "MMM d, yyyy")}
                         </div>
@@ -845,16 +848,25 @@ function ReviewForm({
   onSave: (review: TeamMemberReviewCycle) => void
   onCancel: () => void
 }) {
-  const [type, setType] = useState(review.type)
   const [startDate, setStartDate] = useState<Date>(review.startDate)
   const [endDate, setEndDate] = useState<Date>(review.endDate)
   const [notes, setNotes] = useState(review.notes || "")
   const [rating, setRating] = useState(review.rating?.toString() || "")
 
+  const handleStartDateChange = (date: Date | undefined) => {
+    if (date) {
+      setStartDate(date)
+      // Auto-calculate end date as 6 months from start
+      const newEndDate = new Date(date)
+      newEndDate.setMonth(newEndDate.getMonth() + 6)
+      setEndDate(newEndDate)
+    }
+  }
+
   const handleSave = () => {
     onSave({
       ...review,
-      type,
+      type: "6-month",
       startDate,
       endDate,
       notes,
@@ -864,16 +876,7 @@ function ReviewForm({
 
   return (
     <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-      <Select value={type} onValueChange={(v) => setType(v as any)}>
-        <SelectTrigger className="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="quarterly">Quarterly</SelectItem>
-          <SelectItem value="annual">Annual</SelectItem>
-          <SelectItem value="custom">Custom</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="text-xs font-medium text-gray-700">6-Month Review Cycle</div>
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" className="w-full justify-start text-left font-normal text-xs">
@@ -882,7 +885,7 @@ function ReviewForm({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
-          <Calendar mode="single" selected={startDate} onSelect={(d) => d && setStartDate(d)} />
+          <Calendar mode="single" selected={startDate} onSelect={handleStartDateChange} />
         </PopoverContent>
       </Popover>
       <Popover>

@@ -194,7 +194,7 @@ export interface TeamMemberGoal {
 
 export interface TeamMemberReviewCycle {
   id: string
-  type: "quarterly" | "annual" | "custom"
+  type: "6-month"
   startDate: Date
   endDate: Date
   notes?: string
