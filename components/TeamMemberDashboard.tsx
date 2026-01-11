@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2, ArrowLeft, TrendingUp } from "lucide-react"
 import { format } from "date-fns"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task, MoraleCheckIn, ClientDetail, GoalMilestone, GoalNote } from "../types"
+import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task, MoraleCheckIn, PerformanceCheckIn, ClientDetail, GoalMilestone, GoalNote } from "../types"
 
 interface TeamMemberDashboardProps {
   memberName: string
@@ -53,7 +53,9 @@ export function TeamMemberDashboard({
     name: memberName,
     goals: [],
     morale: null,
+    performance: null,
     moraleCheckIns: [],
+    performanceCheckIns: [],
     clients: [],
     clientDetails: {},
     redFlags: [],
@@ -244,6 +246,35 @@ export function TeamMemberDashboard({
     onUpdate(updated)
   }
 
+  const handleAddPerformanceCheckIn = (performance: "excellent" | "good" | "fair" | "poor", notes?: string) => {
+    const checkIn: PerformanceCheckIn = {
+      id: `performance-${Date.now()}`,
+      date: new Date(),
+      performance,
+      notes,
+      createdAt: new Date(),
+    }
+    const updated = {
+      ...details,
+      performance,
+      performanceCheckIns: [...(details.performanceCheckIns || []), checkIn],
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  const handlePerformanceChange = (performance: "excellent" | "good" | "fair" | "poor" | null) => {
+    const updated = {
+      ...details,
+      performance,
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+    if (performance) {
+      handleAddPerformanceCheckIn(performance)
+    }
+  }
+
   const handleUpdateClientDetail = (clientName: string, detail: ClientDetail) => {
     const updated = {
       ...details,
@@ -282,7 +313,7 @@ export function TeamMemberDashboard({
     onUpdate(updated)
   }
 
-  // Prepare morale chart data
+  // Prepare morale and performance chart data
   const moraleChartData = (details.moraleCheckIns || [])
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map(checkIn => ({
@@ -290,6 +321,31 @@ export function TeamMemberDashboard({
       morale: checkIn.morale === "excellent" ? 4 : checkIn.morale === "good" ? 3 : checkIn.morale === "fair" ? 2 : 1,
       label: checkIn.morale,
     }))
+
+  const performanceChartData = (details.performanceCheckIns || [])
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map(checkIn => ({
+      date: format(new Date(checkIn.date), "MMM d"),
+      performance: checkIn.performance === "excellent" ? 4 : checkIn.performance === "good" ? 3 : checkIn.performance === "fair" ? 2 : 1,
+      label: checkIn.performance,
+    }))
+
+  // Combine data for dual-line chart
+  const combinedChartData = useMemo(() => {
+    const allDates = new Set([
+      ...moraleChartData.map(d => d.date),
+      ...performanceChartData.map(d => d.date)
+    ])
+    return Array.from(allDates).sort().map(date => {
+      const morale = moraleChartData.find(d => d.date === date)
+      const performance = performanceChartData.find(d => d.date === date)
+      return {
+        date,
+        morale: morale?.morale ?? null,
+        performance: performance?.performance ?? null,
+      }
+    })
+  }, [moraleChartData, performanceChartData])
 
   return (
     <div className="flex-1 overflow-auto bg-mgmt-beige min-h-screen p-4">
@@ -349,47 +405,59 @@ export function TeamMemberDashboard({
               </div>
             </div>
 
-            {/* Morale */}
+            {/* Morale & Performance Tracking */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-medium text-gray-800 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" />
-                  Morale Tracking
+                  Morale & Performance Tracking
                 </h3>
-                <Button
-                  onClick={() => {
-                    const morale = details.morale || "good"
-                    handleAddMoraleCheckIn(morale as "excellent" | "good" | "fair" | "poor")
-                  }}
-                  size="sm"
-                  className="h-7 text-xs"
-                  disabled={!details.morale}
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Check In
-                </Button>
               </div>
-              <Select value={details.morale || ""} onValueChange={(v) => {
-                const morale = v as "excellent" | "good" | "fair" | "poor" | null
-                handleMoraleChange(morale)
-                if (morale) {
-                  handleAddMoraleCheckIn(morale)
-                }
-              }}>
-                <SelectTrigger className="w-full mb-3">
-                  <SelectValue placeholder="Select current morale level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="excellent">Excellent</SelectItem>
-                  <SelectItem value="good">Good</SelectItem>
-                  <SelectItem value="fair">Fair</SelectItem>
-                  <SelectItem value="poor">Poor</SelectItem>
-                </SelectContent>
-              </Select>
-              {moraleChartData.length > 0 && (
+              
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="text-xs text-gray-600 mb-1 block">Morale</label>
+                  <Select value={details.morale || ""} onValueChange={(v) => {
+                    const morale = v as "excellent" | "good" | "fair" | "poor" | null
+                    handleMoraleChange(morale)
+                    if (morale) {
+                      handleAddMoraleCheckIn(morale)
+                    }
+                  }}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select morale level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="excellent">Excellent</SelectItem>
+                      <SelectItem value="good">Good</SelectItem>
+                      <SelectItem value="fair">Fair</SelectItem>
+                      <SelectItem value="poor">Poor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600 mb-1 block">Performance</label>
+                  <Select value={details.performance || ""} onValueChange={(v) => {
+                    const performance = v as "excellent" | "good" | "fair" | "poor" | null
+                    handlePerformanceChange(performance)
+                  }}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select performance level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="excellent">Excellent</SelectItem>
+                      <SelectItem value="good">Good</SelectItem>
+                      <SelectItem value="fair">Fair</SelectItem>
+                      <SelectItem value="poor">Poor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {(combinedChartData.length > 0 || moraleChartData.length > 0 || performanceChartData.length > 0) && (
                 <div className="bg-gray-50 rounded-lg p-4 h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={moraleChartData}>
+                    <LineChart data={combinedChartData.length > 0 ? combinedChartData : moraleChartData.length > 0 ? moraleChartData : performanceChartData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" />
                       <YAxis domain={[0, 4]} ticks={[1, 2, 3, 4]} tickFormatter={(v) => 
@@ -397,17 +465,29 @@ export function TeamMemberDashboard({
                       } />
                       <Tooltip formatter={(value: number) => {
                         const labels = ["", "Poor", "Fair", "Good", "Excellent"]
-                        return labels[value]
+                        return labels[value] || ""
                       }} />
                       <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="morale" 
-                        stroke="#2d9d78" 
-                        strokeWidth={2}
-                        dot={{ r: 4 }}
-                        name="Morale"
-                      />
+                      {moraleChartData.length > 0 && (
+                        <Line 
+                          type="monotone" 
+                          dataKey="morale" 
+                          stroke="#2d9d78" 
+                          strokeWidth={2}
+                          dot={{ r: 4 }}
+                          name="Morale"
+                        />
+                      )}
+                      {performanceChartData.length > 0 && (
+                        <Line 
+                          type="monotone" 
+                          dataKey="performance" 
+                          stroke="#c7b3e5" 
+                          strokeWidth={2}
+                          dot={{ r: 4 }}
+                          name="Performance"
+                        />
+                      )}
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -913,3 +993,332 @@ function OneOnOneForm({
   )
 }
 
+
+// Client Detail Card Component
+function ClientDetailCard({
+  client,
+  detail,
+  onUpdate,
+  onRemove
+}: {
+  client: string
+  detail: ClientDetail
+  onUpdate: (detail: ClientDetail) => void
+  onRemove: () => void
+}) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [newProblem, setNewProblem] = useState("")
+  const [newOpportunity, setNewOpportunity] = useState("")
+  const [notes, setNotes] = useState(detail.notes || "")
+
+  const handleAddProblem = () => {
+    if (!newProblem.trim()) return
+    onUpdate({
+      ...detail,
+      problems: [...(detail.problems || []), newProblem.trim()],
+      updatedAt: new Date(),
+    })
+    setNewProblem("")
+  }
+
+  const handleRemoveProblem = (problem: string) => {
+    onUpdate({
+      ...detail,
+      problems: (detail.problems || []).filter(p => p !== problem),
+      updatedAt: new Date(),
+    })
+  }
+
+  const handleAddOpportunity = () => {
+    if (!newOpportunity.trim()) return
+    onUpdate({
+      ...detail,
+      opportunities: [...(detail.opportunities || []), newOpportunity.trim()],
+      updatedAt: new Date(),
+    })
+    setNewOpportunity("")
+  }
+
+  const handleRemoveOpportunity = (opportunity: string) => {
+    onUpdate({
+      ...detail,
+      opportunities: (detail.opportunities || []).filter(o => o !== opportunity),
+      updatedAt: new Date(),
+    })
+  }
+
+  const handleSaveNotes = () => {
+    onUpdate({
+      ...detail,
+      notes,
+      updatedAt: new Date(),
+    })
+  }
+
+  return (
+    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 flex-1">
+          <Badge className="bg-mgmt-purple/20 text-mgmt-purple">{client}</Badge>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-xs text-gray-500 hover:text-gray-700"
+          >
+            {isExpanded ? "Hide details" : "Show details"}
+          </button>
+        </div>
+        <button
+          onClick={onRemove}
+          className="text-red-500 hover:text-red-700"
+        >
+          <X className="w-3 h-3" />
+        </button>
+      </div>
+      {isExpanded && (
+        <div className="mt-3 space-y-3">
+          <div>
+            <h4 className="text-xs font-medium text-red-700 mb-1">Problems</h4>
+            <div className="space-y-1 mb-2">
+              {(detail.problems || []).map((problem, idx) => (
+                <div key={idx} className="bg-red-50 border border-red-200 rounded p-1.5 flex items-center justify-between text-xs">
+                  <span className="text-red-800">{problem}</span>
+                  <button
+                    onClick={() => handleRemoveProblem(problem)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-1">
+              <Input
+                value={newProblem}
+                onChange={(e) => setNewProblem(e.target.value)}
+                placeholder="Add problem"
+                className="text-xs h-6"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddProblem()
+                  }
+                }}
+              />
+              <Button onClick={handleAddProblem} size="sm" className="h-6 px-2">
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-xs font-medium text-green-700 mb-1">Opportunities</h4>
+            <div className="space-y-1 mb-2">
+              {(detail.opportunities || []).map((opportunity, idx) => (
+                <div key={idx} className="bg-green-50 border border-green-200 rounded p-1.5 flex items-center justify-between text-xs">
+                  <span className="text-green-800">{opportunity}</span>
+                  <button
+                    onClick={() => handleRemoveOpportunity(opportunity)}
+                    className="text-green-500 hover:text-green-700"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-1">
+              <Input
+                value={newOpportunity}
+                onChange={(e) => setNewOpportunity(e.target.value)}
+                placeholder="Add opportunity"
+                className="text-xs h-6"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddOpportunity()
+                  }
+                }}
+              />
+              <Button onClick={handleAddOpportunity} size="sm" className="h-6 px-2">
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-xs font-medium text-gray-700 mb-1">Notes</h4>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Client notes..."
+              className="text-xs min-h-20"
+            />
+            <Button onClick={handleSaveNotes} size="sm" className="mt-1 h-6">
+              Save Notes
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Goal Card Component
+function GoalCard({
+  goal,
+  onEdit,
+  onDelete,
+  onAddMilestone,
+  onAddNote
+}: {
+  goal: TeamMemberGoal
+  onEdit: () => void
+  onDelete: () => void
+  onAddMilestone: (milestone: GoalMilestone) => void
+  onAddNote: (note: GoalNote) => void
+}) {
+  const [showMilestones, setShowMilestones] = useState(false)
+  const [showNotes, setShowNotes] = useState(false)
+  const [newMilestoneTitle, setNewMilestoneTitle] = useState("")
+  const [newNoteText, setNewNoteText] = useState("")
+
+  const handleAddMilestone = () => {
+    if (!newMilestoneTitle.trim()) return
+    const milestone: GoalMilestone = {
+      id: `milestone-${Date.now()}`,
+      title: newMilestoneTitle.trim(),
+      status: "pending",
+    }
+    onAddMilestone(milestone)
+    setNewMilestoneTitle("")
+  }
+
+  const handleAddNote = () => {
+    if (!newNoteText.trim()) return
+    const note: GoalNote = {
+      id: `note-${Date.now()}`,
+      date: new Date(),
+      note: newNoteText.trim(),
+      createdAt: new Date(),
+    }
+    onAddNote(note)
+    setNewNoteText("")
+  }
+
+  return (
+    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex-1">
+          <div className="font-medium text-sm text-gray-800">{goal.title}</div>
+          {goal.description && (
+            <div className="text-xs text-gray-600 mt-1">{goal.description}</div>
+          )}
+          <div className="flex items-center gap-2 mt-2">
+            <Badge className={`text-xs ${
+              goal.status === 'completed' ? 'bg-green-100 text-green-700' :
+              goal.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+              goal.status === 'on-hold' ? 'bg-yellow-100 text-yellow-700' :
+              'bg-gray-100 text-gray-700'
+            }`}>
+              {goal.status}
+            </Badge>
+            {goal.targetDate && (
+              <span className="text-xs text-gray-500">
+                Target: {format(goal.targetDate, "MMM d, yyyy")}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-1">
+          <Button
+            onClick={onEdit}
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+          >
+            <Edit2 className="w-3 h-3" />
+          </Button>
+          <Button
+            onClick={onDelete}
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0 text-red-500"
+          >
+            <Trash2 className="w-3 h-3" />
+          </Button>
+        </div>
+      </div>
+      <div className="mt-3">
+        <button
+          onClick={() => setShowMilestones(!showMilestones)}
+          className="text-xs font-medium text-gray-700 flex items-center gap-1"
+        >
+          <Target className="w-3 h-3" />
+          Milestones ({(goal.milestones || []).length})
+        </button>
+        {showMilestones && (
+          <div className="mt-2 space-y-2">
+            {(goal.milestones || []).map((milestone) => (
+              <div key={milestone.id} className="bg-white rounded p-2 text-xs flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Check className={`w-3 h-3 ${milestone.status === 'completed' ? 'text-green-500' : 'text-gray-300'}`} />
+                  <span className={milestone.status === 'completed' ? 'line-through text-gray-500' : ''}>
+                    {milestone.title}
+                  </span>
+                  {milestone.targetDate && (
+                    <span className="text-gray-400">
+                      {format(milestone.targetDate, "MMM d")}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+            <div className="flex gap-1">
+              <Input
+                value={newMilestoneTitle}
+                onChange={(e) => setNewMilestoneTitle(e.target.value)}
+                placeholder="Add milestone"
+                className="text-xs h-6"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddMilestone()
+                  }
+                }}
+              />
+              <Button onClick={handleAddMilestone} size="sm" className="h-6 px-2">
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="mt-3">
+        <button
+          onClick={() => setShowNotes(!showNotes)}
+          className="text-xs font-medium text-gray-700 flex items-center gap-1"
+        >
+          <FileText className="w-3 h-3" />
+          Notes ({(goal.notes || []).length})
+        </button>
+        {showNotes && (
+          <div className="mt-2 space-y-2">
+            {(goal.notes || []).map((note) => (
+              <div key={note.id} className="bg-white rounded p-2 text-xs">
+                <div className="text-gray-400 mb-1">
+                  {format(note.date, "MMM d, yyyy")}
+                </div>
+                <div className="text-gray-700">{note.note}</div>
+              </div>
+            ))}
+            <div className="flex gap-1">
+              <Textarea
+                value={newNoteText}
+                onChange={(e) => setNewNoteText(e.target.value)}
+                placeholder="Add progress note..."
+                className="text-xs min-h-16"
+              />
+              <Button onClick={handleAddNote} size="sm" className="h-6 px-2">
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

@@ -748,6 +748,17 @@ export const loadAppState = (): AppState => {
               date: new Date(oneOnOne.date),
               createdAt: new Date(oneOnOne.createdAt),
             })),
+            moraleCheckIns: (detail.moraleCheckIns || []).map((checkIn: any) => ({
+              ...checkIn,
+              date: new Date(checkIn.date),
+              createdAt: new Date(checkIn.createdAt),
+            })),
+            performanceCheckIns: (detail.performanceCheckIns || []).map((checkIn: any) => ({
+              ...checkIn,
+              date: new Date(checkIn.date),
+              createdAt: new Date(checkIn.createdAt),
+            })),
+            clientDetails: detail.clientDetails || {},
             updatedAt: new Date(detail.updatedAt),
           }
         }

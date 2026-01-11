@@ -218,6 +218,14 @@ export interface MoraleCheckIn {
   createdAt: Date
 }
 
+export interface PerformanceCheckIn {
+  id: string
+  date: Date
+  performance: "excellent" | "good" | "fair" | "poor"
+  notes?: string
+  createdAt: Date
+}
+
 export interface ClientDetail {
   clientName: string
   problems?: string[]
@@ -230,7 +238,9 @@ export interface TeamMemberDetails {
   name: string
   goals: TeamMemberGoal[]
   morale: "excellent" | "good" | "fair" | "poor" | null
+  performance: "excellent" | "good" | "fair" | "poor" | null
   moraleCheckIns: MoraleCheckIn[] // Historical morale tracking
+  performanceCheckIns: PerformanceCheckIn[] // Historical performance tracking
   clients: string[] // List of client names this person works with
   clientDetails: Record<string, ClientDetail> // Detailed info per client
   redFlags: string[] // List of red flag notes

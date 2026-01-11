@@ -37,6 +37,29 @@ export default function HomePage() {
   const [deleteProjectWithTasks, setDeleteProjectWithTasks] = useState(false)
   const [deleteClientWithTasks, setDeleteClientWithTasks] = useState(false)
 
+  // URL routing - sync URL hash with view state
+  useEffect(() => {
+    const hash = window.location.hash.slice(1) // Remove #
+    if (hash) {
+      const [view, ...params] = hash.split('/')
+      if (view === 'team-member' && params[0]) {
+        setSelectedTeamMember(decodeURIComponent(params[0]))
+        setCurrentView('team-member')
+      } else if (['today', 'calendar', 'team', 'projects', 'clients', 'tasks'].includes(view)) {
+        setCurrentView(view as any)
+      }
+    }
+  }, [])
+
+  // Update URL when view changes
+  useEffect(() => {
+    if (currentView === 'team-member' && selectedTeamMember) {
+      window.location.hash = `#team-member/${encodeURIComponent(selectedTeamMember)}`
+    } else if (currentView !== 'team-member') {
+      window.location.hash = `#${currentView}`
+    }
+  }, [currentView, selectedTeamMember])
+
   useEffect(() => {
     const state = loadAppState()
     if (state) {
