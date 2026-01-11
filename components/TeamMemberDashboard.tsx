@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2, ArrowLeft } from "lucide-react"
+import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2, ArrowLeft, TrendingUp } from "lucide-react"
 import { format } from "date-fns"
-import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task } from "../types"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task, MoraleCheckIn, ClientDetail, GoalMilestone, GoalNote } from "../types"
 
 interface TeamMemberDashboardProps {
   memberName: string
@@ -52,7 +53,9 @@ export function TeamMemberDashboard({
     name: memberName,
     goals: [],
     morale: null,
+    moraleCheckIns: [],
     clients: [],
+    clientDetails: {},
     redFlags: [],
     reviewCycles: [],
     oneOnOnes: [],
@@ -102,9 +105,20 @@ export function TeamMemberDashboard({
 
   const handleAddClient = () => {
     if (!newClient.trim()) return
+    const clientName = newClient.trim()
     const updated = {
       ...details,
-      clients: [...details.clients, newClient.trim()],
+      clients: [...details.clients, clientName],
+      clientDetails: {
+        ...details.clientDetails,
+        [clientName]: {
+          clientName,
+          problems: [],
+          opportunities: [],
+          notes: "",
+          updatedAt: new Date(),
+        },
+      },
       updatedAt: new Date(),
     }
     onUpdate(updated)
@@ -213,6 +227,70 @@ export function TeamMemberDashboard({
     onUpdate(updated)
   }
 
+  const handleAddMoraleCheckIn = (morale: "excellent" | "good" | "fair" | "poor", notes?: string) => {
+    const checkIn: MoraleCheckIn = {
+      id: `morale-${Date.now()}`,
+      date: new Date(),
+      morale,
+      notes,
+      createdAt: new Date(),
+    }
+    const updated = {
+      ...details,
+      morale,
+      moraleCheckIns: [...(details.moraleCheckIns || []), checkIn],
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  const handleUpdateClientDetail = (clientName: string, detail: ClientDetail) => {
+    const updated = {
+      ...details,
+      clientDetails: {
+        ...details.clientDetails,
+        [clientName]: detail,
+      },
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  const handleAddGoalMilestone = (goalId: string, milestone: GoalMilestone) => {
+    const updated = {
+      ...details,
+      goals: details.goals.map(g => 
+        g.id === goalId 
+          ? { ...g, milestones: [...(g.milestones || []), milestone] }
+          : g
+      ),
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  const handleAddGoalNote = (goalId: string, note: GoalNote) => {
+    const updated = {
+      ...details,
+      goals: details.goals.map(g => 
+        g.id === goalId 
+          ? { ...g, notes: [...(g.notes || []), note] }
+          : g
+      ),
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  // Prepare morale chart data
+  const moraleChartData = (details.moraleCheckIns || [])
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map(checkIn => ({
+      date: format(new Date(checkIn.date), "MMM d"),
+      morale: checkIn.morale === "excellent" ? 4 : checkIn.morale === "good" ? 3 : checkIn.morale === "fair" ? 2 : 1,
+      label: checkIn.morale,
+    }))
+
   return (
     <div className="flex-1 overflow-auto bg-mgmt-beige min-h-screen p-4">
       <div className="max-w-6xl mx-auto">
@@ -273,10 +351,33 @@ export function TeamMemberDashboard({
 
             {/* Morale */}
             <div>
-              <h3 className="text-sm font-medium text-gray-800 mb-2">Morale</h3>
-              <Select value={details.morale || ""} onValueChange={(v) => handleMoraleChange(v as any || null)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select morale level" />
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-gray-800 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" />
+                  Morale Tracking
+                </h3>
+                <Button
+                  onClick={() => {
+                    const morale = details.morale || "good"
+                    handleAddMoraleCheckIn(morale as "excellent" | "good" | "fair" | "poor")
+                  }}
+                  size="sm"
+                  className="h-7 text-xs"
+                  disabled={!details.morale}
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Check In
+                </Button>
+              </div>
+              <Select value={details.morale || ""} onValueChange={(v) => {
+                const morale = v as "excellent" | "good" | "fair" | "poor" | null
+                handleMoraleChange(morale)
+                if (morale) {
+                  handleAddMoraleCheckIn(morale)
+                }
+              }}>
+                <SelectTrigger className="w-full mb-3">
+                  <SelectValue placeholder="Select current morale level" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="excellent">Excellent</SelectItem>
@@ -285,6 +386,32 @@ export function TeamMemberDashboard({
                   <SelectItem value="poor">Poor</SelectItem>
                 </SelectContent>
               </Select>
+              {moraleChartData.length > 0 && (
+                <div className="bg-gray-50 rounded-lg p-4 h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={moraleChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis domain={[0, 4]} ticks={[1, 2, 3, 4]} tickFormatter={(v) => 
+                        v === 4 ? "Excellent" : v === 3 ? "Good" : v === 2 ? "Fair" : "Poor"
+                      } />
+                      <Tooltip formatter={(value: number) => {
+                        const labels = ["", "Poor", "Fair", "Good", "Excellent"]
+                        return labels[value]
+                      }} />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="morale" 
+                        stroke="#2d9d78" 
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        name="Morale"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
 
             {/* Clients */}
@@ -293,18 +420,25 @@ export function TeamMemberDashboard({
                 <Users className="w-4 h-4" />
                 Clients
               </h3>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {details.clients.map((client) => (
-                  <Badge key={client} className="bg-mgmt-purple/20 text-mgmt-purple">
-                    {client}
-                    <button
-                      onClick={() => handleRemoveClient(client)}
-                      className="ml-1 hover:text-red-500"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
+              <div className="space-y-3 mb-3">
+                {details.clients.map((client) => {
+                  const clientDetail = details.clientDetails[client] || {
+                    clientName: client,
+                    problems: [],
+                    opportunities: [],
+                    notes: "",
+                    updatedAt: new Date(),
+                  }
+                  return (
+                    <ClientDetailCard
+                      key={client}
+                      client={client}
+                      detail={clientDetail}
+                      onUpdate={(detail) => handleUpdateClientDetail(client, detail)}
+                      onRemove={() => handleRemoveClient(client)}
+                    />
+                  )
+                })}
               </div>
               <div className="flex gap-2">
                 <Input
@@ -380,51 +514,16 @@ export function TeamMemberDashboard({
                 onCancel={() => setEditingGoal(null)}
               />
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {details.goals.map((goal) => (
-                  <div key={goal.id} className="bg-gray-50 rounded-lg p-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="font-medium text-sm text-gray-800">{goal.title}</div>
-                        {goal.description && (
-                          <div className="text-xs text-gray-600 mt-1">{goal.description}</div>
-                        )}
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge className={`text-xs ${
-                            goal.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            goal.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-                            goal.status === 'on-hold' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-gray-100 text-gray-700'
-                          }`}>
-                            {goal.status}
-                          </Badge>
-                          {goal.targetDate && (
-                            <span className="text-xs text-gray-500">
-                              Target: {format(goal.targetDate, "MMM d, yyyy")}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          onClick={() => setEditingGoal(goal)}
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          onClick={() => handleDeleteGoal(goal.id)}
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-red-500"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  <GoalCard
+                    key={goal.id}
+                    goal={goal}
+                    onEdit={() => setEditingGoal(goal)}
+                    onDelete={() => handleDeleteGoal(goal.id)}
+                    onAddMilestone={(milestone) => handleAddGoalMilestone(goal.id, milestone)}
+                    onAddNote={(note) => handleAddGoalNote(goal.id, note)}
+                  />
                 ))}
                 {details.goals.length === 0 && (
                   <p className="text-xs text-gray-500 text-center py-4">No goals yet</p>

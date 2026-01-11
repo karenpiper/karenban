@@ -164,6 +164,22 @@ export interface ThemeConfig {
   accentColor: string
 }
 
+export interface GoalMilestone {
+  id: string
+  title: string
+  description?: string
+  targetDate?: Date
+  completedAt?: Date
+  status: "pending" | "completed"
+}
+
+export interface GoalNote {
+  id: string
+  date: Date
+  note: string
+  createdAt: Date
+}
+
 export interface TeamMemberGoal {
   id: string
   title: string
@@ -172,6 +188,8 @@ export interface TeamMemberGoal {
   status: "not-started" | "in-progress" | "completed" | "on-hold"
   createdAt: Date
   completedAt?: Date
+  milestones?: GoalMilestone[]
+  notes?: GoalNote[]
 }
 
 export interface TeamMemberReviewCycle {
@@ -192,11 +210,29 @@ export interface TeamMemberOneOnOne {
   createdAt: Date
 }
 
+export interface MoraleCheckIn {
+  id: string
+  date: Date
+  morale: "excellent" | "good" | "fair" | "poor"
+  notes?: string
+  createdAt: Date
+}
+
+export interface ClientDetail {
+  clientName: string
+  problems?: string[]
+  opportunities?: string[]
+  notes?: string
+  updatedAt: Date
+}
+
 export interface TeamMemberDetails {
   name: string
   goals: TeamMemberGoal[]
   morale: "excellent" | "good" | "fair" | "poor" | null
+  moraleCheckIns: MoraleCheckIn[] // Historical morale tracking
   clients: string[] // List of client names this person works with
+  clientDetails: Record<string, ClientDetail> // Detailed info per client
   redFlags: string[] // List of red flag notes
   reviewCycles: TeamMemberReviewCycle[]
   oneOnOnes: TeamMemberOneOnOne[]
