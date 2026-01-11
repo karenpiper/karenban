@@ -22,6 +22,7 @@ interface TeamViewProps {
   onArchiveTeamMember?: (name: string) => void
   onDeleteTeamMember?: (name: string) => void
   onUpdateTeamMemberDetails?: (name: string, details: TeamMemberDetails) => void
+  onSelectTeamMember?: (name: string) => void
 }
 
 export function TeamView({
@@ -37,13 +38,19 @@ export function TeamView({
   onAddNonTeamMember,
   onArchiveTeamMember,
   onDeleteTeamMember,
-  onUpdateTeamMemberDetails
+  onUpdateTeamMemberDetails,
+  onSelectTeamMember
 }: TeamViewProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [showAddTeamMember, setShowAddTeamMember] = useState(false)
   const [showAddNonTeamMember, setShowAddNonTeamMember] = useState(false)
   const [newMemberName, setNewMemberName] = useState("")
-  const [selectedMember, setSelectedMember] = useState<string | null>(null)
+
+  const handleMemberClick = (member: string) => {
+    if (onSelectTeamMember) {
+      onSelectTeamMember(member)
+    }
+  }
 
   const safeTasks = tasks || []
   const safeProjects = projects || []
@@ -312,7 +319,7 @@ export function TeamView({
             return (
               <div
                 key={member}
-                onClick={() => setSelectedMember(member)}
+                onClick={() => handleMemberClick(member)}
                 className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer p-4"
               >
                 {/* Header */}
@@ -398,18 +405,6 @@ export function TeamView({
         </div>
       )}
 
-      {/* Team Member Dashboard Dialog */}
-      {selectedMember && (
-        <TeamMemberDashboard
-          memberName={selectedMember}
-          memberDetails={selectedMemberDetails}
-          tasks={safeTasks}
-          allClients={allClients}
-          isOpen={!!selectedMember}
-          onClose={() => setSelectedMember(null)}
-          onUpdate={(details) => handleUpdateTeamMemberDetails(selectedMember, details)}
-        />
-      )}
     </div>
   )
 }

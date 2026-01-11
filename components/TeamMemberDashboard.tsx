@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2 } from "lucide-react"
+import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2, ArrowLeft } from "lucide-react"
 import { format } from "date-fns"
 import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task } from "../types"
 
@@ -18,9 +17,8 @@ interface TeamMemberDashboardProps {
   memberDetails: TeamMemberDetails | null
   tasks: Task[]
   allClients: string[]
-  isOpen: boolean
-  onClose: () => void
   onUpdate: (details: TeamMemberDetails) => void
+  onBack: () => void
 }
 
 export function TeamMemberDashboard({
@@ -28,9 +26,8 @@ export function TeamMemberDashboard({
   memberDetails,
   tasks,
   allClients,
-  isOpen,
-  onClose,
-  onUpdate
+  onUpdate,
+  onBack
 }: TeamMemberDashboardProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "goals" | "reviews" | "oneonones" | "notes">("overview")
   const [editingGoal, setEditingGoal] = useState<TeamMemberGoal | null>(null)
@@ -39,6 +36,10 @@ export function TeamMemberDashboard({
   const [newClient, setNewClient] = useState("")
   const [newRedFlag, setNewRedFlag] = useState("")
   const [generalNotes, setGeneralNotes] = useState(memberDetails?.notes || "")
+
+  useEffect(() => {
+    setGeneralNotes(memberDetails?.notes || "")
+  }, [memberDetails])
 
   const currentTasks = tasks.filter(t => 
     t.assignedTo === memberName && 
@@ -213,11 +214,20 @@ export function TeamMemberDashboard({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-heading">{memberName}</DialogTitle>
-        </DialogHeader>
+    <div className="flex-1 overflow-auto bg-mgmt-beige min-h-screen p-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Header with Back Button */}
+        <div className="flex items-center gap-3 mb-6">
+          <Button
+            onClick={onBack}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <h1 className="text-2xl font-heading text-gray-800">{memberName}</h1>
+        </div>
 
         {/* Tabs */}
         <div className="flex gap-2 border-b border-gray-200 mb-4">
@@ -565,15 +575,33 @@ export function TeamMemberDashboard({
             </Button>
           </div>
         )}
-
-        <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
-          <Button onClick={onClose} variant="outline">
-            Close
-          </Button>
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   )
+
+        {/* Content Container */}
+        <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6">
+          {/* Tabs */}
+          <div className="flex gap-2 border-b border-gray-200 mb-6">
+            {(["overview", "goals", "reviews", "oneonones", "notes"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab
+                    ? "border-mgmt-green text-mgmt-green"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div className="min-h-[400px]">
 }
 
 // Goal Form Component

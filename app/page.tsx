@@ -7,6 +7,7 @@ import { ProjectView } from "@/components/ProjectView"
 import { ClientProjectView } from "@/components/ClientProjectView"
 import { CalendarView } from "@/components/CalendarView"
 import { TeamView } from "@/components/TeamView"
+import { TeamMemberDashboard } from "@/components/TeamMemberDashboard"
 import { TaskListView } from "@/components/TaskListView"
 import { TaskEditDialog } from "@/components/TaskEditDialog"
 import {
@@ -26,7 +27,8 @@ import type { AppState, Project, Task, Category, TeamMemberDetails } from "@/typ
 
 export default function HomePage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [currentView, setCurrentView] = useState<"today" | "calendar" | "team" | "projects" | "clients" | "tasks">("today")
+  const [currentView, setCurrentView] = useState<"today" | "calendar" | "team" | "projects" | "clients" | "tasks" | "team-member">("today")
+  const [selectedTeamMember, setSelectedTeamMember] = useState<string | null>(null)
   const [appState, setAppState] = useState<AppState | null>(null)
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null)
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
@@ -630,6 +632,35 @@ export default function HomePage() {
               onArchiveTeamMember={handleArchiveTeamMember}
               onDeleteTeamMember={handleDeleteTeamMember}
               onUpdateTeamMemberDetails={handleUpdateTeamMemberDetails}
+              onSelectTeamMember={(name) => {
+                setSelectedTeamMember(name)
+                setCurrentView("team-member")
+              }}
+            />
+          </div>
+        )
+      case "team-member":
+        if (!selectedTeamMember) {
+          setCurrentView("team")
+          return null
+        }
+        // Get all unique clients
+        const allClients = Array.from(new Set([
+          ...(appState.projects || []).filter(p => p.client).map(p => p.client!),
+          ...(appState.tasks || []).filter(t => t.client).map(t => t.client!)
+        ]))
+        return (
+          <div className="flex-1 overflow-auto">
+            <TeamMemberDashboard
+              memberName={selectedTeamMember}
+              memberDetails={appState.teamMemberDetails?.[selectedTeamMember] || null}
+              tasks={appState.tasks || []}
+              allClients={allClients}
+              onUpdate={(details) => handleUpdateTeamMemberDetails(selectedTeamMember, details)}
+              onBack={() => {
+                setCurrentView("team")
+                setSelectedTeamMember(null)
+              }}
             />
           </div>
         )
