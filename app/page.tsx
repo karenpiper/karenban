@@ -482,6 +482,70 @@ export default function HomePage() {
     saveAppState(updatedState)
   }
 
+  const handleCreateTaskFromTeamMember = (title: string, assignedTo: string, client?: string) => {
+    if (!appState) return
+    
+    // Find or create the person category in the follow-up column
+    const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
+    if (!followUpColumn) return
+    
+    let personCategory = followUpColumn.categories.find(
+      cat => cat.isPerson && (cat.personName || cat.name) === assignedTo
+    )
+    
+    // If category doesn't exist, create it
+    if (!personCategory) {
+      const isTeamMember = appState.teamMemberDetails?.[assignedTo] !== undefined
+      const newCategory: Category = {
+        id: `cat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: assignedTo,
+        columnId: 'col-followup',
+        color: isTeamMember ? 'from-blue-400 to-blue-500' : 'from-gray-400 to-gray-500',
+        isCollapsed: false,
+        order: followUpColumn.categories.length,
+        taskCount: 0,
+        completedCount: 0,
+        isPerson: true,
+        personName: assignedTo,
+        isTeamMember: isTeamMember
+      }
+      
+      const updatedColumns = appState.columns.map(col => {
+        if (col.id === 'col-followup') {
+          return {
+            ...col,
+            categories: [...col.categories, newCategory]
+          }
+        }
+        return col
+      })
+      
+      personCategory = newCategory
+      appState = { ...appState, columns: updatedColumns }
+    }
+    
+    // Create the new task
+    const newTask: Task = {
+      id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      title,
+      description: '',
+      priority: 'medium',
+      status: 'uncategorized',
+      columnId: 'col-followup',
+      categoryId: personCategory.id,
+      category: personCategory.id,
+      assignedTo,
+      client,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+    
+    const updatedTasks = [...appState.tasks, newTask]
+    const updatedState = { ...appState, tasks: updatedTasks }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
   const handleAddNonTeamMember = (name: string) => {
     if (!appState) return
     const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
@@ -684,6 +748,7 @@ export default function HomePage() {
                 setCurrentView("team")
                 setSelectedTeamMember(null)
               }}
+              onCreateTask={handleCreateTaskFromTeamMember}
             />
           </div>
         )

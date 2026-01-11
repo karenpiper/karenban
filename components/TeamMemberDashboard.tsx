@@ -20,6 +20,7 @@ interface TeamMemberDashboardProps {
   allClients: string[]
   onUpdate: (details: TeamMemberDetails) => void
   onBack: () => void
+  onCreateTask?: (title: string, assignedTo: string, client?: string) => void
 }
 
 export function TeamMemberDashboard({
@@ -28,7 +29,8 @@ export function TeamMemberDashboard({
   tasks,
   allClients,
   onUpdate,
-  onBack
+  onBack,
+  onCreateTask
 }: TeamMemberDashboardProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "goals" | "reviews" | "oneonones" | "notes">("overview")
   const [editingGoal, setEditingGoal] = useState<TeamMemberGoal | null>(null)
@@ -511,6 +513,7 @@ export function TeamMemberDashboard({
                 {details.clients.map((client) => {
                   const clientDetail = details.clientDetails[client] || {
                     clientName: client,
+                    summary: "",
                     problems: [],
                     opportunities: [],
                     notes: "",
@@ -523,6 +526,7 @@ export function TeamMemberDashboard({
                       detail={clientDetail}
                       onUpdate={(detail) => handleUpdateClientDetail(client, detail)}
                       onRemove={() => handleRemoveClient(client)}
+                      onCreateTask={onCreateTask ? (title, clientName) => onCreateTask(title, memberName, clientName) : undefined}
                     />
                   )
                 })}
@@ -711,11 +715,30 @@ export function TeamMemberDashboard({
                         {oneOnOne.actionItems && oneOnOne.actionItems.length > 0 && (
                           <div className="mt-2">
                             <div className="text-xs font-medium text-gray-700">Action Items:</div>
-                            <ul className="text-xs text-gray-600 list-disc list-inside mt-1">
+                            <div className="space-y-1 mt-1">
                               {oneOnOne.actionItems.map((item, idx) => (
-                                <li key={idx}>{item}</li>
+                                <div key={idx} className="flex items-center justify-between bg-white rounded p-1.5 text-xs text-gray-600">
+                                  <span>{item}</span>
+                                  {onCreateTask && (
+                                    <button
+                                      onClick={() => {
+                                        onCreateTask(item, memberName)
+                                        // Remove from action items after converting
+                                        const updated = {
+                                          ...oneOnOne,
+                                          actionItems: oneOnOne.actionItems?.filter((_, i) => i !== idx)
+                                        }
+                                        handleSaveOneOnOne(updated)
+                                      }}
+                                      className="text-blue-500 hover:text-blue-700 ml-2"
+                                      title="Convert to task"
+                                    >
+                                      <Check className="w-3 h-3" />
+                                    </button>
+                                  )}
+                                </div>
                               ))}
-                            </ul>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1006,14 +1029,17 @@ function ClientDetailCard({
   client,
   detail,
   onUpdate,
-  onRemove
+  onRemove,
+  onCreateTask
 }: {
   client: string
   detail: ClientDetail
   onUpdate: (detail: ClientDetail) => void
   onRemove: () => void
+  onCreateTask?: (title: string, client: string) => void
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [summary, setSummary] = useState(detail.summary || "")
   const [newProblem, setNewProblem] = useState("")
   const [newOpportunity, setNewOpportunity] = useState("")
   const [notes, setNotes] = useState(detail.notes || "")
@@ -1054,12 +1080,32 @@ function ClientDetailCard({
     })
   }
 
+  const handleSaveSummary = () => {
+    onUpdate({
+      ...detail,
+      summary,
+      updatedAt: new Date(),
+    })
+  }
+
   const handleSaveNotes = () => {
     onUpdate({
       ...detail,
       notes,
       updatedAt: new Date(),
     })
+  }
+
+  const handleConvertToTask = (text: string, type: 'problem' | 'opportunity') => {
+    if (onCreateTask) {
+      onCreateTask(`${type === 'problem' ? 'Problem' : 'Opportunity'}: ${text}`, client)
+      // Remove the item after converting
+      if (type === 'problem') {
+        handleRemoveProblem(text)
+      } else {
+        handleRemoveOpportunity(text)
+      }
+    }
   }
 
   return (
@@ -1084,17 +1130,38 @@ function ClientDetailCard({
       {isExpanded && (
         <div className="mt-3 space-y-3">
           <div>
+            <h4 className="text-xs font-medium text-gray-700 mb-1">Summary</h4>
+            <Textarea
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              onBlur={handleSaveSummary}
+              placeholder="Add client summary..."
+              className="text-xs min-h-20"
+            />
+          </div>
+          <div>
             <h4 className="text-xs font-medium text-red-700 mb-1">Problems</h4>
             <div className="space-y-1 mb-2">
               {(detail.problems || []).map((problem, idx) => (
                 <div key={idx} className="bg-red-50 border border-red-200 rounded p-1.5 flex items-center justify-between text-xs">
-                  <span className="text-red-800">{problem}</span>
-                  <button
-                    onClick={() => handleRemoveProblem(problem)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
+                  <span className="text-red-800 flex-1">{problem}</span>
+                  <div className="flex gap-1">
+                    {onCreateTask && (
+                      <button
+                        onClick={() => handleConvertToTask(problem, 'problem')}
+                        className="text-blue-500 hover:text-blue-700"
+                        title="Convert to task"
+                      >
+                        <Check className="w-3 h-3" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleRemoveProblem(problem)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1120,13 +1187,24 @@ function ClientDetailCard({
             <div className="space-y-1 mb-2">
               {(detail.opportunities || []).map((opportunity, idx) => (
                 <div key={idx} className="bg-green-50 border border-green-200 rounded p-1.5 flex items-center justify-between text-xs">
-                  <span className="text-green-800">{opportunity}</span>
-                  <button
-                    onClick={() => handleRemoveOpportunity(opportunity)}
-                    className="text-green-500 hover:text-green-700"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
+                  <span className="text-green-800 flex-1">{opportunity}</span>
+                  <div className="flex gap-1">
+                    {onCreateTask && (
+                      <button
+                        onClick={() => handleConvertToTask(opportunity, 'opportunity')}
+                        className="text-blue-500 hover:text-blue-700"
+                        title="Convert to task"
+                      >
+                        <Check className="w-3 h-3" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleRemoveOpportunity(opportunity)}
+                      className="text-green-500 hover:text-green-700"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

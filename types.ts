@@ -228,6 +228,7 @@ export interface PerformanceCheckIn {
 
 export interface ClientDetail {
   clientName: string
+  summary?: string
   problems?: string[]
   opportunities?: string[]
   notes?: string
