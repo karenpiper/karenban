@@ -62,6 +62,16 @@ export function ProjectView({
     )
   }
 
+  const getUnassignedTasks = () => {
+    // Exclude done/completed tasks from unassigned tasks
+    return safeTasks.filter(task => 
+      !task.projectId &&
+      task.status !== 'done' && 
+      task.status !== 'completed' && 
+      task.columnId !== 'col-done'
+    )
+  }
+
   const getProjectProgress = (projectId: string) => {
     const projectTasks = getProjectTasks(projectId)
     const completedTasks = projectTasks.filter(task => task.status === "completed" || task.status === "done").length
@@ -173,10 +183,10 @@ export function ProjectView({
       </div>
 
       {/* Projects List */}
-      {filteredProjects.length > 0 || (safeTasks.filter(t => !t.projectId).length > 0) ? (
+      {filteredProjects.length > 0 || getUnassignedTasks().length > 0 ? (
         <div className="space-y-2">
           {/* No Project Section */}
-          {safeTasks.filter(t => !t.projectId).length > 0 && (
+          {getUnassignedTasks().length > 0 && (
             <div 
               className={`bg-white/60 backdrop-blur-xl border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden ${
                 dragOverTarget === "__no_project__" 
@@ -199,7 +209,7 @@ export function ProjectView({
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-medium text-gray-800">No Project</h3>
                     <div className="flex items-center gap-3 text-[0.625rem] text-gray-500 mt-1">
-                      <span>{safeTasks.filter(t => !t.projectId).length} tasks</span>
+                      <span>{getUnassignedTasks().length} tasks</span>
                     </div>
                   </div>
                 </div>
@@ -208,7 +218,7 @@ export function ProjectView({
               {expandedProjects.has("__no_project__") && (
                 <div className="px-2 pb-2 pt-1.5 border-t border-gray-200/20">
                   <div className="space-y-1">
-                    {safeTasks.filter(t => !t.projectId).map(task => (
+                    {getUnassignedTasks().map(task => (
                       <div 
                         key={task.id} 
                         className="p-2 bg-white/40 rounded-lg border border-gray-200/20"

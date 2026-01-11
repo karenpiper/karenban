@@ -350,14 +350,20 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
   const getTasksForColumn = (columnId: string) => {
     if (!appState) return []
     const column = appState.columns.find(col => col.id === columnId)
+    // Filter out done/completed tasks
+    const activeTasks = appState.tasks.filter(task => 
+      task.status !== 'done' && 
+      task.status !== 'completed' && 
+      task.columnId !== 'col-done'
+    )
     // If column has no categories, show all tasks with this columnId and no categoryId
     // If column has categories, tasks will be filtered by category in renderColumn
     if (column && column.categories.length === 0) {
-      return appState.tasks.filter(task => 
+      return activeTasks.filter(task => 
         task.columnId === columnId && !task.categoryId
       )
     }
-    return appState.tasks.filter(task => task.columnId === columnId)
+    return activeTasks.filter(task => task.columnId === columnId)
   }
 
   // Get count for a specific category
@@ -1121,8 +1127,18 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
           {/* Filter Buttons */}
           <div className="flex gap-1.5 items-center">
             {(() => {
-              const unassignedCount = appState?.tasks.filter(t => !t.assignedTo).length || 0
-              const blockedCount = appState?.tasks.filter(t => t.columnId === 'col-followup').length || 0
+              const unassignedCount = appState?.tasks.filter(t => 
+                !t.assignedTo && 
+                t.status !== 'done' && 
+                t.status !== 'completed' && 
+                t.columnId !== 'col-done'
+              ).length || 0
+              const blockedCount = appState?.tasks.filter(t => 
+                t.columnId === 'col-followup' &&
+                t.status !== 'done' && 
+                t.status !== 'completed' && 
+                t.columnId !== 'col-done'
+              ).length || 0
               const today = new Date()
               today.setHours(0, 0, 0, 0)
               const overdueCount = appState?.tasks.filter(t => 
@@ -1369,9 +1385,19 @@ export function TaskBoard({ appState, onUpdateState }: TaskBoardProps) {
               let filteredTasks: Task[] = []
               
               if (filterType === 'unassigned') {
-                filteredTasks = appState.tasks.filter(t => !t.assignedTo)
+                filteredTasks = appState.tasks.filter(t => 
+                  !t.assignedTo &&
+                  t.status !== 'done' &&
+                  t.status !== 'completed' &&
+                  t.columnId !== 'col-done'
+                )
               } else if (filterType === 'blocked') {
-                filteredTasks = appState.tasks.filter(t => t.columnId === 'col-followup')
+                filteredTasks = appState.tasks.filter(t => 
+                  t.columnId === 'col-followup' &&
+                  t.status !== 'done' &&
+                  t.status !== 'completed' &&
+                  t.columnId !== 'col-done'
+                )
               } else if (filterType === 'overdue') {
                 const today = new Date()
                 today.setHours(0, 0, 0, 0)
