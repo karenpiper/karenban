@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2, ArrowLeft, TrendingUp } from "lucide-react"
+import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2, ArrowLeft, TrendingUp, BarChart3, Activity } from "lucide-react"
 import { format } from "date-fns"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts"
 import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task, MoraleCheckIn, PerformanceCheckIn, ClientDetail, GoalMilestone, GoalNote } from "../types"
 
 interface TeamMemberDashboardProps {
@@ -388,27 +388,374 @@ export function TeamMemberDashboard({
         </div>
 
         {/* Overview Tab */}
-        {activeTab === "overview" && (
-          <div className="space-y-4">
-            {/* Current Tasks */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
-                <Target className="w-4 h-4" />
-                Current Tasks ({currentTasks.length})
-              </h3>
-              <div className="space-y-1 max-h-48 overflow-y-auto">
-                {currentTasks.length > 0 ? (
-                  currentTasks.map((task) => (
-                    <div key={task.id} className="bg-gray-50 rounded-lg p-2 text-xs">
-                      <div className="font-medium text-gray-800">{task.title}</div>
-                      <div className="text-gray-500 mt-0.5">{task.status} • {task.priority}</div>
+        {activeTab === "overview" && (() => {
+          // Calculate statistics
+          const totalTasks = currentTasks.length
+          const completedTasks = tasks.filter(t => 
+            t.assignedTo === memberName && 
+            (t.status === 'done' || t.status === 'completed' || t.columnId === 'col-done')
+          ).length
+          const totalProblems = Object.values(details.clientDetails).reduce((sum, client) => 
+            sum + (client.problems?.length || 0), 0
+          )
+          const totalOpportunities = Object.values(details.clientDetails).reduce((sum, client) => 
+            sum + (client.opportunities?.length || 0), 0
+          )
+          const totalRedFlags = details.redFlags.length
+          const activeGoals = details.goals.filter(g => g.status === 'in-progress' || g.status === 'not-started').length
+          const completedGoals = details.goals.filter(g => g.status === 'completed').length
+          const totalGoals = details.goals.length
+          const goalProgress = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0
+          
+          // Morale and Performance indicators
+          const moraleLevel = details.morale || null
+          const performanceLevel = details.performance || null
+          const getLevelColor = (level: string | null) => {
+            if (!level) return { text: '#6b7280', bg: '#9ca3af' }
+            if (level === 'excellent') return { text: '#16a34a', bg: '#22c55e' }
+            if (level === 'good') return { text: '#2563eb', bg: '#3b82f6' }
+            if (level === 'fair') return { text: '#eab308', bg: '#facc15' }
+            return { text: '#dc2626', bg: '#ef4444' }
+          }
+          const getLevelValue = (level: string | null) => {
+            if (!level) return 0
+            if (level === 'excellent') return 4
+            if (level === 'good') return 3
+            if (level === 'fair') return 2
+            return 1
+          }
+
+          // Goal status data for pie chart
+          const goalStatusData = [
+            { name: 'Completed', value: completedGoals, color: '#2d9d78' },
+            { name: 'In Progress', value: details.goals.filter(g => g.status === 'in-progress').length, color: '#c7b3e5' },
+            { name: 'Not Started', value: details.goals.filter(g => g.status === 'not-started').length, color: '#e8f142' },
+            { name: 'On Hold', value: details.goals.filter(g => g.status === 'on-hold').length, color: '#f5c8e8' },
+          ].filter(item => item.value > 0)
+
+          // Task priority breakdown
+          const taskPriorityData = [
+            { name: 'Urgent', value: currentTasks.filter(t => t.priority === 'urgent').length, color: '#ef4444' },
+            { name: 'High', value: currentTasks.filter(t => t.priority === 'high').length, color: '#f59e0b' },
+            { name: 'Medium', value: currentTasks.filter(t => t.priority === 'medium').length, color: '#3b82f6' },
+            { name: 'Low', value: currentTasks.filter(t => t.priority === 'low').length, color: '#10b981' },
+          ].filter(item => item.value > 0)
+
+          return (
+            <div className="space-y-6">
+              {/* Key Stats Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Tasks Stat */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <Target className="w-5 h-5 text-blue-600" />
+                    <span className="text-xs text-blue-600 font-medium">Tasks</span>
+                  </div>
+                  <div className="text-3xl font-bold text-blue-700">{totalTasks}</div>
+                  <div className="text-xs text-blue-600 mt-1">
+                    {completedTasks} completed
+                  </div>
+                </div>
+
+                {/* Goals Stat */}
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <Target className="w-5 h-5 text-purple-600" />
+                    <span className="text-xs text-purple-600 font-medium">Goals</span>
+                  </div>
+                  <div className="text-3xl font-bold text-purple-700">{totalGoals}</div>
+                  <div className="text-xs text-purple-600 mt-1">
+                    {goalProgress}% complete
+                  </div>
+                </div>
+
+                {/* Problems Stat */}
+                <div className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200 rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                    <span className="text-xs text-red-600 font-medium">Problems</span>
+                  </div>
+                  <div className="text-3xl font-bold text-red-700">{totalProblems}</div>
+                  <div className="text-xs text-red-600 mt-1">
+                    Across {details.clients.length} clients
+                  </div>
+                </div>
+
+                {/* Opportunities Stat */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <TrendingUp className="w-5 h-5 text-green-600" />
+                    <span className="text-xs text-green-600 font-medium">Opportunities</span>
+                  </div>
+                  <div className="text-3xl font-bold text-green-700">{totalOpportunities}</div>
+                  <div className="text-xs text-green-600 mt-1">
+                    Across {details.clients.length} clients
+                  </div>
+                </div>
+              </div>
+
+              {/* Morale & Performance Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Morale Card */}
+                <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                      <Activity className="w-4 h-4" />
+                      Morale
+                    </h3>
+                    <span className="text-xs text-gray-500">(Their reporting)</span>
+                  </div>
+                  {moraleLevel ? (
+                    <>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="text-5xl font-bold" style={{ color: getLevelColor(moraleLevel).text }}>
+                          {getLevelValue(moraleLevel)}
+                        </div>
+                        <div>
+                          <div className="text-lg font-semibold text-gray-800 capitalize">{moraleLevel}</div>
+                          <div className="text-xs text-gray-500">
+                            {details.moraleCheckIns?.length || 0} check-ins
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div 
+                          className="h-3 rounded-full transition-all"
+                          style={{ 
+                            width: `${(getLevelValue(moraleLevel) / 4) * 100}%`,
+                            backgroundColor: getLevelColor(moraleLevel).bg
+                          }}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-4 text-gray-400 text-sm">No morale data yet</div>
+                  )}
+                </div>
+
+                {/* Performance Card */}
+                <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      Performance
+                    </h3>
+                    <span className="text-xs text-gray-500">(My perception)</span>
+                  </div>
+                  {performanceLevel ? (
+                    <>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`text-5xl font-bold text-${getLevelColor(performanceLevel)}-600`}>
+                          {getLevelValue(performanceLevel)}
+                        </div>
+                        <div>
+                          <div className="text-lg font-semibold text-gray-800 capitalize">{performanceLevel}</div>
+                          <div className="text-xs text-gray-500">
+                            {details.performanceCheckIns?.length || 0} check-ins
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div 
+                          className={`bg-${getLevelColor(performanceLevel)}-500 h-3 rounded-full transition-all`}
+                          style={{ width: `${(getLevelValue(performanceLevel) / 4) * 100}%` }}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-4 text-gray-400 text-sm">No performance data yet</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Charts Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Morale & Performance Trend */}
+                {(combinedChartData.length > 0 || moraleChartData.length > 0 || performanceChartData.length > 0) && (
+                  <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4" />
+                      Trend Over Time
+                    </h3>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={combinedChartData.length > 0 ? combinedChartData : moraleChartData.length > 0 ? moraleChartData : performanceChartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="date" stroke="#6b7280" fontSize={10} />
+                          <YAxis domain={[0, 4]} ticks={[1, 2, 3, 4]} tickFormatter={(v) => 
+                            v === 4 ? "Excellent" : v === 3 ? "Good" : v === 2 ? "Fair" : "Poor"
+                          } stroke="#6b7280" fontSize={10} />
+                          <Tooltip formatter={(value: number) => {
+                            const labels = ["", "Poor", "Fair", "Good", "Excellent"]
+                            return labels[value] || ""
+                          }} />
+                          <Legend wrapperStyle={{ fontSize: '12px' }} />
+                          {moraleChartData.length > 0 && (
+                            <Line 
+                              type="monotone" 
+                              dataKey="morale" 
+                              stroke="#2d9d78" 
+                              strokeWidth={2}
+                              dot={{ r: 4 }}
+                              name="Morale"
+                            />
+                          )}
+                          {performanceChartData.length > 0 && (
+                            <Line 
+                              type="monotone" 
+                              dataKey="performance" 
+                              stroke="#c7b3e5" 
+                              strokeWidth={2}
+                              dot={{ r: 4 }}
+                              name="Performance"
+                            />
+                          )}
+                        </LineChart>
+                      </ResponsiveContainer>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-gray-500">No current tasks</p>
+                  </div>
+                )}
+
+                {/* Goals Status Pie Chart */}
+                {goalStatusData.length > 0 && (
+                  <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      Goals Status
+                    </h3>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={goalStatusData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {goalStatusData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
                 )}
               </div>
+
+              {/* Task Priority & Red Flags Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Task Priority Breakdown */}
+                {taskPriorityData.length > 0 && (
+                  <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      Task Priority Breakdown
+                    </h3>
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={taskPriorityData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="name" stroke="#6b7280" fontSize={10} />
+                          <YAxis stroke="#6b7280" fontSize={10} />
+                          <Tooltip />
+                          <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                            {taskPriorityData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+
+                {/* Red Flags */}
+                <div className="bg-white border-2 border-red-200 rounded-xl p-5 shadow-sm">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                    Red Flags
+                  </h3>
+                  {totalRedFlags > 0 ? (
+                    <div className="space-y-2">
+                      <div className="text-4xl font-bold text-red-600 mb-2">{totalRedFlags}</div>
+                      <div className="space-y-1 max-h-32 overflow-y-auto">
+                        {details.redFlags.slice(0, 5).map((flag, idx) => (
+                          <div key={idx} className="text-xs bg-red-50 border border-red-200 rounded p-2 text-red-800">
+                            {flag}
+                          </div>
+                        ))}
+                        {details.redFlags.length > 5 && (
+                          <div className="text-xs text-gray-500 text-center">
+                            +{details.redFlags.length - 5} more
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-400 text-sm">No red flags</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick Actions - Update Morale/Performance */}
+              <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Activity className="w-4 h-4" />
+                  Quick Update
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-gray-600 mb-1 block">
+                      Morale <span className="text-gray-400">(Their reporting)</span>
+                    </label>
+                    <Select value={details.morale || ""} onValueChange={(v) => {
+                      const morale = v as "excellent" | "good" | "fair" | "poor" | null
+                      handleMoraleChange(morale)
+                      if (morale) {
+                        handleAddMoraleCheckIn(morale)
+                      }
+                    }}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select morale level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="excellent">Excellent</SelectItem>
+                        <SelectItem value="good">Good</SelectItem>
+                        <SelectItem value="fair">Fair</SelectItem>
+                        <SelectItem value="poor">Poor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600 mb-1 block">
+                      Performance <span className="text-gray-400">(My perception)</span>
+                    </label>
+                    <Select value={details.performance || ""} onValueChange={(v) => {
+                      const performance = v as "excellent" | "good" | "fair" | "poor" | null
+                      handlePerformanceChange(performance)
+                    }}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select performance level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="excellent">Excellent</SelectItem>
+                        <SelectItem value="good">Good</SelectItem>
+                        <SelectItem value="fair">Fair</SelectItem>
+                        <SelectItem value="poor">Poor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
             </div>
+          )
+        })()}
 
             {/* Morale & Performance Tracking */}
             <div>
