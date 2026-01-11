@@ -744,6 +744,7 @@ export default function HomePage() {
               memberDetails={appState.teamMemberDetails?.[selectedTeamMember] || null}
               tasks={appState.tasks || []}
               allClients={allClients}
+              roleGoals={appState.roleGrowthGoals || []}
               onUpdate={(details) => handleUpdateTeamMemberDetails(selectedTeamMember, details)}
               onBack={() => {
                 setCurrentView("team")
@@ -819,8 +820,14 @@ export default function HomePage() {
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        currentView={currentView}
-        onViewChange={setCurrentView}
+        currentView={currentView === "role-goals" || currentView === "team-member" ? (currentView === "role-goals" ? "role-goals" : "team") : currentView}
+        onViewChange={(view) => {
+          if (view === "role-goals") {
+            setCurrentView("role-goals")
+          } else if (view !== "role-goals" && view !== "team-member") {
+            setCurrentView(view as any)
+          }
+        }}
         onBulkImport={handleBulkImport}
         existingProjects={appState?.projects || []}
       />
