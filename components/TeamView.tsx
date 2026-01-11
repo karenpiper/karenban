@@ -190,8 +190,6 @@ export function TeamView({
     }
   }
 
-  const selectedMemberDetails = selectedMember ? teamMemberDetails[selectedMember] || null : null
-
   return (
     <div className="space-y-2 bg-mgmt-beige min-h-screen p-2">
       {/* Header */}
