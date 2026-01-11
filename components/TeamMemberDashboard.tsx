@@ -482,7 +482,7 @@ export function TeamMemberDashboard({
                           stroke="#2d9d78" 
                           strokeWidth={2}
                           dot={{ r: 4 }}
-                          name="Morale"
+                          name="Morale (Their reporting)"
                         />
                       )}
                       {performanceChartData.length > 0 && (
@@ -492,7 +492,7 @@ export function TeamMemberDashboard({
                           stroke="#c7b3e5" 
                           strokeWidth={2}
                           dot={{ r: 4 }}
-                          name="Performance"
+                          name="Performance (My perception)"
                         />
                       )}
                     </LineChart>
