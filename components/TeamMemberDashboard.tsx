@@ -419,7 +419,9 @@ export function TeamMemberDashboard({
               
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
-                  <label className="text-xs text-gray-600 mb-1 block">Morale</label>
+                  <label className="text-xs text-gray-600 mb-1 block">
+                    Morale <span className="text-gray-400">(Their reporting)</span>
+                  </label>
                   <Select value={details.morale || ""} onValueChange={(v) => {
                     const morale = v as "excellent" | "good" | "fair" | "poor" | null
                     handleMoraleChange(morale)
@@ -439,7 +441,9 @@ export function TeamMemberDashboard({
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-600 mb-1 block">Performance</label>
+                  <label className="text-xs text-gray-600 mb-1 block">
+                    Performance <span className="text-gray-400">(My perception)</span>
+                  </label>
                   <Select value={details.performance || ""} onValueChange={(v) => {
                     const performance = v as "excellent" | "good" | "fair" | "poor" | null
                     handlePerformanceChange(performance)
