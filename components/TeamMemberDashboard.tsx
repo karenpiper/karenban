@@ -1,0 +1,809 @@
+"use client"
+
+import { useState } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2 } from "lucide-react"
+import { format } from "date-fns"
+import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task } from "../types"
+
+interface TeamMemberDashboardProps {
+  memberName: string
+  memberDetails: TeamMemberDetails | null
+  tasks: Task[]
+  allClients: string[]
+  isOpen: boolean
+  onClose: () => void
+  onUpdate: (details: TeamMemberDetails) => void
+}
+
+export function TeamMemberDashboard({
+  memberName,
+  memberDetails,
+  tasks,
+  allClients,
+  isOpen,
+  onClose,
+  onUpdate
+}: TeamMemberDashboardProps) {
+  const [activeTab, setActiveTab] = useState<"overview" | "goals" | "reviews" | "oneonones" | "notes">("overview")
+  const [editingGoal, setEditingGoal] = useState<TeamMemberGoal | null>(null)
+  const [editingReview, setEditingReview] = useState<TeamMemberReviewCycle | null>(null)
+  const [editingOneOnOne, setEditingOneOnOne] = useState<TeamMemberOneOnOne | null>(null)
+  const [newClient, setNewClient] = useState("")
+  const [newRedFlag, setNewRedFlag] = useState("")
+  const [generalNotes, setGeneralNotes] = useState(memberDetails?.notes || "")
+
+  const currentTasks = tasks.filter(t => 
+    t.assignedTo === memberName && 
+    t.status !== 'done' && 
+    t.status !== 'completed' && 
+    t.columnId !== 'col-done'
+  )
+
+  const details: TeamMemberDetails = memberDetails || {
+    name: memberName,
+    goals: [],
+    morale: null,
+    clients: [],
+    redFlags: [],
+    reviewCycles: [],
+    oneOnOnes: [],
+    updatedAt: new Date(),
+  }
+
+  const handleSave = () => {
+    const updated: TeamMemberDetails = {
+      ...details,
+      notes: generalNotes,
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  const handleAddGoal = () => {
+    const newGoal: TeamMemberGoal = {
+      id: `goal-${Date.now()}`,
+      title: "",
+      description: "",
+      status: "not-started",
+      createdAt: new Date(),
+    }
+    setEditingGoal(newGoal)
+  }
+
+  const handleSaveGoal = (goal: TeamMemberGoal) => {
+    const updated = {
+      ...details,
+      goals: editingGoal?.id && details.goals.find(g => g.id === editingGoal.id)
+        ? details.goals.map(g => g.id === editingGoal.id ? goal : g)
+        : [...details.goals, goal],
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+    setEditingGoal(null)
+  }
+
+  const handleDeleteGoal = (goalId: string) => {
+    const updated = {
+      ...details,
+      goals: details.goals.filter(g => g.id !== goalId),
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  const handleAddClient = () => {
+    if (!newClient.trim()) return
+    const updated = {
+      ...details,
+      clients: [...details.clients, newClient.trim()],
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+    setNewClient("")
+  }
+
+  const handleRemoveClient = (client: string) => {
+    const updated = {
+      ...details,
+      clients: details.clients.filter(c => c !== client),
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  const handleAddRedFlag = () => {
+    if (!newRedFlag.trim()) return
+    const updated = {
+      ...details,
+      redFlags: [...details.redFlags, newRedFlag.trim()],
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+    setNewRedFlag("")
+  }
+
+  const handleRemoveRedFlag = (flag: string) => {
+    const updated = {
+      ...details,
+      redFlags: details.redFlags.filter(f => f !== flag),
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  const handleAddReviewCycle = () => {
+    const newReview: TeamMemberReviewCycle = {
+      id: `review-${Date.now()}`,
+      type: "quarterly",
+      startDate: new Date(),
+      endDate: new Date(),
+      createdAt: new Date(),
+    }
+    setEditingReview(newReview)
+  }
+
+  const handleSaveReview = (review: TeamMemberReviewCycle) => {
+    const updated = {
+      ...details,
+      reviewCycles: editingReview?.id && details.reviewCycles.find(r => r.id === editingReview.id)
+        ? details.reviewCycles.map(r => r.id === editingReview.id ? review : r)
+        : [...details.reviewCycles, review],
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+    setEditingReview(null)
+  }
+
+  const handleDeleteReview = (reviewId: string) => {
+    const updated = {
+      ...details,
+      reviewCycles: details.reviewCycles.filter(r => r.id !== reviewId),
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  const handleAddOneOnOne = () => {
+    const newOneOnOne: TeamMemberOneOnOne = {
+      id: `1on1-${Date.now()}`,
+      date: new Date(),
+      notes: "",
+      actionItems: [],
+      createdAt: new Date(),
+    }
+    setEditingOneOnOne(newOneOnOne)
+  }
+
+  const handleSaveOneOnOne = (oneOnOne: TeamMemberOneOnOne) => {
+    const updated = {
+      ...details,
+      oneOnOnes: editingOneOnOne?.id && details.oneOnOnes.find(o => o.id === editingOneOnOne.id)
+        ? details.oneOnOnes.map(o => o.id === editingOneOnOne.id ? oneOnOne : o)
+        : [...details.oneOnOnes, oneOnOne],
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+    setEditingOneOnOne(null)
+  }
+
+  const handleDeleteOneOnOne = (oneOnOneId: string) => {
+    const updated = {
+      ...details,
+      oneOnOnes: details.oneOnOnes.filter(o => o.id !== oneOnOneId),
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  const handleMoraleChange = (morale: "excellent" | "good" | "fair" | "poor" | null) => {
+    const updated = {
+      ...details,
+      morale,
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-heading">{memberName}</DialogTitle>
+        </DialogHeader>
+
+        {/* Tabs */}
+        <div className="flex gap-2 border-b border-gray-200 mb-4">
+          {(["overview", "goals", "reviews", "oneonones", "notes"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+                activeTab === tab
+                  ? "border-mgmt-green text-mgmt-green"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {/* Overview Tab */}
+        {activeTab === "overview" && (
+          <div className="space-y-4">
+            {/* Current Tasks */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Current Tasks ({currentTasks.length})
+              </h3>
+              <div className="space-y-1 max-h-48 overflow-y-auto">
+                {currentTasks.length > 0 ? (
+                  currentTasks.map((task) => (
+                    <div key={task.id} className="bg-gray-50 rounded-lg p-2 text-xs">
+                      <div className="font-medium text-gray-800">{task.title}</div>
+                      <div className="text-gray-500 mt-0.5">{task.status} • {task.priority}</div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-gray-500">No current tasks</p>
+                )}
+              </div>
+            </div>
+
+            {/* Morale */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-800 mb-2">Morale</h3>
+              <Select value={details.morale || ""} onValueChange={(v) => handleMoraleChange(v as any || null)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select morale level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="excellent">Excellent</SelectItem>
+                  <SelectItem value="good">Good</SelectItem>
+                  <SelectItem value="fair">Fair</SelectItem>
+                  <SelectItem value="poor">Poor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Clients */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Clients
+              </h3>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {details.clients.map((client) => (
+                  <Badge key={client} className="bg-mgmt-purple/20 text-mgmt-purple">
+                    {client}
+                    <button
+                      onClick={() => handleRemoveClient(client)}
+                      className="ml-1 hover:text-red-500"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newClient}
+                  onChange={(e) => setNewClient(e.target.value)}
+                  placeholder="Add client"
+                  className="text-xs h-7"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddClient()
+                    }
+                  }}
+                />
+                <Button onClick={handleAddClient} size="sm" className="h-7">
+                  <Plus className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Red Flags */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                Red Flags
+              </h3>
+              <div className="space-y-1 mb-2">
+                {details.redFlags.map((flag, idx) => (
+                  <div key={idx} className="bg-red-50 border border-red-200 rounded-lg p-2 flex items-center justify-between">
+                    <span className="text-xs text-red-800">{flag}</span>
+                    <button
+                      onClick={() => handleRemoveRedFlag(flag)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newRedFlag}
+                  onChange={(e) => setNewRedFlag(e.target.value)}
+                  placeholder="Add red flag"
+                  className="text-xs h-7"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddRedFlag()
+                    }
+                  }}
+                />
+                <Button onClick={handleAddRedFlag} size="sm" className="h-7">
+                  <Plus className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Goals Tab */}
+        {activeTab === "goals" && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-medium text-gray-800">Goals</h3>
+              <Button onClick={handleAddGoal} size="sm" className="h-7">
+                <Plus className="w-3 h-3 mr-1" />
+                Add Goal
+              </Button>
+            </div>
+            {editingGoal ? (
+              <GoalForm
+                goal={editingGoal}
+                onSave={handleSaveGoal}
+                onCancel={() => setEditingGoal(null)}
+              />
+            ) : (
+              <div className="space-y-2">
+                {details.goals.map((goal) => (
+                  <div key={goal.id} className="bg-gray-50 rounded-lg p-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium text-sm text-gray-800">{goal.title}</div>
+                        {goal.description && (
+                          <div className="text-xs text-gray-600 mt-1">{goal.description}</div>
+                        )}
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge className={`text-xs ${
+                            goal.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            goal.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                            goal.status === 'on-hold' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {goal.status}
+                          </Badge>
+                          {goal.targetDate && (
+                            <span className="text-xs text-gray-500">
+                              Target: {format(goal.targetDate, "MMM d, yyyy")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          onClick={() => setEditingGoal(goal)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteGoal(goal.id)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-red-500"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {details.goals.length === 0 && (
+                  <p className="text-xs text-gray-500 text-center py-4">No goals yet</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Reviews Tab */}
+        {activeTab === "reviews" && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-medium text-gray-800">Review Cycles</h3>
+              <Button onClick={handleAddReviewCycle} size="sm" className="h-7">
+                <Plus className="w-3 h-3 mr-1" />
+                Add Review
+              </Button>
+            </div>
+            {editingReview ? (
+              <ReviewForm
+                review={editingReview}
+                onSave={handleSaveReview}
+                onCancel={() => setEditingReview(null)}
+              />
+            ) : (
+              <div className="space-y-2">
+                {details.reviewCycles.map((review) => (
+                  <div key={review.id} className="bg-gray-50 rounded-lg p-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium text-sm text-gray-800 capitalize">{review.type} Review</div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          {format(review.startDate, "MMM d, yyyy")} - {format(review.endDate, "MMM d, yyyy")}
+                        </div>
+                        {review.rating && (
+                          <div className="text-xs text-gray-600 mt-1">Rating: {review.rating}/5</div>
+                        )}
+                        {review.notes && (
+                          <div className="text-xs text-gray-600 mt-1">{review.notes}</div>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          onClick={() => setEditingReview(review)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteReview(review.id)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-red-500"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {details.reviewCycles.length === 0 && (
+                  <p className="text-xs text-gray-500 text-center py-4">No review cycles yet</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 1:1s Tab */}
+        {activeTab === "oneonones" && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-medium text-gray-800">1:1 Notes</h3>
+              <Button onClick={handleAddOneOnOne} size="sm" className="h-7">
+                <Plus className="w-3 h-3 mr-1" />
+                Add 1:1
+              </Button>
+            </div>
+            {editingOneOnOne ? (
+              <OneOnOneForm
+                oneOnOne={editingOneOnOne}
+                onSave={handleSaveOneOnOne}
+                onCancel={() => setEditingOneOnOne(null)}
+              />
+            ) : (
+              <div className="space-y-2">
+                {details.oneOnOnes.map((oneOnOne) => (
+                  <div key={oneOnOne.id} className="bg-gray-50 rounded-lg p-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium text-sm text-gray-800">
+                          {format(oneOnOne.date, "MMM d, yyyy")}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1 whitespace-pre-wrap">{oneOnOne.notes}</div>
+                        {oneOnOne.actionItems && oneOnOne.actionItems.length > 0 && (
+                          <div className="mt-2">
+                            <div className="text-xs font-medium text-gray-700">Action Items:</div>
+                            <ul className="text-xs text-gray-600 list-disc list-inside mt-1">
+                              {oneOnOne.actionItems.map((item, idx) => (
+                                <li key={idx}>{item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          onClick={() => setEditingOneOnOne(oneOnOne)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteOneOnOne(oneOnOne.id)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-red-500"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {details.oneOnOnes.length === 0 && (
+                  <p className="text-xs text-gray-500 text-center py-4">No 1:1 notes yet</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Notes Tab */}
+        {activeTab === "notes" && (
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-gray-800">General Notes</h3>
+            <Textarea
+              value={generalNotes}
+              onChange={(e) => setGeneralNotes(e.target.value)}
+              placeholder="Add general notes about this team member..."
+              className="min-h-32 text-xs"
+            />
+            <Button onClick={handleSave} className="w-full">
+              Save Notes
+            </Button>
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
+          <Button onClick={onClose} variant="outline">
+            Close
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// Goal Form Component
+function GoalForm({
+  goal,
+  onSave,
+  onCancel
+}: {
+  goal: TeamMemberGoal
+  onSave: (goal: TeamMemberGoal) => void
+  onCancel: () => void
+}) {
+  const [title, setTitle] = useState(goal.title)
+  const [description, setDescription] = useState(goal.description || "")
+  const [status, setStatus] = useState(goal.status)
+  const [targetDate, setTargetDate] = useState<Date | undefined>(goal.targetDate)
+
+  const handleSave = () => {
+    onSave({
+      ...goal,
+      title,
+      description,
+      status,
+      targetDate,
+    })
+  }
+
+  return (
+    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+      <Input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Goal title"
+        className="text-xs"
+      />
+      <Textarea
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Description"
+        className="text-xs min-h-20"
+      />
+      <Select value={status} onValueChange={(v) => setStatus(v as any)}>
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="not-started">Not Started</SelectItem>
+          <SelectItem value="in-progress">In Progress</SelectItem>
+          <SelectItem value="completed">Completed</SelectItem>
+          <SelectItem value="on-hold">On Hold</SelectItem>
+        </SelectContent>
+      </Select>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full justify-start text-left font-normal text-xs">
+            <CalendarIcon className="mr-2 h-3 w-3" />
+            {targetDate ? format(targetDate, "PPP") : "Select target date"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar mode="single" selected={targetDate} onSelect={setTargetDate} />
+        </PopoverContent>
+      </Popover>
+      <div className="flex gap-2">
+        <Button onClick={handleSave} size="sm" className="flex-1">
+          Save
+        </Button>
+        <Button onClick={onCancel} variant="outline" size="sm" className="flex-1">
+          Cancel
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// Review Form Component
+function ReviewForm({
+  review,
+  onSave,
+  onCancel
+}: {
+  review: TeamMemberReviewCycle
+  onSave: (review: TeamMemberReviewCycle) => void
+  onCancel: () => void
+}) {
+  const [type, setType] = useState(review.type)
+  const [startDate, setStartDate] = useState<Date>(review.startDate)
+  const [endDate, setEndDate] = useState<Date>(review.endDate)
+  const [notes, setNotes] = useState(review.notes || "")
+  const [rating, setRating] = useState(review.rating?.toString() || "")
+
+  const handleSave = () => {
+    onSave({
+      ...review,
+      type,
+      startDate,
+      endDate,
+      notes,
+      rating: rating ? parseInt(rating) : undefined,
+    })
+  }
+
+  return (
+    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+      <Select value={type} onValueChange={(v) => setType(v as any)}>
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="quarterly">Quarterly</SelectItem>
+          <SelectItem value="annual">Annual</SelectItem>
+          <SelectItem value="custom">Custom</SelectItem>
+        </SelectContent>
+      </Select>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full justify-start text-left font-normal text-xs">
+            <CalendarIcon className="mr-2 h-3 w-3" />
+            Start: {format(startDate, "PPP")}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar mode="single" selected={startDate} onSelect={(d) => d && setStartDate(d)} />
+        </PopoverContent>
+      </Popover>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full justify-start text-left font-normal text-xs">
+            <CalendarIcon className="mr-2 h-3 w-3" />
+            End: {format(endDate, "PPP")}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar mode="single" selected={endDate} onSelect={(d) => d && setEndDate(d)} />
+        </PopoverContent>
+      </Popover>
+      <Input
+        value={rating}
+        onChange={(e) => setRating(e.target.value)}
+        placeholder="Rating (1-5)"
+        type="number"
+        min="1"
+        max="5"
+        className="text-xs"
+      />
+      <Textarea
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="Review notes"
+        className="text-xs min-h-20"
+      />
+      <div className="flex gap-2">
+        <Button onClick={handleSave} size="sm" className="flex-1">
+          Save
+        </Button>
+        <Button onClick={onCancel} variant="outline" size="sm" className="flex-1">
+          Cancel
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// 1:1 Form Component
+function OneOnOneForm({
+  oneOnOne,
+  onSave,
+  onCancel
+}: {
+  oneOnOne: TeamMemberOneOnOne
+  onSave: (oneOnOne: TeamMemberOneOnOne) => void
+  onCancel: () => void
+}) {
+  const [date, setDate] = useState<Date>(oneOnOne.date)
+  const [notes, setNotes] = useState(oneOnOne.notes)
+  const [actionItems, setActionItems] = useState(oneOnOne.actionItems?.join("\n") || "")
+  const [newActionItem, setNewActionItem] = useState("")
+
+  const handleAddActionItem = () => {
+    if (!newActionItem.trim()) return
+    setActionItems(prev => prev ? `${prev}\n${newActionItem.trim()}` : newActionItem.trim())
+    setNewActionItem("")
+  }
+
+  const handleSave = () => {
+    onSave({
+      ...oneOnOne,
+      date,
+      notes,
+      actionItems: actionItems.split("\n").filter(item => item.trim()),
+    })
+  }
+
+  return (
+    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full justify-start text-left font-normal text-xs">
+            <CalendarIcon className="mr-2 h-3 w-3" />
+            {format(date, "PPP")}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} />
+        </PopoverContent>
+      </Popover>
+      <Textarea
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="1:1 notes"
+        className="text-xs min-h-32"
+      />
+      <div>
+        <div className="text-xs font-medium text-gray-700 mb-1">Action Items</div>
+        <Textarea
+          value={actionItems}
+          onChange={(e) => setActionItems(e.target.value)}
+          placeholder="One action item per line"
+          className="text-xs min-h-20"
+        />
+      </div>
+      <div className="flex gap-2">
+        <Button onClick={handleSave} size="sm" className="flex-1">
+          Save
+        </Button>
+        <Button onClick={onCancel} variant="outline" size="sm" className="flex-1">
+          Cancel
+        </Button>
+      </div>
+    </div>
+  )
+}
+

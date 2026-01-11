@@ -674,6 +674,7 @@ export const seedAppState: AppState = {
   projects: seedProjects,
   achievements: seedAchievements,
   userStats: seedUserStats,
+  teamMemberDetails: {},
   settings: {
     theme: "auto",
     enableAnimations: true,
@@ -719,6 +720,38 @@ export const loadAppState = (): AppState => {
           updatedAt: new Date(project.updatedAt),
           dueDate: project.dueDate ? new Date(project.dueDate) : undefined,
         }))
+      }
+      // Ensure teamMemberDetails exists (for backward compatibility)
+      if (!parsed.teamMemberDetails) {
+        parsed.teamMemberDetails = {}
+      } else {
+        // Parse team member details dates
+        const teamDetails: Record<string, any> = {}
+        for (const [name, details] of Object.entries(parsed.teamMemberDetails)) {
+          const detail = details as any
+          teamDetails[name] = {
+            ...detail,
+            goals: (detail.goals || []).map((goal: any) => ({
+              ...goal,
+              createdAt: new Date(goal.createdAt),
+              targetDate: goal.targetDate ? new Date(goal.targetDate) : undefined,
+              completedAt: goal.completedAt ? new Date(goal.completedAt) : undefined,
+            })),
+            reviewCycles: (detail.reviewCycles || []).map((cycle: any) => ({
+              ...cycle,
+              startDate: new Date(cycle.startDate),
+              endDate: new Date(cycle.endDate),
+              createdAt: new Date(cycle.createdAt),
+            })),
+            oneOnOnes: (detail.oneOnOnes || []).map((oneOnOne: any) => ({
+              ...oneOnOne,
+              date: new Date(oneOnOne.date),
+              createdAt: new Date(oneOnOne.createdAt),
+            })),
+            updatedAt: new Date(detail.updatedAt),
+          }
+        }
+        parsed.teamMemberDetails = teamDetails
       }
       return parsed
     }

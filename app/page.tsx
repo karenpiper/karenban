@@ -22,7 +22,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { loadAppState, saveAppState } from "@/data/seed"
-import type { AppState, Project, Task, Category } from "@/types"
+import type { AppState, Project, Task, Category, TeamMemberDetails } from "@/types"
 
 export default function HomePage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -38,6 +38,10 @@ export default function HomePage() {
   useEffect(() => {
     const state = loadAppState()
     if (state) {
+      // Ensure teamMemberDetails exists
+      if (!state.teamMemberDetails) {
+        state.teamMemberDetails = {}
+      }
       // Clean up duplicate person categories on load
       const cleanedColumns = state.columns.map(col => {
         if (col.id === 'col-followup') {
@@ -434,7 +438,21 @@ export default function HomePage() {
       }
       return task
     })
-    const updatedState = { ...appState, columns: updatedColumns, tasks: updatedTasks }
+    // Remove team member details
+    const updatedTeamMemberDetails = { ...appState.teamMemberDetails }
+    delete updatedTeamMemberDetails[name]
+    const updatedState = { ...appState, columns: updatedColumns, tasks: updatedTasks, teamMemberDetails: updatedTeamMemberDetails }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+  }
+
+  const handleUpdateTeamMemberDetails = (name: string, details: TeamMemberDetails) => {
+    if (!appState) return
+    const updatedTeamMemberDetails = {
+      ...appState.teamMemberDetails,
+      [name]: details
+    }
+    const updatedState = { ...appState, teamMemberDetails: updatedTeamMemberDetails }
     setAppState(updatedState)
     saveAppState(updatedState)
   }
@@ -600,6 +618,8 @@ export default function HomePage() {
           <div className="flex-1 overflow-auto p-3">
             <TeamView
               tasks={appState.tasks || []}
+              projects={appState.projects || []}
+              teamMemberDetails={appState.teamMemberDetails || {}}
               onEditTask={handleEditTask}
               onDeleteTask={handleDeleteTask}
               onMarkTaskDone={handleMarkTaskDone}
@@ -609,6 +629,7 @@ export default function HomePage() {
               onAddNonTeamMember={handleAddNonTeamMember}
               onArchiveTeamMember={handleArchiveTeamMember}
               onDeleteTeamMember={handleDeleteTeamMember}
+              onUpdateTeamMemberDetails={handleUpdateTeamMemberDetails}
             />
           </div>
         )

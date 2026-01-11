@@ -126,6 +126,7 @@ export interface AppState {
   projects: Project[]
   achievements: Achievement[]
   userStats: UserStats
+  teamMemberDetails: Record<string, TeamMemberDetails> // Map of person name to their details
   settings: {
     theme: "light" | "dark" | "auto"
     enableAnimations: boolean
@@ -161,4 +162,44 @@ export interface ThemeConfig {
   gradient: string
   primaryColor: string
   accentColor: string
+}
+
+export interface TeamMemberGoal {
+  id: string
+  title: string
+  description?: string
+  targetDate?: Date
+  status: "not-started" | "in-progress" | "completed" | "on-hold"
+  createdAt: Date
+  completedAt?: Date
+}
+
+export interface TeamMemberReviewCycle {
+  id: string
+  type: "quarterly" | "annual" | "custom"
+  startDate: Date
+  endDate: Date
+  notes?: string
+  rating?: number // 1-5
+  createdAt: Date
+}
+
+export interface TeamMemberOneOnOne {
+  id: string
+  date: Date
+  notes: string
+  actionItems?: string[]
+  createdAt: Date
+}
+
+export interface TeamMemberDetails {
+  name: string
+  goals: TeamMemberGoal[]
+  morale: "excellent" | "good" | "fair" | "poor" | null
+  clients: string[] // List of client names this person works with
+  redFlags: string[] // List of red flag notes
+  reviewCycles: TeamMemberReviewCycle[]
+  oneOnOnes: TeamMemberOneOnOne[]
+  notes?: string // General notes
+  updatedAt: Date
 }
