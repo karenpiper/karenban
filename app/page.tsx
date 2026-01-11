@@ -9,6 +9,7 @@ import { CalendarView } from "@/components/CalendarView"
 import { TeamView } from "@/components/TeamView"
 import { TeamMemberDashboard } from "@/components/TeamMemberDashboard"
 import { TaskListView } from "@/components/TaskListView"
+import { RoleGoalsView } from "@/components/RoleGoalsView"
 import { TaskEditDialog } from "@/components/TaskEditDialog"
 import {
   AlertDialog,
@@ -27,7 +28,7 @@ import type { AppState, Project, Task, Category, TeamMemberDetails } from "@/typ
 
 export default function HomePage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [currentView, setCurrentView] = useState<"today" | "calendar" | "team" | "projects" | "clients" | "tasks" | "team-member">("today")
+  const [currentView, setCurrentView] = useState<"today" | "calendar" | "team" | "projects" | "clients" | "tasks" | "team-member" | "role-goals">("today")
   const [selectedTeamMember, setSelectedTeamMember] = useState<string | null>(null)
   const [appState, setAppState] = useState<AppState | null>(null)
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null)

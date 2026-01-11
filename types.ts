@@ -127,6 +127,7 @@ export interface AppState {
   achievements: Achievement[]
   userStats: UserStats
   teamMemberDetails: Record<string, TeamMemberDetails> // Map of person name to their details
+  roleGrowthGoals: RoleGrowthGoal[] // Role-based growth goals
   settings: {
     theme: "light" | "dark" | "auto"
     enableAnimations: boolean
@@ -235,8 +236,37 @@ export interface ClientDetail {
   updatedAt: Date
 }
 
+export interface GrowthGoalRating {
+  id: string
+  weekStartDate: Date // Monday of the week
+  rating: number // 1-5 scale
+  notes?: string
+  createdAt: Date
+}
+
+export interface RoleGrowthGoal {
+  id: string
+  role: string // e.g., "Developer", "Designer", "Manager"
+  level: string // e.g., "Junior", "Mid", "Senior"
+  title: string
+  description?: string
+  category?: string // e.g., "Technical", "Communication", "Leadership"
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface TeamMemberGrowthGoal {
+  goalId: string // Reference to RoleGrowthGoal.id
+  ratings: GrowthGoalRating[] // Weekly ratings
+  currentRating?: number // Latest rating
+  notes?: string
+}
+
 export interface TeamMemberDetails {
   name: string
+  role?: string // e.g., "Developer", "Designer", "Manager"
+  level?: string // e.g., "Junior", "Mid", "Senior"
+  growthGoals: TeamMemberGrowthGoal[] // Goals pulled from role-based goals
   goals: TeamMemberGoal[]
   morale: "excellent" | "good" | "fair" | "poor" | null
   performance: "excellent" | "good" | "fair" | "poor" | null

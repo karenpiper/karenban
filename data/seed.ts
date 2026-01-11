@@ -675,6 +675,7 @@ export const seedAppState: AppState = {
   achievements: seedAchievements,
   userStats: seedUserStats,
   teamMemberDetails: {},
+  roleGrowthGoals: [],
   settings: {
     theme: "auto",
     enableAnimations: true,
@@ -719,6 +720,17 @@ export const loadAppState = (): AppState => {
           createdAt: new Date(project.createdAt),
           updatedAt: new Date(project.updatedAt),
           dueDate: project.dueDate ? new Date(project.dueDate) : undefined,
+        }))
+      }
+      // Ensure roleGrowthGoals array exists (for backward compatibility)
+      if (!parsed.roleGrowthGoals) {
+        parsed.roleGrowthGoals = []
+      } else {
+        // Parse role goal dates
+        parsed.roleGrowthGoals = parsed.roleGrowthGoals.map((goal: any) => ({
+          ...goal,
+          createdAt: new Date(goal.createdAt),
+          updatedAt: new Date(goal.updatedAt),
         }))
       }
       // Ensure teamMemberDetails exists (for backward compatibility)

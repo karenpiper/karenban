@@ -11,13 +11,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2, ArrowLeft, TrendingUp, BarChart3, Activity } from "lucide-react"
 import { format } from "date-fns"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts"
-import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task, MoraleCheckIn, PerformanceCheckIn, ClientDetail, GoalMilestone, GoalNote } from "../types"
+import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task, MoraleCheckIn, PerformanceCheckIn, ClientDetail, GoalMilestone, GoalNote, RoleGrowthGoal, TeamMemberGrowthGoal, GrowthGoalRating } from "../types"
 
 interface TeamMemberDashboardProps {
   memberName: string
   memberDetails: TeamMemberDetails | null
   tasks: Task[]
   allClients: string[]
+  roleGoals: RoleGrowthGoal[]
   onUpdate: (details: TeamMemberDetails) => void
   onBack: () => void
   onCreateTask?: (title: string, assignedTo: string, client?: string) => void
@@ -28,11 +29,12 @@ export function TeamMemberDashboard({
   memberDetails,
   tasks,
   allClients,
+  roleGoals,
   onUpdate,
   onBack,
   onCreateTask
 }: TeamMemberDashboardProps) {
-  const [activeTab, setActiveTab] = useState<"overview" | "goals" | "reviews" | "oneonones" | "notes">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "goals" | "reviews" | "oneonones" | "notes" | "growth">("overview")
   const [editingGoal, setEditingGoal] = useState<TeamMemberGoal | null>(null)
   const [editingReview, setEditingReview] = useState<TeamMemberReviewCycle | null>(null)
   const [editingOneOnOne, setEditingOneOnOne] = useState<TeamMemberOneOnOne | null>(null)
@@ -53,6 +55,9 @@ export function TeamMemberDashboard({
 
   const details: TeamMemberDetails = memberDetails || {
     name: memberName,
+    role: undefined,
+    level: undefined,
+    growthGoals: [],
     goals: [],
     morale: null,
     performance: null,
@@ -372,7 +377,7 @@ export function TeamMemberDashboard({
         <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6">
           {/* Tabs */}
           <div className="flex gap-2 border-b border-gray-200 mb-6">
-          {(["overview", "goals", "reviews", "oneonones", "notes"] as const).map((tab) => (
+          {(["overview", "growth", "goals", "reviews", "oneonones", "notes"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -1116,6 +1121,242 @@ export function TeamMemberDashboard({
                 {details.oneOnOnes.length === 0 && (
                   <p className="text-xs text-gray-500 text-center py-4">No 1:1 notes yet</p>
                 )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Growth Goals Tab */}
+        {activeTab === "growth" && (
+          <div className="space-y-4">
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-800 mb-4">Role & Level</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-gray-600 mb-1 block">Role</label>
+                  <Input
+                    value={details.role || ""}
+                    onChange={(e) => {
+                      const updated = { ...details, role: e.target.value, updatedAt: new Date() }
+                      onUpdate(updated)
+                    }}
+                    placeholder="e.g., Developer, Designer"
+                    className="text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600 mb-1 block">Level</label>
+                  <Select 
+                    value={details.level || ""} 
+                    onValueChange={(v) => {
+                      const updated = { ...details, level: v, updatedAt: new Date() }
+                      onUpdate(updated)
+                    }}
+                  >
+                    <SelectTrigger className="text-xs">
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Junior">Junior</SelectItem>
+                      <SelectItem value="Mid">Mid</SelectItem>
+                      <SelectItem value="Senior">Senior</SelectItem>
+                      <SelectItem value="Lead">Lead</SelectItem>
+                      <SelectItem value="Principal">Principal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Pull in Goals Based on Role/Level */}
+            {details.role && details.level && (() => {
+              const applicableGoals = roleGoals.filter(
+                g => g.role === details.role && g.level === details.level
+              )
+              
+              const handleSyncGoals = () => {
+                const existingGoalIds = new Set(details.growthGoals.map(g => g.goalId))
+                const newGoals: TeamMemberGrowthGoal[] = applicableGoals
+                  .filter(g => !existingGoalIds.has(g.id))
+                  .map(g => ({
+                    goalId: g.id,
+                    ratings: [],
+                    notes: undefined
+                  }))
+                
+                if (newGoals.length > 0) {
+                  const updated = {
+                    ...details,
+                    growthGoals: [...details.growthGoals, ...newGoals],
+                    updatedAt: new Date()
+                  }
+                  onUpdate(updated)
+                }
+              }
+
+              const handleAddRating = (goalId: string, rating: number, notes?: string) => {
+                const now = new Date()
+                const weekStart = new Date(now)
+                weekStart.setDate(now.getDate() - now.getDay() + 1) // Monday
+                weekStart.setHours(0, 0, 0, 0)
+
+                const newRating: GrowthGoalRating = {
+                  id: `rating-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                  weekStartDate: weekStart,
+                  rating,
+                  notes,
+                  createdAt: now
+                }
+
+                const updated = {
+                  ...details,
+                  growthGoals: details.growthGoals.map(g => 
+                    g.goalId === goalId
+                      ? {
+                          ...g,
+                          ratings: [...g.ratings, newRating].sort((a, b) => 
+                            new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime()
+                          ),
+                          currentRating: rating
+                        }
+                      : g
+                  ),
+                  updatedAt: new Date()
+                }
+                onUpdate(updated)
+              }
+
+              return (
+                <div className="space-y-4">
+                  {applicableGoals.length === 0 ? (
+                    <div className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center">
+                      <p className="text-sm text-gray-500">
+                        No growth goals defined for {details.role} - {details.level} level.
+                        <br />
+                        <span className="text-xs">Add goals in the Role Goals section.</span>
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {details.growthGoals.length < applicableGoals.length && (
+                        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                          <p className="text-xs text-blue-800 mb-2">
+                            {applicableGoals.length - details.growthGoals.length} new goal(s) available
+                          </p>
+                          <Button onClick={handleSyncGoals} size="sm" className="h-7">
+                            <Plus className="w-3 h-3 mr-1" />
+                            Sync Goals
+                          </Button>
+                        </div>
+                      )}
+                      {details.growthGoals.map(memberGoal => {
+                        const roleGoal = applicableGoals.find(g => g.id === memberGoal.goalId)
+                        if (!roleGoal) return null
+
+                        const latestRating = memberGoal.ratings[0]
+                        const now = new Date()
+                        const weekStart = new Date(now)
+                        weekStart.setDate(now.getDate() - now.getDay() + 1)
+                        weekStart.setHours(0, 0, 0, 0)
+                        const hasThisWeekRating = memberGoal.ratings.some(r => 
+                          new Date(r.weekStartDate).getTime() === weekStart.getTime()
+                        )
+
+                        return (
+                          <div key={memberGoal.goalId} className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <h4 className="text-sm font-semibold text-gray-800">{roleGoal.title}</h4>
+                                {roleGoal.description && (
+                                  <p className="text-xs text-gray-600 mt-1">{roleGoal.description}</p>
+                                )}
+                                {roleGoal.category && (
+                                  <span className="inline-block mt-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                    {roleGoal.category}
+                                  </span>
+                                )}
+                              </div>
+                              {latestRating && (
+                                <div className="text-right">
+                                  <div className="text-2xl font-bold text-blue-600">{latestRating.rating}</div>
+                                  <div className="text-xs text-gray-500">/ 5</div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Weekly Rating */}
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="text-xs font-medium text-gray-700">
+                                  {hasThisWeekRating ? "This Week's Rating" : "Rate This Week"}
+                                </label>
+                                {hasThisWeekRating && (
+                                  <span className="text-xs text-gray-500">
+                                    {format(new Date(weekStart), "MMM d")}
+                                  </span>
+                                )}
+                              </div>
+                              {!hasThisWeekRating ? (
+                                <div className="flex gap-2">
+                                  {[1, 2, 3, 4, 5].map(rating => (
+                                    <Button
+                                      key={rating}
+                                      onClick={() => handleAddRating(memberGoal.goalId, rating)}
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      {rating}
+                                    </Button>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <div className="text-lg font-semibold text-gray-800">
+                                    {latestRating.rating} / 5
+                                  </div>
+                                  {latestRating.notes && (
+                                    <div className="text-xs text-gray-600">{latestRating.notes}</div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Historical Ratings */}
+                            {memberGoal.ratings.length > 0 && (
+                              <div className="mt-4 pt-4 border-t border-gray-200">
+                                <h5 className="text-xs font-medium text-gray-700 mb-2">Rating History</h5>
+                                <div className="space-y-1 max-h-32 overflow-y-auto">
+                                  {memberGoal.ratings.map(rating => (
+                                    <div key={rating.id} className="flex items-center justify-between text-xs bg-gray-50 rounded p-2">
+                                      <span className="text-gray-600">
+                                        {format(new Date(rating.weekStartDate), "MMM d, yyyy")}
+                                      </span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-semibold text-gray-800">{rating.rating} / 5</span>
+                                        {rating.notes && (
+                                          <span className="text-gray-500">• {rating.notes}</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </>
+                  )}
+                </div>
+              )
+            })()}
+
+            {(!details.role || !details.level) && (
+              <div className="bg-white border-2 border-gray-200 rounded-xl p-8 text-center">
+                <p className="text-sm text-gray-500">
+                  Please set the team member's role and level above to view growth goals.
+                </p>
               </div>
             )}
           </div>
