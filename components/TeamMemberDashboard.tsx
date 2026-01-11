@@ -545,7 +545,7 @@ export function TeamMemberDashboard({
                   {performanceLevel ? (
                     <>
                       <div className="flex items-center gap-3 mb-3">
-                        <div className={`text-5xl font-bold text-${getLevelColor(performanceLevel)}-600`}>
+                        <div className="text-5xl font-bold" style={{ color: getLevelColor(performanceLevel).text }}>
                           {getLevelValue(performanceLevel)}
                         </div>
                         <div>
@@ -557,8 +557,11 @@ export function TeamMemberDashboard({
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-3">
                         <div 
-                          className={`bg-${getLevelColor(performanceLevel)}-500 h-3 rounded-full transition-all`}
-                          style={{ width: `${(getLevelValue(performanceLevel) / 4) * 100}%` }}
+                          className="h-3 rounded-full transition-all"
+                          style={{ 
+                            width: `${(getLevelValue(performanceLevel) / 4) * 100}%`,
+                            backgroundColor: getLevelColor(performanceLevel).bg
+                          }}
                         />
                       </div>
                     </>
