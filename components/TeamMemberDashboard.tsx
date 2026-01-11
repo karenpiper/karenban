@@ -324,21 +324,25 @@ export function TeamMemberDashboard({
   }
 
   // Prepare morale and performance chart data
-  const moraleChartData = (details.moraleCheckIns || [])
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .map(checkIn => ({
-      date: format(new Date(checkIn.date), "MMM d"),
-      morale: checkIn.morale === "excellent" ? 4 : checkIn.morale === "good" ? 3 : checkIn.morale === "fair" ? 2 : 1,
-      label: checkIn.morale,
-    }))
+  const moraleChartData = useMemo(() => {
+    return (details.moraleCheckIns || [])
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map(checkIn => ({
+        date: format(new Date(checkIn.date), "MMM d"),
+        morale: checkIn.morale === "excellent" ? 4 : checkIn.morale === "good" ? 3 : checkIn.morale === "fair" ? 2 : 1,
+        label: checkIn.morale,
+      }))
+  }, [details.moraleCheckIns])
 
-  const performanceChartData = (details.performanceCheckIns || [])
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .map(checkIn => ({
-      date: format(new Date(checkIn.date), "MMM d"),
-      performance: checkIn.performance === "excellent" ? 4 : checkIn.performance === "good" ? 3 : checkIn.performance === "fair" ? 2 : 1,
-      label: checkIn.performance,
-    }))
+  const performanceChartData = useMemo(() => {
+    return (details.performanceCheckIns || [])
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map(checkIn => ({
+        date: format(new Date(checkIn.date), "MMM d"),
+        performance: checkIn.performance === "excellent" ? 4 : checkIn.performance === "good" ? 3 : checkIn.performance === "fair" ? 2 : 1,
+        label: checkIn.performance,
+      }))
+  }, [details.performanceCheckIns])
 
   // Combine data for dual-line chart
   const combinedChartData = useMemo(() => {
