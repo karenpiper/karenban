@@ -229,8 +229,10 @@ export function TeamMemberDashboard({
           <h1 className="text-2xl font-heading text-gray-800">{memberName}</h1>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 border-b border-gray-200 mb-4">
+        {/* Content Container */}
+        <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6">
+          {/* Tabs */}
+          <div className="flex gap-2 border-b border-gray-200 mb-6">
           {(["overview", "goals", "reviews", "oneonones", "notes"] as const).map((tab) => (
             <button
               key={tab}
@@ -575,33 +577,10 @@ export function TeamMemberDashboard({
             </Button>
           </div>
         )}
-          </div>
         </div>
       </div>
     </div>
   )
-
-        {/* Content Container */}
-        <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6">
-          {/* Tabs */}
-          <div className="flex gap-2 border-b border-gray-200 mb-6">
-            {(["overview", "goals", "reviews", "oneonones", "notes"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === tab
-                    ? "border-mgmt-green text-mgmt-green"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          {/* Tab Content */}
-          <div className="min-h-[400px]">
 }
 
 // Goal Form Component
