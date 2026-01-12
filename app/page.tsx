@@ -46,7 +46,7 @@ export default function HomePage() {
       if (view === 'team-member' && params[0]) {
         setSelectedTeamMember(decodeURIComponent(params[0]))
         setCurrentView('team-member')
-      } else if (['today', 'calendar', 'team', 'projects', 'clients', 'tasks'].includes(view)) {
+      } else if (['today', 'calendar', 'team', 'projects', 'clients', 'tasks', 'settings'].includes(view)) {
         setCurrentView(view as any)
       }
     }
@@ -56,8 +56,10 @@ export default function HomePage() {
   useEffect(() => {
     if (currentView === 'team-member' && selectedTeamMember) {
       window.location.hash = `#team-member/${encodeURIComponent(selectedTeamMember)}`
-    } else if (currentView !== 'team-member') {
+    } else if (currentView !== 'team-member' && currentView !== 'settings') {
       window.location.hash = `#${currentView}`
+    } else if (currentView === 'settings') {
+      window.location.hash = '#settings'
     }
   }, [currentView, selectedTeamMember])
 
