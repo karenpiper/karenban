@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Trash2, Edit2, X, Check } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Plus, Trash2, Edit2, X, Check, Upload } from "lucide-react"
 import type { RoleGrowthGoal } from "../types"
 
 interface RoleGoalsViewProps {
@@ -15,6 +16,8 @@ interface RoleGoalsViewProps {
 
 export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
   const [editingGoal, setEditingGoal] = useState<RoleGrowthGoal | null>(null)
+  const [bulkImportOpen, setBulkImportOpen] = useState(false)
+  const [bulkImportText, setBulkImportText] = useState("")
   const [newGoal, setNewGoal] = useState({
     discipline: "",
     level: "",
@@ -75,6 +78,171 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
     onUpdate(roleGoals.filter(g => g.id !== goalId))
   }
 
+  const parseBulkImport = (text: string): RoleGrowthGoal[] => {
+    const goals: RoleGrowthGoal[] = []
+    const lines = text.split('\n').map(l => l.trim())
+    
+    let currentGoal: Partial<RoleGrowthGoal> = {}
+    let currentSection: 'firstPerson' | 'title' | 'behaviors' | 'competency' | 'skills' | null = null
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      if (!line) continue
+      
+      const lowerLine = line.toLowerCase()
+      
+      // Detect section headers
+      if (lowerLine.includes('first person statement') || (lowerLine.startsWith('first person') && !currentSection)) {
+        // Save previous goal if complete
+        if (currentGoal.title && currentGoal.discipline && currentGoal.level) {
+          goals.push(createGoalFromPartial(currentGoal))
+        }
+        currentGoal = {}
+        currentSection = 'firstPerson'
+        // Check if statement is on same line
+        const match = line.match(/first person statement[:\s]+(.+)/i)
+        if (match && match[1]) {
+          currentGoal.firstPersonStatement = match[1].trim()
+          currentSection = null
+        }
+        continue
+      }
+      
+      if (lowerLine === 'title' || lowerLine.startsWith('title:')) {
+        currentSection = 'title'
+        continue
+      }
+      
+      if (lowerLine === 'behaviors:' || lowerLine.startsWith('behaviors:')) {
+        currentSection = 'behaviors'
+        if (!currentGoal.behaviors) {
+          currentGoal.behaviors = []
+        }
+        // Check if first behavior is on same line
+        const match = line.match(/behaviors:\s*(.+)/i)
+        if (match && match[1] && match[1].trim()) {
+          currentGoal.behaviors.push(match[1].replace(/^-\s*/, '').trim())
+        }
+        continue
+      }
+      
+      if (lowerLine === 'competency:' || lowerLine.startsWith('competency:')) {
+        currentSection = 'competency'
+        const match = line.match(/competency:\s*(.+)/i)
+        if (match && match[1]) {
+          currentGoal.competency = match[1].trim()
+          currentSection = null
+        }
+        continue
+      }
+      
+      if (lowerLine.includes('skills and deliverables') || lowerLine.includes('skills & deliverables')) {
+        currentSection = 'skills'
+        if (!currentGoal.skillsAndDeliverables) {
+          currentGoal.skillsAndDeliverables = []
+        }
+        // Handle case where "Skills and Deliverables:" is on same line as first item
+        const match = line.match(/(?:skills (?:and|&) deliverables):\s*(.+)/i)
+        if (match && match[1] && match[1].trim()) {
+          currentGoal.skillsAndDeliverables.push(match[1].replace(/^-\s*/, '').trim())
+        }
+        continue
+      }
+      
+      // Process content based on current section
+      if (currentSection === 'firstPerson') {
+        if (line.match(/^I (can|will|am|do|have)/i)) {
+          currentGoal.firstPersonStatement = line
+          currentSection = null
+        }
+      } else if (currentSection === 'title') {
+        // Extract level and discipline from title
+        const levelMatch = line.match(/^(Associate|Mid-Level|Senior|Associate Director|Director|Senior Director|Group Director)/i)
+        if (levelMatch) {
+          currentGoal.level = levelMatch[1]
+          currentGoal.title = line
+          // Extract discipline
+          const disciplineMatch = line.match(/(?:Associate|Mid-Level|Senior|Associate Director|Director|Senior Director|Group Director)\s+(.+?)(?:\s+(?:Director|Manager|Lead|Specialist|Coordinator|Associate|Executive|Analyst|Consultant|Advisor|Representative|Assistant|Supervisor|Administrator|Officer|Head|Chief|VP|Vice President|President|CEO|CTO|CFO|COO|CMO|CPO|CSO|CCO|CDO|CAO|CRO|CISO|CIO|CKO|CLO|CBO))?$/i)
+          if (disciplineMatch && disciplineMatch[1]) {
+            currentGoal.discipline = disciplineMatch[1].trim()
+          } else {
+            // Fallback: use everything after level as discipline
+            const afterLevel = line.substring(levelMatch[0].length).trim()
+            if (afterLevel) {
+              currentGoal.discipline = afterLevel.split(/\s+/).slice(0, -1).join(' ') || afterLevel
+            }
+          }
+          currentSection = null
+        }
+      } else if (currentSection === 'behaviors') {
+        if (!currentGoal.behaviors) {
+          currentGoal.behaviors = []
+        }
+        const behavior = line.replace(/^-\s*/, '').trim()
+        if (behavior) {
+          currentGoal.behaviors.push(behavior)
+        }
+      } else if (currentSection === 'competency') {
+        currentGoal.competency = line
+        currentSection = null
+      } else if (currentSection === 'skills') {
+        if (!currentGoal.skillsAndDeliverables) {
+          currentGoal.skillsAndDeliverables = []
+        }
+        const skill = line.replace(/^-\s*/, '').trim()
+        if (skill) {
+          currentGoal.skillsAndDeliverables.push(skill)
+        }
+      } else {
+        // Try to auto-detect sections
+        if (line.match(/^I (can|will|am|do|have)/i) && !currentGoal.firstPersonStatement) {
+          currentGoal.firstPersonStatement = line
+        } else if (line.match(/^(Associate|Mid-Level|Senior|Associate Director|Director|Senior Director|Group Director)\s+/i) && !currentGoal.title) {
+          const levelMatch = line.match(/^(Associate|Mid-Level|Senior|Associate Director|Director|Senior Director|Group Director)/i)
+          if (levelMatch) {
+            currentGoal.level = levelMatch[1]
+            currentGoal.title = line
+            const afterLevel = line.substring(levelMatch[0].length).trim()
+            if (afterLevel) {
+              currentGoal.discipline = afterLevel.split(/\s+/).slice(0, -1).join(' ') || afterLevel
+            }
+          }
+        }
+      }
+    }
+    
+    // Add the last goal if it has required fields
+    if (currentGoal.title && currentGoal.discipline && currentGoal.level) {
+      goals.push(createGoalFromPartial(currentGoal))
+    }
+    
+    return goals
+  }
+
+  const createGoalFromPartial = (partial: Partial<RoleGrowthGoal>): RoleGrowthGoal => {
+    return {
+      id: `role-goal-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      discipline: partial.discipline || "",
+      level: partial.level || "",
+      title: partial.title || "",
+      firstPersonStatement: partial.firstPersonStatement || undefined,
+      behaviors: partial.behaviors && partial.behaviors.length > 0 ? partial.behaviors : undefined,
+      competency: partial.competency || undefined,
+      skillsAndDeliverables: partial.skillsAndDeliverables && partial.skillsAndDeliverables.length > 0 ? partial.skillsAndDeliverables : undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+  }
+
+  const handleBulkImport = () => {
+    const parsedGoals = parseBulkImport(bulkImportText)
+    if (parsedGoals.length > 0) {
+      onUpdate([...roleGoals, ...parsedGoals])
+      setBulkImportText("")
+      setBulkImportOpen(false)
+    }
+  }
+
   const goalsByDisciplineAndLevel = useMemo(() => {
     const grouped: Record<string, Record<string, RoleGrowthGoal[]>> = {}
     roleGoals.forEach(goal => {
@@ -87,6 +255,59 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
 
   return (
     <div>
+      {/* Bulk Import Button */}
+      <div className="mb-4 flex justify-end">
+        <Dialog open={bulkImportOpen} onOpenChange={setBulkImportOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="text-xs">
+              <Upload className="w-3 h-3 mr-2" />
+              Bulk Import Goals
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Bulk Import Role Goals</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs text-gray-600 mb-2 block">
+                  Paste your role goal data in this format:
+                </label>
+                <Textarea
+                  value={bulkImportText}
+                  onChange={(e) => setBulkImportText(e.target.value)}
+                  placeholder={`First person statement of what it is:
+I can define the problem space and ensure the team understands what needs to be done.
+
+Title
+Associate Strategy Director
+
+Behaviors:
+- Guides the team in asking the right questions to clarify client challenges.
+- Anticipates how client issues will impact broader business outcomes and proactively adjusts plans.
+
+Competency:
+Can articulate and shape the problem to align with business objectives and set the team up for success.
+
+Skills and Deliverables:
+- Frame the client's business challenge into actionable strategic objectives.
+- Lead exploratory discussions to uncover deeper client needs and goals.`}
+                  className="text-xs min-h-60 font-mono"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setBulkImportOpen(false)} className="text-xs">
+                  Cancel
+                </Button>
+                <Button onClick={handleBulkImport} className="text-xs">
+                  Import Goals
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
       {/* Add New Goal Form */}
       <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Add New Growth Goal</h2>
