@@ -994,10 +994,10 @@ export function TeamMemberDashboard({
               </div>
             </div>
 
-            {/* Pull in Goals Based on Role/Level */}
-            {details.role && details.level && (() => {
+            {/* Pull in Goals Based on Discipline/Level */}
+            {details.discipline && details.level && (() => {
               const applicableGoals = roleGoals.filter(
-                g => g.role === details.role && g.level === details.level
+                g => g.discipline === details.discipline && g.level === details.level
               )
               
               const handleSyncGoals = () => {
@@ -1057,7 +1057,7 @@ export function TeamMemberDashboard({
                   {applicableGoals.length === 0 ? (
                     <div className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center">
                       <p className="text-sm text-gray-500">
-                        No growth goals defined for {details.role} - {details.level} level.
+                        No growth goals defined for {details.discipline} - {details.level} level.
                         <br />
                         <span className="text-xs">Add goals in the Role Goals section.</span>
                       </p>
