@@ -812,6 +812,20 @@ export default function HomePage() {
             />
           </div>
         )
+      case "settings":
+        return (
+          <div className="flex-1 overflow-auto">
+            <SettingsView
+              roleGoals={appState.roleGrowthGoals || []}
+              onUpdateRoleGoals={(goals) => {
+                if (!appState) return
+                const updatedState = { ...appState, roleGrowthGoals: goals }
+                setAppState(updatedState)
+                saveAppState(updatedState)
+              }}
+            />
+          </div>
+        )
       default:
         return <TaskBoard />
     }
