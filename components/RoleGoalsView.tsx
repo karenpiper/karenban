@@ -68,12 +68,9 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
   }, [roleGoals])
 
   return (
-    <div className="flex-1 overflow-auto bg-mgmt-beige min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl font-heading text-gray-800 mb-6">Role-Based Growth Goals</h1>
-
-        {/* Add New Goal Form */}
-        <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6 mb-6">
+    <div>
+      {/* Add New Goal Form */}
+      <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Add New Growth Goal</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

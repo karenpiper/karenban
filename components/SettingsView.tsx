@@ -13,12 +13,12 @@ export function SettingsView({ roleGoals, onUpdateRoleGoals }: SettingsViewProps
   const [activeTab, setActiveTab] = useState<"role-goals" | "general">("role-goals")
 
   return (
-    <div className="flex-1 overflow-auto bg-mgmt-beige min-h-screen">
-      <div className="max-w-6xl mx-auto p-6">
+    <div className="flex-1 overflow-auto bg-mgmt-beige min-h-screen p-6">
+      <div className="max-w-6xl mx-auto">
         <h1 className="text-2xl font-heading text-gray-800 mb-6">Settings</h1>
 
         {/* Tabs */}
-        <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6 mb-6">
+        <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6">
           <div className="flex gap-2 border-b border-gray-200 mb-6">
             <button
               onClick={() => setActiveTab("role-goals")}
@@ -44,10 +44,12 @@ export function SettingsView({ roleGoals, onUpdateRoleGoals }: SettingsViewProps
 
           {/* Role Goals Tab */}
           {activeTab === "role-goals" && (
-            <RoleGoalsView
-              roleGoals={roleGoals}
-              onUpdate={onUpdateRoleGoals}
-            />
+            <div>
+              <RoleGoalsView
+                roleGoals={roleGoals}
+                onUpdate={onUpdateRoleGoals}
+              />
+            </div>
           )}
 
           {/* General Settings Tab */}
