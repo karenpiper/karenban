@@ -19,6 +19,10 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
     discipline: "",
     level: "",
     title: "",
+    firstPersonStatement: "",
+    behaviors: "",
+    competency: "",
+    skillsAndDeliverables: "",
     description: "",
     category: "",
   })
@@ -38,6 +42,10 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
       discipline: newGoal.discipline,
       level: newGoal.level,
       title: newGoal.title,
+      firstPersonStatement: newGoal.firstPersonStatement || undefined,
+      behaviors: newGoal.behaviors ? newGoal.behaviors.split('\n').filter(b => b.trim()).map(b => b.replace(/^-\s*/, '').trim()) : undefined,
+      competency: newGoal.competency || undefined,
+      skillsAndDeliverables: newGoal.skillsAndDeliverables ? newGoal.skillsAndDeliverables.split('\n').filter(s => s.trim()).map(s => s.replace(/^-\s*/, '').trim()) : undefined,
       description: newGoal.description || undefined,
       category: newGoal.category || undefined,
       createdAt: new Date(),
@@ -45,7 +53,17 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
     }
 
     onUpdate([...roleGoals, goal])
-    setNewGoal({ discipline: "", level: "", title: "", description: "", category: "" })
+    setNewGoal({ 
+      discipline: "", 
+      level: "", 
+      title: "", 
+      firstPersonStatement: "",
+      behaviors: "",
+      competency: "",
+      skillsAndDeliverables: "",
+      description: "", 
+      category: "" 
+    })
   }
 
   const handleUpdateGoal = (updatedGoal: RoleGrowthGoal) => {
@@ -154,34 +172,64 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
                             onCancel={() => setEditingGoal(null)}
                           />
                         ) : (
-                          <div key={goal.id} className="bg-gray-50 rounded-lg p-3 flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="font-medium text-sm text-gray-800">{goal.title}</div>
-                              {goal.description && (
-                                <div className="text-xs text-gray-600 mt-1">{goal.description}</div>
-                              )}
-                              {goal.category && (
-                                <div className="text-xs text-gray-500 mt-1">Category: {goal.category}</div>
-                              )}
+                          <div key={goal.id} className="bg-gray-50 rounded-lg p-3">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <div className="font-medium text-sm text-gray-800">{goal.title}</div>
+                                {goal.category && (
+                                  <div className="text-xs text-gray-500 mt-1">Category: {goal.category}</div>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => setEditingGoal(goal)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  onClick={() => handleDeleteGoal(goal.id)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 text-red-500"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex gap-2">
-                              <Button
-                                onClick={() => setEditingGoal(goal)}
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                              >
-                                <Edit2 className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                onClick={() => handleDeleteGoal(goal.id)}
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 text-red-500"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
+                            {goal.firstPersonStatement && (
+                              <div className="text-xs text-gray-700 mt-2 italic">"{goal.firstPersonStatement}"</div>
+                            )}
+                            {goal.competency && (
+                              <div className="text-xs text-gray-600 mt-2">
+                                <span className="font-medium">Competency:</span> {goal.competency}
+                              </div>
+                            )}
+                            {goal.behaviors && goal.behaviors.length > 0 && (
+                              <div className="text-xs text-gray-600 mt-2">
+                                <span className="font-medium">Behaviors:</span>
+                                <ul className="list-disc list-inside mt-1 space-y-0.5">
+                                  {goal.behaviors.map((behavior, idx) => (
+                                    <li key={idx}>{behavior}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {goal.skillsAndDeliverables && goal.skillsAndDeliverables.length > 0 && (
+                              <div className="text-xs text-gray-600 mt-2">
+                                <span className="font-medium">Skills and Deliverables:</span>
+                                <ul className="list-disc list-inside mt-1 space-y-0.5">
+                                  {goal.skillsAndDeliverables.map((skill, idx) => (
+                                    <li key={idx}>{skill}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {goal.description && (
+                              <div className="text-xs text-gray-500 mt-2 italic">{goal.description}</div>
+                            )}
                           </div>
                         )
                       ))}
@@ -206,6 +254,10 @@ function GoalEditForm({
   onCancel: () => void
 }) {
   const [title, setTitle] = useState(goal.title)
+  const [firstPersonStatement, setFirstPersonStatement] = useState(goal.firstPersonStatement || "")
+  const [behaviors, setBehaviors] = useState(goal.behaviors?.join('\n') || "")
+  const [competency, setCompetency] = useState(goal.competency || "")
+  const [skillsAndDeliverables, setSkillsAndDeliverables] = useState(goal.skillsAndDeliverables?.join('\n') || "")
   const [description, setDescription] = useState(goal.description || "")
   const [category, setCategory] = useState(goal.category || "")
 
@@ -213,6 +265,10 @@ function GoalEditForm({
     onSave({
       ...goal,
       title,
+      firstPersonStatement: firstPersonStatement || undefined,
+      behaviors: behaviors ? behaviors.split('\n').filter(b => b.trim()).map(b => b.replace(/^-\s*/, '').trim()) : undefined,
+      competency: competency || undefined,
+      skillsAndDeliverables: skillsAndDeliverables ? skillsAndDeliverables.split('\n').filter(s => s.trim()).map(s => s.replace(/^-\s*/, '').trim()) : undefined,
       description: description || undefined,
       category: category || undefined,
     })
@@ -227,9 +283,27 @@ function GoalEditForm({
         className="text-xs"
       />
       <Textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Description (optional)"
+        value={firstPersonStatement}
+        onChange={(e) => setFirstPersonStatement(e.target.value)}
+        placeholder="First person statement (optional)"
+        className="text-xs min-h-16"
+      />
+      <Textarea
+        value={behaviors}
+        onChange={(e) => setBehaviors(e.target.value)}
+        placeholder="Behaviors (one per line, with or without -)"
+        className="text-xs min-h-20"
+      />
+      <Textarea
+        value={competency}
+        onChange={(e) => setCompetency(e.target.value)}
+        placeholder="Competency (optional)"
+        className="text-xs min-h-16"
+      />
+      <Textarea
+        value={skillsAndDeliverables}
+        onChange={(e) => setSkillsAndDeliverables(e.target.value)}
+        placeholder="Skills and Deliverables (one per line, with or without -)"
         className="text-xs min-h-20"
       />
       <Input
@@ -237,6 +311,12 @@ function GoalEditForm({
         onChange={(e) => setCategory(e.target.value)}
         placeholder="Category (optional)"
         className="text-xs"
+      />
+      <Textarea
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Description (optional, legacy field)"
+        className="text-xs min-h-16"
       />
       <div className="flex gap-2">
         <Button onClick={handleSave} size="sm" className="h-7">

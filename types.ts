@@ -249,7 +249,11 @@ export interface RoleGrowthGoal {
   discipline: string // e.g., "Developer", "Designer", "Manager"
   level: string // e.g., "Associate", "Mid-Level", "Senior", "Associate Director", "Director", "Senior Director", "Group Director"
   title: string
-  description?: string
+  firstPersonStatement?: string // "I can define the problem space..."
+  behaviors?: string[] // ["Guides the team...", "Anticipates how..."]
+  competency?: string // "Can articulate and shape..."
+  skillsAndDeliverables?: string[] // ["Frame the client's...", "Lead exploratory..."]
+  description?: string // Legacy field for backward compatibility
   category?: string // e.g., "Technical", "Communication", "Leadership"
   createdAt: Date
   updatedAt: Date
