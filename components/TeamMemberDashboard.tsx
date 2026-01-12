@@ -961,9 +961,9 @@ export function TeamMemberDashboard({
                 <div>
                   <label className="text-xs text-gray-600 mb-1 block">Role</label>
                   <Input
-                    value={details.role || ""}
+                    value={details.discipline || ""}
                     onChange={(e) => {
-                      const updated = { ...details, role: e.target.value, updatedAt: new Date() }
+                      const updated = { ...details, discipline: e.target.value, updatedAt: new Date() }
                       onUpdate(updated)
                     }}
                     placeholder="e.g., Developer, Designer"
