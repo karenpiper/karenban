@@ -339,8 +339,44 @@ Skills and Deliverables:
               <Input
                 value={newGoal.title}
                 onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
-                placeholder="e.g., Write clean, maintainable code"
+                placeholder="e.g., Problem Definition & Strategic Alignment"
                 className="text-xs"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs text-gray-600 mb-1 block">First Person Statement (optional)</label>
+              <Textarea
+                value={newGoal.firstPersonStatement}
+                onChange={(e) => setNewGoal({ ...newGoal, firstPersonStatement: e.target.value })}
+                placeholder="I can define the problem space and ensure the team understands what needs to be done."
+                className="text-xs min-h-16"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs text-gray-600 mb-1 block">Behaviors (optional, one per line, with or without -)</label>
+              <Textarea
+                value={newGoal.behaviors}
+                onChange={(e) => setNewGoal({ ...newGoal, behaviors: e.target.value })}
+                placeholder="- Guides the team in asking the right questions&#10;- Anticipates how client issues will impact broader business outcomes"
+                className="text-xs min-h-20"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs text-gray-600 mb-1 block">Competency (optional)</label>
+              <Textarea
+                value={newGoal.competency}
+                onChange={(e) => setNewGoal({ ...newGoal, competency: e.target.value })}
+                placeholder="Can articulate and shape the problem to align with business objectives and set the team up for success."
+                className="text-xs min-h-16"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs text-gray-600 mb-1 block">Skills and Deliverables (optional, one per line, with or without -)</label>
+              <Textarea
+                value={newGoal.skillsAndDeliverables}
+                onChange={(e) => setNewGoal({ ...newGoal, skillsAndDeliverables: e.target.value })}
+                placeholder="- Frame the client's business challenge into actionable strategic objectives&#10;- Lead exploratory discussions to uncover deeper client needs"
+                className="text-xs min-h-20"
               />
             </div>
             <div>
@@ -353,12 +389,12 @@ Skills and Deliverables:
               />
             </div>
             <div className="md:col-span-2">
-              <label className="text-xs text-gray-600 mb-1 block">Description (optional)</label>
+              <label className="text-xs text-gray-600 mb-1 block">Description (optional, legacy field)</label>
               <Textarea
                 value={newGoal.description}
                 onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
-                placeholder="Detailed description of the goal"
-                className="text-xs min-h-20"
+                placeholder="Additional notes or description"
+                className="text-xs min-h-16"
               />
             </div>
             <div className="md:col-span-2">
