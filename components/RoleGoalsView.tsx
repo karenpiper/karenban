@@ -192,7 +192,6 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
             ))
           )}
         </div>
-      </div>
     </div>
   )
 }
