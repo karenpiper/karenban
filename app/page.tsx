@@ -9,7 +9,7 @@ import { CalendarView } from "@/components/CalendarView"
 import { TeamView } from "@/components/TeamView"
 import { TeamMemberDashboard } from "@/components/TeamMemberDashboard"
 import { TaskListView } from "@/components/TaskListView"
-import { RoleGoalsView } from "@/components/RoleGoalsView"
+import { SettingsView } from "@/components/SettingsView"
 import { TaskEditDialog } from "@/components/TaskEditDialog"
 import {
   AlertDialog,
