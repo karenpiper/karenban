@@ -246,8 +246,8 @@ export interface GrowthGoalRating {
 
 export interface RoleGrowthGoal {
   id: string
-  role: string // e.g., "Developer", "Designer", "Manager"
-  level: string // e.g., "Junior", "Mid", "Senior"
+  discipline: string // e.g., "Developer", "Designer", "Manager"
+  level: string // e.g., "Associate", "Mid-Level", "Senior", "Associate Director", "Director", "Senior Director", "Group Director"
   title: string
   description?: string
   category?: string // e.g., "Technical", "Communication", "Leadership"
@@ -264,8 +264,8 @@ export interface TeamMemberGrowthGoal {
 
 export interface TeamMemberDetails {
   name: string
-  role?: string // e.g., "Developer", "Designer", "Manager"
-  level?: string // e.g., "Junior", "Mid", "Senior"
+  discipline?: string // e.g., "Developer", "Designer", "Manager"
+  level?: string // e.g., "Associate", "Mid-Level", "Senior", "Associate Director", "Director", "Senior Director", "Group Director"
   growthGoals: TeamMemberGrowthGoal[] // Goals pulled from role-based goals
   goals: TeamMemberGoal[]
   morale: "excellent" | "good" | "fair" | "poor" | null

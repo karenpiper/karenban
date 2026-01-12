@@ -55,7 +55,7 @@ export function TeamMemberDashboard({
 
   const details: TeamMemberDetails = memberDetails || {
     name: memberName,
-    role: undefined,
+    discipline: undefined,
     level: undefined,
     growthGoals: [],
     goals: [],
@@ -1178,10 +1178,10 @@ export function TeamMemberDashboard({
               )
             })()}
 
-            {(!details.role || !details.level) && (
+            {(!details.discipline || !details.level) && (
               <div className="bg-white border-2 border-gray-200 rounded-xl p-8 text-center">
                 <p className="text-sm text-gray-500">
-                  Please set the team member's role and level above to view growth goals.
+                  Please set the team member's discipline and level above to view growth goals.
                 </p>
               </div>
             )}

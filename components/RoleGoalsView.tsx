@@ -16,26 +16,26 @@ interface RoleGoalsViewProps {
 export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
   const [editingGoal, setEditingGoal] = useState<RoleGrowthGoal | null>(null)
   const [newGoal, setNewGoal] = useState({
-    role: "",
+    discipline: "",
     level: "",
     title: "",
     description: "",
     category: "",
   })
 
-  const roles = useMemo(() => {
-    const uniqueRoles = new Set(roleGoals.map(g => g.role).filter(Boolean))
-    return Array.from(uniqueRoles).sort()
+  const disciplines = useMemo(() => {
+    const uniqueDisciplines = new Set(roleGoals.map(g => g.discipline).filter(Boolean))
+    return Array.from(uniqueDisciplines).sort()
   }, [roleGoals])
 
-  const levels = ["Junior", "Mid", "Senior", "Lead", "Principal"]
+  const levels = ["Associate", "Mid-Level", "Senior", "Associate Director", "Director", "Senior Director", "Group Director"]
 
   const handleAddGoal = () => {
-    if (!newGoal.role || !newGoal.level || !newGoal.title) return
+    if (!newGoal.discipline || !newGoal.level || !newGoal.title) return
 
     const goal: RoleGrowthGoal = {
       id: `role-goal-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      role: newGoal.role,
+      discipline: newGoal.discipline,
       level: newGoal.level,
       title: newGoal.title,
       description: newGoal.description || undefined,
@@ -45,7 +45,7 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
     }
 
     onUpdate([...roleGoals, goal])
-    setNewGoal({ role: "", level: "", title: "", description: "", category: "" })
+    setNewGoal({ discipline: "", level: "", title: "", description: "", category: "" })
   }
 
   const handleUpdateGoal = (updatedGoal: RoleGrowthGoal) => {
@@ -57,12 +57,12 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
     onUpdate(roleGoals.filter(g => g.id !== goalId))
   }
 
-  const goalsByRoleAndLevel = useMemo(() => {
+  const goalsByDisciplineAndLevel = useMemo(() => {
     const grouped: Record<string, Record<string, RoleGrowthGoal[]>> = {}
     roleGoals.forEach(goal => {
-      if (!grouped[goal.role]) grouped[goal.role] = {}
-      if (!grouped[goal.role][goal.level]) grouped[goal.role][goal.level] = []
-      grouped[goal.role][goal.level].push(goal)
+      if (!grouped[goal.discipline]) grouped[goal.discipline] = {}
+      if (!grouped[goal.discipline][goal.level]) grouped[goal.discipline][goal.level] = []
+      grouped[goal.discipline][goal.level].push(goal)
     })
     return grouped
   }, [roleGoals])
@@ -77,10 +77,10 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Add New Growth Goal</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">Role</label>
+              <label className="text-xs text-gray-600 mb-1 block">Discipline</label>
               <Input
-                value={newGoal.role}
-                onChange={(e) => setNewGoal({ ...newGoal, role: e.target.value })}
+                value={newGoal.discipline}
+                onChange={(e) => setNewGoal({ ...newGoal, discipline: e.target.value })}
                 placeholder="e.g., Developer, Designer, Manager"
                 className="text-xs"
               />
@@ -134,16 +134,16 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
           </div>
         </div>
 
-        {/* Goals List by Role and Level */}
+        {/* Goals List by Discipline and Level */}
         <div className="space-y-6">
-          {Object.keys(goalsByRoleAndLevel).length === 0 ? (
+          {Object.keys(goalsByDisciplineAndLevel).length === 0 ? (
             <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-8 text-center">
               <p className="text-gray-500">No role goals defined yet. Add your first goal above.</p>
             </div>
           ) : (
-            Object.entries(goalsByRoleAndLevel).map(([role, levelsMap]) => (
-              <div key={role} className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">{role}</h2>
+            Object.entries(goalsByDisciplineAndLevel).map(([discipline, levelsMap]) => (
+              <div key={discipline} className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">{discipline}</h2>
                 {Object.entries(levelsMap).map(([level, goals]) => (
                   <div key={level} className="mb-6 last:mb-0">
                     <h3 className="text-sm font-medium text-gray-700 mb-3">{level} Level</h3>
