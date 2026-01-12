@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Home, Calendar, BarChart3, Users, Settings, ChevronLeft, CheckCircle, Clock, AlertTriangle, User, Building2, FolderKanban, FileText, Target } from "lucide-react"
+import { Home, Calendar, BarChart3, Users, Settings, ChevronLeft, CheckCircle, Clock, AlertTriangle, User, Building2, FolderKanban, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { BulkImportDialog } from "./BulkImportDialog"
 import type { Project, Task } from "../types"
@@ -9,8 +9,8 @@ import type { Project, Task } from "../types"
 interface SidebarProps {
   isCollapsed?: boolean
   onToggle?: () => void
-  currentView?: "today" | "calendar" | "team" | "projects" | "clients" | "tasks" | "role-goals"
-  onViewChange?: (view: "today" | "calendar" | "team" | "projects" | "clients" | "tasks" | "role-goals") => void
+  currentView?: "today" | "calendar" | "team" | "projects" | "clients" | "tasks" | "settings"
+  onViewChange?: (view: "today" | "calendar" | "team" | "projects" | "clients" | "tasks" | "settings") => void
   onBulkImport?: (projects: Project[], tasks: Task[]) => void
   existingProjects?: Project[]
 }
@@ -196,27 +196,6 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
               <FileText className="w-3 h-3 mr-2" />
               <span className="flex-1 text-left">By Task</span>
             </Button>
-            <Button
-              variant={currentView === "role-goals" ? "default" : "ghost"}
-              onClick={() => onViewChange?.("role-goals")}
-              className="w-full flex items-center px-2 py-1.5 rounded-xl text-[0.625rem] font-medium transition-all duration-300 text-white border-2 shadow-md"
-              style={currentView === "role-goals" ? { backgroundColor: '#2d9d78', borderColor: 'rgba(45, 157, 120, 0.5)' } : { borderColor: 'transparent' }}
-              onMouseEnter={(e) => {
-                if (currentView !== "role-goals") {
-                  e.currentTarget.style.backgroundColor = 'rgba(45, 157, 120, 0.3)'
-                  e.currentTarget.style.borderColor = 'rgba(45, 157, 120, 0.3)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (currentView !== "role-goals") {
-                  e.currentTarget.style.backgroundColor = ''
-                  e.currentTarget.style.borderColor = ''
-                }
-              }}
-            >
-              <Target className="w-3 h-3 mr-2" />
-              <span className="flex-1 text-left">Role Goals</span>
-            </Button>
           </div>
         </nav>
 
@@ -237,10 +216,24 @@ export function Sidebar({ isCollapsed = false, onToggle, currentView = "today", 
         {/* Settings */}
         <div className="p-3 border-t border-white/20">
           <Button
-            variant="ghost"
-            className="w-full flex items-center px-2 py-1.5 text-[0.625rem] text-white/90 hover:text-white rounded-xl transition-all duration-300 hover:bg-mgmt-green/30 hover:shadow-sm font-medium border-2 border-transparent hover:border-mgmt-green/30"
+            variant={currentView === "settings" ? "default" : "ghost"}
+            onClick={() => onViewChange?.("settings")}
+            className="w-full flex items-center px-2 py-1.5 text-[0.625rem] font-medium transition-all duration-300 text-white border-2 shadow-md"
+            style={currentView === "settings" ? { backgroundColor: '#2d9d78', borderColor: 'rgba(45, 157, 120, 0.5)' } : { borderColor: 'transparent' }}
+            onMouseEnter={(e) => {
+              if (currentView !== "settings") {
+                e.currentTarget.style.backgroundColor = 'rgba(45, 157, 120, 0.3)'
+                e.currentTarget.style.borderColor = 'rgba(45, 157, 120, 0.3)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentView !== "settings") {
+                e.currentTarget.style.backgroundColor = ''
+                e.currentTarget.style.borderColor = ''
+              }
+            }}
           >
-            <Settings className="w-3 h-3 mr-2 text-white/60" />
+            <Settings className="w-3 h-3 mr-2" />
             {!isCollapsed && "Settings"}
           </Button>
         </div>

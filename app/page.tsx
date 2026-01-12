@@ -28,7 +28,7 @@ import type { AppState, Project, Task, Category, TeamMemberDetails } from "@/typ
 
 export default function HomePage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [currentView, setCurrentView] = useState<"today" | "calendar" | "team" | "projects" | "clients" | "tasks" | "team-member" | "role-goals">("today")
+  const [currentView, setCurrentView] = useState<"today" | "calendar" | "team" | "projects" | "clients" | "tasks" | "team-member" | "settings">("today")
   const [selectedTeamMember, setSelectedTeamMember] = useState<string | null>(null)
   const [appState, setAppState] = useState<AppState | null>(null)
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null)
@@ -820,11 +820,11 @@ export default function HomePage() {
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        currentView={currentView === "role-goals" || currentView === "team-member" ? (currentView === "role-goals" ? "role-goals" : "team") : currentView}
+        currentView={currentView === "settings" || currentView === "team-member" ? (currentView === "settings" ? "settings" : "team") : currentView}
         onViewChange={(view) => {
-          if (view === "role-goals") {
-            setCurrentView("role-goals")
-          } else if (view !== "role-goals" && view !== "team-member") {
+          if (view === "settings") {
+            setCurrentView("settings")
+          } else if (view !== "settings" && view !== "team-member") {
             setCurrentView(view as any)
           }
         }}
