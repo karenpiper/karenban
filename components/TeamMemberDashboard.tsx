@@ -959,7 +959,7 @@ export function TeamMemberDashboard({
               <h3 className="text-sm font-semibold text-gray-800 mb-4">Role & Level</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-600 mb-1 block">Role</label>
+                  <label className="text-xs text-gray-600 mb-1 block">Discipline</label>
                   <Input
                     value={details.discipline || ""}
                     onChange={(e) => {
@@ -983,11 +983,13 @@ export function TeamMemberDashboard({
                       <SelectValue placeholder="Select level" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Junior">Junior</SelectItem>
-                      <SelectItem value="Mid">Mid</SelectItem>
+                      <SelectItem value="Associate">Associate</SelectItem>
+                      <SelectItem value="Mid-Level">Mid-Level</SelectItem>
                       <SelectItem value="Senior">Senior</SelectItem>
-                      <SelectItem value="Lead">Lead</SelectItem>
-                      <SelectItem value="Principal">Principal</SelectItem>
+                      <SelectItem value="Associate Director">Associate Director</SelectItem>
+                      <SelectItem value="Director">Director</SelectItem>
+                      <SelectItem value="Senior Director">Senior Director</SelectItem>
+                      <SelectItem value="Group Director">Group Director</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
