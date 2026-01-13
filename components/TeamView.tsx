@@ -352,8 +352,8 @@ export function TeamView({
                   {details?.moraleCheckIns && details.moraleCheckIns.length > 0 ? (
                     <div className="bg-green-50/60 rounded-lg p-2 border border-green-200/30">
                       <div className="text-[0.625rem] text-gray-500 mb-0.5">Morale</div>
-                      <div className="text-base font-semibold text-green-700">
-                        {details.moraleCheckIns[details.moraleCheckIns.length - 1].level}
+                      <div className="text-base font-semibold text-green-700 capitalize">
+                        {details.moraleCheckIns[details.moraleCheckIns.length - 1].morale}
                       </div>
                     </div>
                   ) : (
@@ -367,8 +367,8 @@ export function TeamView({
                   {details?.performanceCheckIns && details.performanceCheckIns.length > 0 ? (
                     <div className="bg-blue-50/60 rounded-lg p-2 border border-blue-200/30">
                       <div className="text-[0.625rem] text-gray-500 mb-0.5">Performance</div>
-                      <div className="text-base font-semibold text-blue-700">
-                        {details.performanceCheckIns[details.performanceCheckIns.length - 1].level}
+                      <div className="text-base font-semibold text-blue-700 capitalize">
+                        {details.performanceCheckIns[details.performanceCheckIns.length - 1].performance}
                       </div>
                     </div>
                   ) : (
