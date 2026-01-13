@@ -340,42 +340,87 @@ export function TeamView({
                   </div>
                 </div>
 
-                {/* Stats */}
+                {/* Stats Grid */}
                 <div className="grid grid-cols-2 gap-2 mb-3">
+                  {/* Tasks */}
                   <div className="bg-gray-50/60 rounded-lg p-2">
-                    <div className="text-xs text-gray-500">Tasks</div>
-                    <div className="text-lg font-semibold text-gray-800">{stats.total}</div>
+                    <div className="text-[0.625rem] text-gray-500 mb-0.5">Tasks</div>
+                    <div className="text-base font-semibold text-gray-800">{stats.total}</div>
                   </div>
-                  <div className="bg-gray-50/60 rounded-lg p-2">
-                    <div className="text-xs text-gray-500">Active</div>
-                    <div className="text-lg font-semibold text-blue-600">{stats.inProgress}</div>
+                  
+                  {/* Latest Morale */}
+                  {details?.moraleCheckIns && details.moraleCheckIns.length > 0 ? (
+                    <div className="bg-green-50/60 rounded-lg p-2 border border-green-200/30">
+                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Morale</div>
+                      <div className="text-base font-semibold text-green-700">
+                        {details.moraleCheckIns[details.moraleCheckIns.length - 1].level}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50/60 rounded-lg p-2">
+                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Morale</div>
+                      <div className="text-base font-semibold text-gray-400">—</div>
+                    </div>
+                  )}
+                  
+                  {/* Latest Performance */}
+                  {details?.performanceCheckIns && details.performanceCheckIns.length > 0 ? (
+                    <div className="bg-blue-50/60 rounded-lg p-2 border border-blue-200/30">
+                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Performance</div>
+                      <div className="text-base font-semibold text-blue-700">
+                        {details.performanceCheckIns[details.performanceCheckIns.length - 1].level}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50/60 rounded-lg p-2">
+                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Performance</div>
+                      <div className="text-base font-semibold text-gray-400">—</div>
+                    </div>
+                  )}
+                  
+                  {/* Clients Count */}
+                  <div className="bg-purple-50/60 rounded-lg p-2 border border-purple-200/30">
+                    <div className="text-[0.625rem] text-gray-500 mb-0.5">Clients</div>
+                    <div className="text-base font-semibold text-purple-700">
+                      {details?.clientDetails ? Object.keys(details.clientDetails).length : 0}
+                    </div>
                   </div>
-                </div>
-
-                {/* Quick Info */}
-                <div className="space-y-1.5">
-                  {details?.clients && details.clients.length > 0 && (
-                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <Users className="w-3 h-3" />
-                      <span className="truncate">{details.clients.length} client{details.clients.length !== 1 ? 's' : ''}</span>
+                  
+                  {/* Red Flags */}
+                  {details?.redFlags && details.redFlags.length > 0 ? (
+                    <div className="bg-red-50/60 rounded-lg p-2 border border-red-200/30">
+                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Red Flags</div>
+                      <div className="text-base font-semibold text-red-700">{details.redFlags.length}</div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50/60 rounded-lg p-2">
+                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Red Flags</div>
+                      <div className="text-base font-semibold text-gray-400">0</div>
                     </div>
                   )}
-                  {details?.goals && details.goals.length > 0 && (
-                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <Target className="w-3 h-3" />
-                      <span>{details.goals.filter(g => g.status !== 'completed').length} active goal{details.goals.filter(g => g.status !== 'completed').length !== 1 ? 's' : ''}</span>
+                  
+                  {/* Goal Progress */}
+                  {details?.goals && details.goals.length > 0 ? (
+                    <div className="bg-yellow-50/60 rounded-lg p-2 border border-yellow-200/30 col-span-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="text-[0.625rem] text-gray-500">Goal Progress</div>
+                        <div className="text-[0.625rem] font-medium text-gray-700">
+                          {details.goals.filter(g => g.status === 'completed').length} / {details.goals.length}
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200/50 rounded-full h-1.5">
+                        <div 
+                          className="bg-yellow-500 h-1.5 rounded-full transition-all"
+                          style={{ 
+                            width: `${(details.goals.filter(g => g.status === 'completed').length / details.goals.length) * 100}%` 
+                          }}
+                        />
+                      </div>
                     </div>
-                  )}
-                  {details?.redFlags && details.redFlags.length > 0 && (
-                    <div className="flex items-center gap-1.5 text-xs text-red-600">
-                      <AlertTriangle className="w-3 h-3" />
-                      <span>{details.redFlags.length} red flag{details.redFlags.length !== 1 ? 's' : ''}</span>
-                    </div>
-                  )}
-                  {details?.oneOnOnes && details.oneOnOnes.length > 0 && (
-                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <MessageSquare className="w-3 h-3" />
-                      <span>{details.oneOnOnes.length} 1:1{details.oneOnOnes.length !== 1 ? 's' : ''}</span>
+                  ) : (
+                    <div className="bg-gray-50/60 rounded-lg p-2 col-span-2">
+                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Goal Progress</div>
+                      <div className="text-xs text-gray-400">No goals set</div>
                     </div>
                   )}
                 </div>
