@@ -57,6 +57,7 @@ export function TeamView({
   const safeProjects = projects || []
 
   // Get team members from follow-up column (those marked as isTeamMember)
+  // Exclude "Karen" from the team list (they should be in manager list but not team list)
   const teamMembers = useMemo(() => {
     if (!columns || columns.length === 0) return new Set<string>()
     const followUpColumn = columns.find((col: any) => col.id === 'col-followup')
@@ -65,6 +66,7 @@ export function TeamView({
       followUpColumn.categories
         .filter((cat: any) => cat.isPerson && cat.isTeamMember && !cat.archived)
         .map((cat: any) => cat.personName || cat.name)
+        .filter((name: string) => name !== 'Karen') // Exclude Karen from team list
     )
   }, [columns])
 

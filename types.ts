@@ -272,6 +272,7 @@ export interface TeamMemberDetails {
   manager?: string // Name of the manager (references another team member)
   discipline?: string // e.g., "Developer", "Designer", "Manager"
   level?: string // e.g., "Associate", "Mid-Level", "Senior", "Associate Director", "Director", "Senior Director", "Group Director"
+  headOf?: string // Name of the team/person they are head of
   growthGoals: TeamMemberGrowthGoal[] // Goals pulled from role-based goals
   goals: TeamMemberGoal[]
   morale: "excellent" | "good" | "fair" | "poor" | null

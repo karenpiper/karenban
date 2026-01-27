@@ -20,6 +20,8 @@ interface TeamMemberDashboardProps {
   allClients: string[]
   roleGoals: RoleGrowthGoal[]
   teamMembers: string[] // List of all team member names for manager selector
+  allPeopleForManagers: string[] // List of all people (including non-team) for manager selector
+  teamMemberDetails: Record<string, TeamMemberDetails> // All team member details to filter by team
   onUpdate: (details: TeamMemberDetails) => void
   onBack: () => void
   onCreateTask?: (title: string, assignedTo: string, client?: string) => void
@@ -33,6 +35,8 @@ export function TeamMemberDashboard({
   allClients,
   roleGoals,
   teamMembers,
+  allPeopleForManagers,
+  teamMemberDetails,
   onUpdate,
   onBack,
   onCreateTask,
@@ -62,6 +66,7 @@ export function TeamMemberDashboard({
     discipline: undefined,
     level: undefined,
     manager: undefined,
+    headOf: undefined,
     growthGoals: [],
     goals: [],
     morale: null,
@@ -416,12 +421,28 @@ export function TeamMemberDashboard({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
-                  {teamMembers
-                    .filter(name => name !== memberName) // Exclude self
-                    .sort()
-                    .map(name => (
+                  {(() => {
+                    // Filter managers by same team as the current person
+                    const currentTeam = details.team
+                    const availableManagers = allPeopleForManagers
+                      .filter(name => {
+                        // Exclude self
+                        if (name === memberName) return false
+                        // Always include Karen
+                        if (name === 'Karen') return true
+                        // If current person has a team, only show managers from same team
+                        if (currentTeam) {
+                          const managerDetails = teamMemberDetails[name]
+                          return managerDetails?.team === currentTeam
+                        }
+                        // If no team assigned, show all managers
+                        return true
+                      })
+                      .sort()
+                    return availableManagers.map(name => (
                       <SelectItem key={name} value={name}>{name}</SelectItem>
-                    ))}
+                    ))
+                  })()}
                 </SelectContent>
               </Select>
             </div>
@@ -1023,18 +1044,25 @@ export function TeamMemberDashboard({
           <div className="space-y-4">
             <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-800 mb-4">Role & Level</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs text-gray-600 mb-1 block">Discipline</label>
-                  <Input
-                    value={details.discipline || ""}
-                    onChange={(e) => {
-                      const updated = { ...details, discipline: e.target.value, updatedAt: new Date() }
+                  <label className="text-xs text-gray-600 mb-1 block">Team</label>
+                  <Select 
+                    value={details.team || "unassigned"} 
+                    onValueChange={(v) => {
+                      const updated = { ...details, team: v === "unassigned" ? undefined : v, updatedAt: new Date() }
                       onUpdate(updated)
                     }}
-                    placeholder="e.g., Developer, Designer"
-                    className="text-xs"
-                  />
+                  >
+                    <SelectTrigger className="text-xs">
+                      <SelectValue placeholder="Select team" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      <SelectItem value="Brand Strategy">Brand Strategy</SelectItem>
+                      <SelectItem value="Brand Intelligence">Brand Intelligence</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="text-xs text-gray-600 mb-1 block">Level</label>
@@ -1059,13 +1087,38 @@ export function TeamMemberDashboard({
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <label className="text-xs text-gray-600 mb-1 block">Head of</label>
+                  <Select 
+                    value={details.headOf || "none"} 
+                    onValueChange={(v) => {
+                      const updated = { ...details, headOf: v === "none" ? undefined : v, updatedAt: new Date() }
+                      onUpdate(updated)
+                    }}
+                  >
+                    <SelectTrigger className="text-xs">
+                      <SelectValue placeholder="Select head of" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="Brand Strategy">Brand Strategy</SelectItem>
+                      <SelectItem value="Brand Intelligence">Brand Intelligence</SelectItem>
+                      {teamMembers
+                        .filter(name => name !== memberName)
+                        .sort()
+                        .map(name => (
+                          <SelectItem key={name} value={name}>{name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
-            {/* Pull in Goals Based on Discipline/Level */}
-            {details.discipline && details.level && (() => {
+            {/* Pull in Goals Based on Team/Level */}
+            {details.team && details.level && (() => {
               const applicableGoals = roleGoals.filter(
-                g => g.discipline === details.discipline && g.level === details.level
+                g => g.discipline === details.team && g.level === details.level
               )
               
               const handleSyncGoals = () => {
@@ -1125,7 +1178,7 @@ export function TeamMemberDashboard({
                   {applicableGoals.length === 0 ? (
                     <div className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center">
                       <p className="text-sm text-gray-500">
-                        No growth goals defined for {details.discipline} - {details.level} level.
+                        No growth goals defined for {details.team} - {details.level} level.
                         <br />
                         <span className="text-xs">Add goals in the Role Goals section.</span>
                       </p>
@@ -1246,10 +1299,10 @@ export function TeamMemberDashboard({
               )
             })()}
 
-            {(!details.discipline || !details.level) && (
+            {(!details.team || !details.level) && (
               <div className="bg-white border-2 border-gray-200 rounded-xl p-8 text-center">
                 <p className="text-sm text-gray-500">
-                  Please set the team member's discipline and level above to view growth goals.
+                  Please set the team member's team and level above to view growth goals.
                 </p>
               </div>
             )}

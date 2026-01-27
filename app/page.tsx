@@ -861,6 +861,20 @@ export default function HomePage() {
             .map((cat: any) => cat.personName || cat.name)
             .sort()
         })()
+        // Get all people (team and non-team) for manager list, plus add "Karen"
+        const allPeopleForManagers = (() => {
+          if (!appState.columns || appState.columns.length === 0) return ['Karen']
+          const followUpColumn = appState.columns.find((col: any) => col.id === 'col-followup')
+          if (!followUpColumn) return ['Karen']
+          const people = followUpColumn.categories
+            .filter((cat: any) => cat.isPerson && !cat.archived)
+            .map((cat: any) => cat.personName || cat.name)
+          // Add Karen if not already in the list
+          if (!people.includes('Karen')) {
+            people.push('Karen')
+          }
+          return people.sort()
+        })()
         return (
           <div className="flex-1 overflow-auto">
             <TeamMemberDashboard
@@ -870,6 +884,8 @@ export default function HomePage() {
               allClients={allClients}
               roleGoals={appState.roleGrowthGoals || []}
               teamMembers={teamMembers}
+              allPeopleForManagers={allPeopleForManagers}
+              teamMemberDetails={appState.teamMemberDetails || {}}
               onUpdate={(details) => handleUpdateTeamMemberDetails(selectedTeamMember, details)}
               onBack={() => {
                 setCurrentView("team")
