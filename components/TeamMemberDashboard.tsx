@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2, ArrowLeft, TrendingUp, BarChart3, Activity } from "lucide-react"
+import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2, ArrowLeft, TrendingUp, BarChart3, Activity, UserMinus, UserPlus } from "lucide-react"
 import { format } from "date-fns"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts"
 import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task, MoraleCheckIn, PerformanceCheckIn, ClientDetail, GoalMilestone, GoalNote, RoleGrowthGoal, TeamMemberGrowthGoal, GrowthGoalRating } from "../types"
@@ -19,9 +19,11 @@ interface TeamMemberDashboardProps {
   tasks: Task[]
   allClients: string[]
   roleGoals: RoleGrowthGoal[]
+  teamMembers: string[] // List of all team member names for manager selector
   onUpdate: (details: TeamMemberDetails) => void
   onBack: () => void
   onCreateTask?: (title: string, assignedTo: string, client?: string) => void
+  onToggleTeamMemberStatus?: (name: string) => void // Toggle team member status
 }
 
 export function TeamMemberDashboard({
@@ -30,9 +32,11 @@ export function TeamMemberDashboard({
   tasks,
   allClients,
   roleGoals,
+  teamMembers,
   onUpdate,
   onBack,
-  onCreateTask
+  onCreateTask,
+  onToggleTeamMemberStatus
 }: TeamMemberDashboardProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "goals" | "reviews" | "oneonones" | "notes" | "growth">("overview")
   const [editingGoal, setEditingGoal] = useState<TeamMemberGoal | null>(null)
@@ -57,6 +61,7 @@ export function TeamMemberDashboard({
     name: memberName,
     discipline: undefined,
     level: undefined,
+    manager: undefined,
     growthGoals: [],
     goals: [],
     morale: null,
@@ -397,6 +402,44 @@ export function TeamMemberDashboard({
                 </SelectContent>
               </Select>
             </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-600">Manager:</label>
+              <Select 
+                value={details.manager || "none"} 
+                onValueChange={(v) => {
+                  const updated = { ...details, manager: v === "none" ? undefined : v, updatedAt: new Date() }
+                  onUpdate(updated)
+                }}
+              >
+                <SelectTrigger className="text-xs w-40 h-8">
+                  <SelectValue placeholder="Select manager" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {teamMembers
+                    .filter(name => name !== memberName) // Exclude self
+                    .sort()
+                    .map(name => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {onToggleTeamMemberStatus && (
+              <Button
+                onClick={() => {
+                  if (confirm(`Move ${memberName} from team member to non-team member? They will remain on the kanban board but won't appear in the team view.`)) {
+                    onToggleTeamMemberStatus(memberName)
+                  }
+                }}
+                variant="outline"
+                size="sm"
+                className="text-xs h-8 text-gray-600 hover:text-gray-800"
+              >
+                <UserMinus className="w-3 h-3 mr-1" />
+                Remove from Team
+              </Button>
+            )}
           </div>
         </div>
 

@@ -143,6 +143,7 @@ CREATE TABLE IF NOT EXISTS role_growth_goals (
 CREATE TABLE IF NOT EXISTS team_member_details (
   name TEXT PRIMARY KEY,
   team TEXT, -- e.g., "Brand Strategy", "Brand Intelligence"
+  manager TEXT, -- Name of the manager (references another team member)
   discipline TEXT,
   level TEXT,
   morale TEXT CHECK (morale IN ('excellent', 'good', 'fair', 'poor')),

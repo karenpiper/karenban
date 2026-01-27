@@ -550,6 +550,53 @@ export default function HomePage() {
     saveAppState(updatedState)
   }
 
+  const handleToggleTeamMemberStatus = (name: string) => {
+    if (!appState) return
+    
+    // Find the person category in the follow-up column
+    const followUpColumn = appState.columns.find(col => col.id === 'col-followup')
+    if (!followUpColumn) return
+    
+    const personCategory = followUpColumn.categories.find(
+      cat => cat.isPerson && (cat.personName || cat.name) === name && !cat.archived
+    )
+    
+    if (!personCategory) return
+    
+    const isCurrentlyTeamMember = personCategory.isTeamMember === true
+    const newIsTeamMember = !isCurrentlyTeamMember
+    
+    // Update the category's isTeamMember status
+    const updatedColumns = appState.columns.map(col => {
+      if (col.id === 'col-followup') {
+        return {
+          ...col,
+          categories: col.categories.map(cat => {
+            if (cat.id === personCategory.id) {
+              return {
+                ...cat,
+                isTeamMember: newIsTeamMember,
+                color: newIsTeamMember ? 'from-blue-400 to-blue-500' : 'from-gray-400 to-gray-500'
+              }
+            }
+            return cat
+          })
+        }
+      }
+      return col
+    })
+    
+    const updatedState = { ...appState, columns: updatedColumns }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+    
+    // If moving from team to non-team, navigate back to team view
+    if (!newIsTeamMember && selectedTeamMember === name) {
+      setCurrentView("team")
+      setSelectedTeamMember(null)
+    }
+  }
+
   const handleCreateTaskFromTeamMember = (title: string, assignedTo: string, client?: string) => {
     if (!appState) return
     
@@ -804,6 +851,16 @@ export default function HomePage() {
           ...(appState.projects || []).filter(p => p.client).map(p => p.client!),
           ...(appState.tasks || []).filter(t => t.client).map(t => t.client!)
         ]))
+        // Get all team member names from columns
+        const teamMembers = (() => {
+          if (!appState.columns || appState.columns.length === 0) return []
+          const followUpColumn = appState.columns.find((col: any) => col.id === 'col-followup')
+          if (!followUpColumn) return []
+          return followUpColumn.categories
+            .filter((cat: any) => cat.isPerson && cat.isTeamMember && !cat.archived)
+            .map((cat: any) => cat.personName || cat.name)
+            .sort()
+        })()
         return (
           <div className="flex-1 overflow-auto">
             <TeamMemberDashboard
@@ -812,12 +869,14 @@ export default function HomePage() {
               tasks={appState.tasks || []}
               allClients={allClients}
               roleGoals={appState.roleGrowthGoals || []}
+              teamMembers={teamMembers}
               onUpdate={(details) => handleUpdateTeamMemberDetails(selectedTeamMember, details)}
               onBack={() => {
                 setCurrentView("team")
                 setSelectedTeamMember(null)
               }}
               onCreateTask={handleCreateTaskFromTeamMember}
+              onToggleTeamMemberStatus={handleToggleTeamMemberStatus}
             />
           </div>
         )

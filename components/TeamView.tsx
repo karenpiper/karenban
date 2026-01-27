@@ -4,7 +4,8 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search, Users, Calendar, X, Plus, Check, Target, AlertTriangle, FileText, MessageSquare } from "lucide-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Search, Users, Calendar, X, Plus, Check, Target, AlertTriangle, FileText, MessageSquare, TrendingUp, TrendingDown, Minus } from "lucide-react"
 import type { Task, Category, TeamMemberDetails, Project } from "../types"
 import { TeamMemberDashboard } from "./TeamMemberDashboard"
 
@@ -79,7 +80,24 @@ export function TeamView({
     )
   }, [columns])
 
-  // Group tasks by assignedTo (team member)
+  // Create a map of categoryId to team member name for quick lookup
+  const categoryToTeamMember = useMemo(() => {
+    const map: Record<string, string> = {}
+    if (!columns || columns.length === 0) return map
+    const followUpColumn = columns.find((col: any) => col.id === 'col-followup')
+    if (!followUpColumn) return map
+    
+    followUpColumn.categories
+      .filter((cat: any) => cat.isPerson && cat.isTeamMember && !cat.archived)
+      .forEach((cat: any) => {
+        const memberName = cat.personName || cat.name
+        map[cat.id] = memberName
+      })
+    
+    return map
+  }, [columns])
+
+  // Group tasks by assignedTo (team member) or by categoryId
   const tasksByTeam = useMemo(() => {
     const grouped: Record<string, Task[]> = {}
 
@@ -89,19 +107,37 @@ export function TeamView({
         return
       }
       
+      let memberName: string | null = null
+      
+      // First, check if task has assignedTo field
       if (task.assignedTo) {
         // Skip if person is archived
         if (archivedPeople.has(task.assignedTo)) {
           return
         }
-        // Only show team members in team view
+        // Check if it's a team member
         if (teamMembers.has(task.assignedTo)) {
-          const member = task.assignedTo
-          if (!grouped[member]) {
-            grouped[member] = []
-          }
-          grouped[member].push(task)
+          memberName = task.assignedTo
         }
+      }
+      
+      // If no member found via assignedTo, check categoryId
+      if (!memberName && task.categoryId) {
+        const memberFromCategory = categoryToTeamMember[task.categoryId]
+        if (memberFromCategory) {
+          // Skip if person is archived
+          if (!archivedPeople.has(memberFromCategory)) {
+            memberName = memberFromCategory
+          }
+        }
+      }
+      
+      // Add task to the member's group if found
+      if (memberName) {
+        if (!grouped[memberName]) {
+          grouped[memberName] = []
+        }
+        grouped[memberName].push(task)
       }
     })
 
@@ -113,7 +149,7 @@ export function TeamView({
     })
 
     return grouped
-  }, [safeTasks, archivedPeople, teamMembers])
+  }, [safeTasks, archivedPeople, teamMembers, categoryToTeamMember])
 
   const handleAddTeamMember = () => {
     if (!newMemberName.trim() || !onAddTeamMember) return
@@ -198,6 +234,55 @@ export function TeamView({
     const day = dateObj.getDate()
     const year = dateObj.getFullYear()
     return `${month} ${day}, ${year}`
+  }
+
+  // Generate avatar initials and color from name
+  const getAvatarInitials = (name: string) => {
+    const parts = name.split(' ')
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+    }
+    return name.substring(0, 2).toUpperCase()
+  }
+
+  const getAvatarColor = (name: string) => {
+    const colors = [
+      'bg-blue-500',
+      'bg-purple-500',
+      'bg-pink-500',
+      'bg-indigo-500',
+      'bg-teal-500',
+      'bg-orange-500',
+      'bg-green-500',
+      'bg-red-500',
+      'bg-cyan-500',
+      'bg-amber-500',
+    ]
+    let hash = 0
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    return colors[Math.abs(hash) % colors.length]
+  }
+
+  const getMoraleIcon = (morale: string) => {
+    switch (morale) {
+      case 'excellent': return <TrendingUp className="w-3 h-3" />
+      case 'good': return <TrendingUp className="w-3 h-3" />
+      case 'fair': return <Minus className="w-3 h-3" />
+      case 'poor': return <TrendingDown className="w-3 h-3" />
+      default: return null
+    }
+  }
+
+  const getPerformanceIcon = (performance: string) => {
+    switch (performance) {
+      case 'excellent': return <TrendingUp className="w-3 h-3" />
+      case 'good': return <TrendingUp className="w-3 h-3" />
+      case 'fair': return <Minus className="w-3 h-3" />
+      case 'poor': return <TrendingDown className="w-3 h-3" />
+      default: return null
+    }
   }
 
   const getTaskStats = (memberTasks: Task[]) => {
@@ -348,7 +433,7 @@ export function TeamView({
                   {members.length} {members.length === 1 ? 'member' : 'members'}
                 </Badge>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                 {members.map((member) => {
             const memberTasks = tasksByTeam[member]
             const stats = getTaskStats(memberTasks)
@@ -358,128 +443,98 @@ export function TeamView({
               t.status !== 'completed' && 
               t.columnId !== 'col-done'
             )
+            
+            const latestMorale = details?.moraleCheckIns && details.moraleCheckIns.length > 0 
+              ? details.moraleCheckIns[details.moraleCheckIns.length - 1].morale 
+              : null
+            const latestPerformance = details?.performanceCheckIns && details.performanceCheckIns.length > 0 
+              ? details.performanceCheckIns[details.performanceCheckIns.length - 1].performance 
+              : null
+            const clientCount = details?.clientDetails ? Object.keys(details.clientDetails).length : 0
+            const redFlagCount = details?.redFlags?.length || 0
+            const completedGoals = details?.goals?.filter(g => g.status === 'completed').length || 0
+            const totalGoals = details?.goals?.length || 0
 
             return (
               <div
                 key={member}
                 onClick={() => handleMemberClick(member)}
-                className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer p-4"
+                className="bg-white/70 backdrop-blur-xl border border-gray-200/40 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300/60 transition-all duration-200 cursor-pointer p-2.5"
               >
-                {/* Header */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-400/70 to-violet-400/70 flex items-center justify-center shadow-sm flex-shrink-0">
-                    <Users className="w-5 h-5 text-white" />
-                  </div>
+                {/* Compact Header with Avatar */}
+                <div className="flex items-center gap-2 mb-2">
+                  <Avatar className={`w-8 h-8 ${getAvatarColor(member)} text-white text-[0.625rem] font-semibold`}>
+                    <AvatarFallback className={getAvatarColor(member)}>
+                      {getAvatarInitials(member)}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-gray-800 truncate">{member}</h3>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      {details?.team && (
-                        <Badge className="text-[0.625rem] bg-purple-100 text-purple-700">
-                          {details.team}
-                        </Badge>
-                      )}
-                      {details?.morale && (
-                        <Badge className={`text-[0.625rem] ${
-                          details.morale === 'excellent' ? 'bg-green-100 text-green-700' :
-                          details.morale === 'good' ? 'bg-blue-100 text-blue-700' :
-                          details.morale === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {details.morale}
-                        </Badge>
-                      )}
-                    </div>
+                    <h3 className="text-xs font-semibold text-gray-800 truncate leading-tight">{member}</h3>
+                    {details?.team && (
+                      <div className="text-[0.5rem] text-gray-500 truncate">{details.team}</div>
+                    )}
                   </div>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  {/* Tasks */}
-                  <div className="bg-gray-50/60 rounded-lg p-2">
-                    <div className="text-[0.625rem] text-gray-500 mb-0.5">Tasks</div>
-                    <div className="text-base font-semibold text-gray-800">{stats.total}</div>
+                {/* Micro Infographics - Compact Stats */}
+                <div className="space-y-1">
+                  {/* Tasks & Morale Row */}
+                  <div className="flex items-center justify-between gap-1">
+                    <div className="flex items-center gap-1 flex-1 min-w-0">
+                      <FileText className="w-2.5 h-2.5 text-gray-400 flex-shrink-0" />
+                      <span className="text-[0.625rem] font-semibold text-gray-700">{stats.total}</span>
+                    </div>
+                    {latestMorale && (
+                      <div className={`flex items-center gap-0.5 px-1 py-0.5 rounded ${
+                        latestMorale === 'excellent' ? 'bg-green-100 text-green-700' :
+                        latestMorale === 'good' ? 'bg-blue-100 text-blue-700' :
+                        latestMorale === 'fair' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {getMoraleIcon(latestMorale)}
+                        <span className="text-[0.5rem] font-medium capitalize">{latestMorale.charAt(0)}</span>
+                      </div>
+                    )}
                   </div>
-                  
-                  {/* Latest Morale */}
-                  {details?.moraleCheckIns && details.moraleCheckIns.length > 0 ? (
-                    <div className="bg-green-50/60 rounded-lg p-2 border border-green-200/30">
-                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Morale</div>
-                      <div className="text-base font-semibold text-green-700 capitalize">
-                        {details.moraleCheckIns[details.moraleCheckIns.length - 1].morale}
+
+                  {/* Performance & Clients Row */}
+                  <div className="flex items-center justify-between gap-1">
+                    {latestPerformance && (
+                      <div className={`flex items-center gap-0.5 px-1 py-0.5 rounded ${
+                        latestPerformance === 'excellent' ? 'bg-green-100 text-green-700' :
+                        latestPerformance === 'good' ? 'bg-blue-100 text-blue-700' :
+                        latestPerformance === 'fair' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {getPerformanceIcon(latestPerformance)}
+                        <span className="text-[0.5rem] font-medium capitalize">{latestPerformance.charAt(0)}</span>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="bg-gray-50/60 rounded-lg p-2">
-                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Morale</div>
-                      <div className="text-base font-semibold text-gray-400">—</div>
-                    </div>
-                  )}
-                  
-                  {/* Latest Performance */}
-                  {details?.performanceCheckIns && details.performanceCheckIns.length > 0 ? (
-                    <div className="bg-blue-50/60 rounded-lg p-2 border border-blue-200/30">
-                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Performance</div>
-                      <div className="text-base font-semibold text-blue-700 capitalize">
-                        {details.performanceCheckIns[details.performanceCheckIns.length - 1].performance}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-gray-50/60 rounded-lg p-2">
-                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Performance</div>
-                      <div className="text-base font-semibold text-gray-400">—</div>
-                    </div>
-                  )}
-                  
-                  {/* Clients Count */}
-                  <div className="bg-purple-50/60 rounded-lg p-2 border border-purple-200/30">
-                    <div className="text-[0.625rem] text-gray-500 mb-0.5">Clients</div>
-                    <div className="text-base font-semibold text-purple-700">
-                      {details?.clientDetails ? Object.keys(details.clientDetails).length : 0}
+                    )}
+                    <div className="flex items-center gap-1 flex-1 justify-end">
+                      <Users className="w-2.5 h-2.5 text-purple-400 flex-shrink-0" />
+                      <span className="text-[0.625rem] font-semibold text-purple-700">{clientCount}</span>
                     </div>
                   </div>
-                  
-                  {/* Red Flags */}
-                  {details?.redFlags && details.redFlags.length > 0 ? (
-                    <div className="bg-red-50/60 rounded-lg p-2 border border-red-200/30">
-                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Red Flags</div>
-                      <div className="text-base font-semibold text-red-700">{details.redFlags.length}</div>
-                    </div>
-                  ) : (
-                    <div className="bg-gray-50/60 rounded-lg p-2">
-                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Red Flags</div>
-                      <div className="text-base font-semibold text-gray-400">0</div>
-                    </div>
-                  )}
-                  
-                  {/* Goal Progress */}
-                  {details?.goals && details.goals.length > 0 ? (
-                    <div className="bg-yellow-50/60 rounded-lg p-2 border border-yellow-200/30 col-span-2">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="text-[0.625rem] text-gray-500">Goal Progress</div>
-                        <div className="text-[0.625rem] font-medium text-gray-700">
-                          {details.goals.filter(g => g.status === 'completed').length} / {details.goals.length}
+
+                  {/* Red Flags & Goals Row */}
+                  <div className="flex items-center justify-between gap-1">
+                    {redFlagCount > 0 && (
+                      <div className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-red-100 text-red-700">
+                        <AlertTriangle className="w-2.5 h-2.5" />
+                        <span className="text-[0.5rem] font-semibold">{redFlagCount}</span>
+                      </div>
+                    )}
+                    {totalGoals > 0 && (
+                      <div className="flex items-center gap-1 flex-1 justify-end">
+                        <Target className="w-2.5 h-2.5 text-yellow-500 flex-shrink-0" />
+                        <div className="flex items-center gap-0.5">
+                          <span className="text-[0.5rem] font-semibold text-yellow-700">{completedGoals}</span>
+                          <span className="text-[0.5rem] text-gray-400">/</span>
+                          <span className="text-[0.5rem] text-gray-500">{totalGoals}</span>
                         </div>
                       </div>
-                      <div className="w-full bg-gray-200/50 rounded-full h-1.5">
-                        <div 
-                          className="bg-yellow-500 h-1.5 rounded-full transition-all"
-                          style={{ 
-                            width: `${(details.goals.filter(g => g.status === 'completed').length / details.goals.length) * 100}%` 
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-gray-50/60 rounded-lg p-2 col-span-2">
-                      <div className="text-[0.625rem] text-gray-500 mb-0.5">Goal Progress</div>
-                      <div className="text-xs text-gray-400">No goals set</div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Click hint */}
-                <div className="mt-3 pt-3 border-t border-gray-200/20 text-[0.625rem] text-gray-400 text-center">
-                  Click to view dashboard
+                    )}
+                  </div>
                 </div>
               </div>
             )
