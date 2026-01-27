@@ -147,10 +147,46 @@ export function TeamView({
     )
   }, [columns, teamMembers])
 
+  // Group team members by team
+  const teamMembersByTeam = useMemo(() => {
+    const grouped: Record<string, string[]> = {
+      'Brand Strategy': [],
+      'Brand Intelligence': [],
+      'Unassigned': [],
+    }
+    
+    Object.keys(tasksByTeam).forEach(member => {
+      const details = teamMemberDetails[member]
+      const team = details?.team || 'Unassigned'
+      if (!grouped[team]) {
+        grouped[team] = []
+      }
+      grouped[team].push(member)
+    })
+    
+    return grouped
+  }, [tasksByTeam, teamMemberDetails])
+
   // Filter team members based on search
   const filteredTeamMembers = Object.keys(tasksByTeam).filter(member => {
     return member.toLowerCase().includes(searchTerm.toLowerCase())
   })
+  
+  // Filter teams based on search
+  const filteredTeams = useMemo(() => {
+    if (!searchTerm) return teamMembersByTeam
+    
+    const filtered: Record<string, string[]> = {}
+    Object.entries(teamMembersByTeam).forEach(([team, members]) => {
+      const filteredMembers = members.filter(member => 
+        member.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      if (filteredMembers.length > 0) {
+        filtered[team] = filteredMembers
+      }
+    })
+    return filtered
+  }, [teamMembersByTeam, searchTerm])
 
   const formatDate = (date: Date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -301,10 +337,19 @@ export function TeamView({
         />
       </div>
 
-      {/* Team Member Cards */}
-      {filteredTeamMembers.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filteredTeamMembers.map((member) => {
+      {/* Team Member Cards - Grouped by Team */}
+      {Object.keys(filteredTeams).length > 0 ? (
+        <div className="space-y-6">
+          {Object.entries(filteredTeams).map(([teamName, members]) => (
+            <div key={teamName}>
+              <div className="flex items-center gap-2 mb-3">
+                <h3 className="text-sm font-semibold text-gray-700">{teamName}</h3>
+                <Badge variant="outline" className="text-[0.625rem]">
+                  {members.length} {members.length === 1 ? 'member' : 'members'}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {members.map((member) => {
             const memberTasks = tasksByTeam[member]
             const stats = getTaskStats(memberTasks)
             const details = teamMemberDetails[member]
@@ -432,6 +477,9 @@ export function TeamView({
               </div>
             )
           })}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className="text-center py-12">

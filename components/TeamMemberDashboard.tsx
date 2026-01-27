@@ -970,7 +970,6 @@ export function TeamMemberDashboard({
                     className="text-xs"
                   />
                 </div>
-                <div>
                   <label className="text-xs text-gray-600 mb-1 block">Level</label>
                   <Select 
                     value={details.level || ""} 
@@ -990,6 +989,25 @@ export function TeamMemberDashboard({
                       <SelectItem value="Director">Director</SelectItem>
                       <SelectItem value="Senior Director">Senior Director</SelectItem>
                       <SelectItem value="Group Director">Group Director</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600 mb-1 block">Team</label>
+                  <Select 
+                    value={details.team || ""} 
+                    onValueChange={(v) => {
+                      const updated = { ...details, team: v || undefined, updatedAt: new Date() }
+                      onUpdate(updated)
+                    }}
+                  >
+                    <SelectTrigger className="text-xs">
+                      <SelectValue placeholder="Select team" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Unassigned</SelectItem>
+                      <SelectItem value="Brand Strategy">Brand Strategy</SelectItem>
+                      <SelectItem value="Brand Intelligence">Brand Intelligence</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
