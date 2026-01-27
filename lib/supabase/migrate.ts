@@ -118,18 +118,47 @@ export async function forceMigrateTeamData(): Promise<boolean> {
 
     console.log(`Force migrating ${teamMemberCount} team members from localStorage to Supabase...`)
     
-    // Log what we're migrating
+    // Debug: Log raw localStorage data
+    const rawStorage = localStorage.getItem('kanban-dashboard-state')
+    if (rawStorage) {
+      try {
+        const raw = JSON.parse(rawStorage)
+        console.log('Raw localStorage teamMemberDetails keys:', Object.keys(raw.teamMemberDetails || {}))
+        if (raw.teamMemberDetails) {
+          const firstMember = Object.values(raw.teamMemberDetails)[0] as any
+          console.log('Sample team member from localStorage:', firstMember ? {
+            name: firstMember.name,
+            hasGoals: !!firstMember.goals,
+            goalsLength: firstMember.goals?.length,
+            goalsType: typeof firstMember.goals,
+            goalsSample: firstMember.goals?.[0],
+            hasOneOnOnes: !!firstMember.oneOnOnes,
+            oneOnOnesLength: firstMember.oneOnOnes?.length,
+            hasMoraleCheckIns: !!firstMember.moraleCheckIns,
+            moraleCheckInsLength: firstMember.moraleCheckIns?.length,
+            hasClientDetails: !!firstMember.clientDetails,
+            clientDetailsKeys: firstMember.clientDetails ? Object.keys(firstMember.clientDetails) : [],
+          } : 'No first member')
+        }
+      } catch (e) {
+        console.error('Error parsing raw localStorage:', e)
+      }
+    }
+    
+    // Log what we're migrating (from parsed data)
     Object.keys(localData.teamMemberDetails).forEach(name => {
       const details = localData.teamMemberDetails[name]
       console.log(`  Migrating "${name}":`, {
-        goals: details.goals?.length || 0,
-        oneOnOnes: details.oneOnOnes?.length || 0,
-        moraleCheckIns: details.moraleCheckIns?.length || 0,
-        performanceCheckIns: details.performanceCheckIns?.length || 0,
-        clients: details.clients?.length || 0,
-        redFlags: details.redFlags?.length || 0,
-        reviewCycles: details.reviewCycles?.length || 0,
-        growthGoals: details.growthGoals?.length || 0,
+        goals: Array.isArray(details.goals) ? details.goals.length : 'not array',
+        oneOnOnes: Array.isArray(details.oneOnOnes) ? details.oneOnOnes.length : 'not array',
+        moraleCheckIns: Array.isArray(details.moraleCheckIns) ? details.moraleCheckIns.length : 'not array',
+        performanceCheckIns: Array.isArray(details.performanceCheckIns) ? details.performanceCheckIns.length : 'not array',
+        clients: Array.isArray(details.clients) ? details.clients.length : 'not array',
+        redFlags: Array.isArray(details.redFlags) ? details.redFlags.length : 'not array',
+        reviewCycles: Array.isArray(details.reviewCycles) ? details.reviewCycles.length : 'not array',
+        growthGoals: Array.isArray(details.growthGoals) ? details.growthGoals.length : 'not array',
+        clientDetails: details.clientDetails ? Object.keys(details.clientDetails).length : 0,
+        fullDetails: details, // Log full object for debugging
       })
     })
 

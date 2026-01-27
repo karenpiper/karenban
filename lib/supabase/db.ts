@@ -163,6 +163,7 @@ export async function loadAppState(): Promise<AppState | null> {
 
         transformedTeamMemberDetails[member.name] = {
           name: member.name,
+          team: member.team,
           discipline: member.discipline,
           level: member.level,
           growthGoals: growthGoals.map((gg: any) => ({
@@ -392,6 +393,7 @@ export async function saveAppState(state: AppState): Promise<boolean> {
       supabase.from('team_member_details').upsert(
         Object.values(state.teamMemberDetails).map(m => ({
           name: m.name,
+          team: m.team || null,
           discipline: m.discipline || null,
           level: m.level || null,
           morale: m.morale || null,

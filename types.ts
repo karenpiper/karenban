@@ -268,6 +268,7 @@ export interface TeamMemberGrowthGoal {
 
 export interface TeamMemberDetails {
   name: string
+  team?: string // e.g., "Brand Strategy", "Brand Intelligence" - which team they belong to
   discipline?: string // e.g., "Developer", "Designer", "Manager"
   level?: string // e.g., "Associate", "Mid-Level", "Senior", "Associate Director", "Director", "Senior Director", "Group Director"
   growthGoals: TeamMemberGrowthGoal[] // Goals pulled from role-based goals
