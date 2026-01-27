@@ -390,7 +390,32 @@ export default function HomePage() {
           }
           return col
         })
-        const updatedState = { ...appState, columns: updatedColumns }
+        
+        // Create corresponding team member details entry if it doesn't exist
+        const updatedTeamMemberDetails = { ...appState.teamMemberDetails }
+        if (!updatedTeamMemberDetails[name]) {
+          updatedTeamMemberDetails[name] = {
+            name: name,
+            goals: [],
+            morale: null,
+            performance: null,
+            moraleCheckIns: [],
+            performanceCheckIns: [],
+            clients: [],
+            clientDetails: {},
+            redFlags: [],
+            reviewCycles: [],
+            oneOnOnes: [],
+            growthGoals: [],
+            updatedAt: new Date(),
+          }
+        }
+        
+        const updatedState = { 
+          ...appState, 
+          columns: updatedColumns,
+          teamMemberDetails: updatedTeamMemberDetails
+        }
         setAppState(updatedState)
         saveAppState(updatedState)
         return
@@ -425,7 +450,31 @@ export default function HomePage() {
       return col
     })
 
-    const updatedState = { ...appState, columns: updatedColumns }
+    // Create corresponding team member details entry if it doesn't exist
+    const updatedTeamMemberDetails = { ...appState.teamMemberDetails }
+    if (!updatedTeamMemberDetails[name]) {
+      updatedTeamMemberDetails[name] = {
+        name: name,
+        goals: [],
+        morale: null,
+        performance: null,
+        moraleCheckIns: [],
+        performanceCheckIns: [],
+        clients: [],
+        clientDetails: {},
+        redFlags: [],
+        reviewCycles: [],
+        oneOnOnes: [],
+        growthGoals: [],
+        updatedAt: new Date(),
+      }
+    }
+
+    const updatedState = { 
+      ...appState, 
+      columns: updatedColumns,
+      teamMemberDetails: updatedTeamMemberDetails
+    }
     setAppState(updatedState)
     saveAppState(updatedState)
   }

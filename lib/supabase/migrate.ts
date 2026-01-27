@@ -59,6 +59,10 @@ export async function migrateLocalStorageToSupabase(): Promise<boolean> {
     console.log(`- ${localData.columns.length} columns`)
     console.log(`- ${Object.keys(localData.teamMemberDetails).length} team members`)
 
+    // Sync team members from categories to team_member_details before saving
+    const { syncTeamMembersFromCategories } = await import('./sync-team-members')
+    await syncTeamMembersFromCategories(localData)
+    
     // Save to Supabase
     const success = await saveAppState(localData)
     

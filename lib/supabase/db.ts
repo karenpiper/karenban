@@ -221,6 +221,35 @@ export async function loadAppState(): Promise<AppState | null> {
       }
     }
 
+    // Sync team members from categories to team_member_details if they don't exist
+    // This ensures all team member categories have corresponding team_member_details entries
+    const followUpColumn = transformedColumns.find(col => col.id === 'col-followup')
+    if (followUpColumn) {
+      for (const category of followUpColumn.categories) {
+        if (category.isPerson && category.isTeamMember && category.personName) {
+          const personName = category.personName || category.name
+          if (!transformedTeamMemberDetails[personName]) {
+            // Create default team member details entry
+            transformedTeamMemberDetails[personName] = {
+              name: personName,
+              goals: [],
+              morale: null,
+              performance: null,
+              moraleCheckIns: [],
+              performanceCheckIns: [],
+              clients: [],
+              clientDetails: {},
+              redFlags: [],
+              reviewCycles: [],
+              oneOnOnes: [],
+              growthGoals: [],
+              updatedAt: new Date(),
+            }
+          }
+        }
+      }
+    }
+
     // Check if Supabase is truly empty (no meaningful data)
     const isEmpty = transformedTasks.length === 0 && 
                     transformedProjects.length === 0 && 
