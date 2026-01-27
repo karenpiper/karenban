@@ -64,6 +64,18 @@ export default function HomePage() {
   }, [currentView, selectedTeamMember])
 
   useEffect(() => {
+    // Expose migration functions globally for browser console access
+    if (typeof window !== 'undefined') {
+      (window as any).migrateTeamData = async () => {
+        const { forceMigrateTeamData } = await import('@/lib/supabase/migrate')
+        return await forceMigrateTeamData()
+      }
+      (window as any).migrateAllData = async (force: boolean = false) => {
+        const { migrateLocalStorageToSupabase } = await import('@/lib/supabase/migrate')
+        return await migrateLocalStorageToSupabase(force)
+      }
+    }
+
     // Load state asynchronously (tries Supabase first, falls back to localStorage)
     const loadState = async () => {
       const state = await loadAppState()
