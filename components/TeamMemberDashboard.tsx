@@ -970,6 +970,7 @@ export function TeamMemberDashboard({
                     className="text-xs"
                   />
                 </div>
+                <div>
                   <label className="text-xs text-gray-600 mb-1 block">Level</label>
                   <Select 
                     value={details.level || ""} 
