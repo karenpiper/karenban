@@ -138,9 +138,42 @@ export async function loadAppState(): Promise<AppState | null> {
     const transformedTeamMemberDetails: Record<string, TeamMemberDetails> = {}
     if (teamMemberDetails) {
       for (const member of teamMemberDetails) {
+        // Parse JSONB fields if they're strings
+        const goals = typeof member.goals === 'string' 
+          ? JSON.parse(member.goals) 
+          : (member.goals || [])
+        const growthGoals = typeof member.growthGoals === 'string'
+          ? JSON.parse(member.growthGoals)
+          : (member.growthGoals || [])
+        const clientDetails = typeof member.clientDetails === 'string'
+          ? JSON.parse(member.clientDetails)
+          : (member.clientDetails || {})
+        const reviewCycles = typeof member.reviewCycles === 'string'
+          ? JSON.parse(member.reviewCycles)
+          : (member.reviewCycles || [])
+        const oneOnOnes = typeof member.oneOnOnes === 'string'
+          ? JSON.parse(member.oneOnOnes)
+          : (member.oneOnOnes || [])
+        const moraleCheckIns = typeof member.moraleCheckIns === 'string'
+          ? JSON.parse(member.moraleCheckIns)
+          : (member.moraleCheckIns || [])
+        const performanceCheckIns = typeof member.performanceCheckIns === 'string'
+          ? JSON.parse(member.performanceCheckIns)
+          : (member.performanceCheckIns || [])
+
         transformedTeamMemberDetails[member.name] = {
-          ...member,
-          goals: (member.goals || []).map((g: any) => ({
+          name: member.name,
+          discipline: member.discipline,
+          level: member.level,
+          growthGoals: growthGoals.map((gg: any) => ({
+            ...gg,
+            ratings: (gg.ratings || []).map((r: any) => ({
+              ...r,
+              weekStartDate: new Date(r.weekStartDate),
+              createdAt: new Date(r.createdAt),
+            })),
+          })),
+          goals: goals.map((g: any) => ({
             ...g,
             createdAt: new Date(g.createdAt),
             targetDate: g.targetDate ? new Date(g.targetDate) : undefined,
@@ -156,28 +189,33 @@ export async function loadAppState(): Promise<AppState | null> {
               createdAt: new Date(n.createdAt),
             })),
           })),
-          reviewCycles: (member.reviewCycles || []).map((c: any) => ({
+          morale: member.morale,
+          performance: member.performance,
+          moraleCheckIns: moraleCheckIns.map((c: any) => ({
+            ...c,
+            date: new Date(c.date),
+            createdAt: new Date(c.createdAt),
+          })),
+          performanceCheckIns: performanceCheckIns.map((c: any) => ({
+            ...c,
+            date: new Date(c.date),
+            createdAt: new Date(c.createdAt),
+          })),
+          clients: member.clients || [],
+          clientDetails: clientDetails,
+          redFlags: member.redFlags || [],
+          reviewCycles: reviewCycles.map((c: any) => ({
             ...c,
             startDate: new Date(c.startDate),
             endDate: new Date(c.endDate),
             createdAt: new Date(c.createdAt),
           })),
-          oneOnOnes: (member.oneOnOnes || []).map((o: any) => ({
+          oneOnOnes: oneOnOnes.map((o: any) => ({
             ...o,
             date: new Date(o.date),
             createdAt: new Date(o.createdAt),
           })),
-          moraleCheckIns: (member.moraleCheckIns || []).map((c: any) => ({
-            ...c,
-            date: new Date(c.date),
-            createdAt: new Date(c.createdAt),
-          })),
-          performanceCheckIns: (member.performanceCheckIns || []).map((c: any) => ({
-            ...c,
-            date: new Date(c.date),
-            createdAt: new Date(c.createdAt),
-          })),
-          clientDetails: member.clientDetails || {},
+          notes: member.notes,
           updatedAt: new Date(member.updatedAt),
         }
       }
@@ -238,8 +276,8 @@ export async function saveAppState(state: AppState): Promise<boolean> {
   }
   
   try {
-    // Save all data in parallel
-    await Promise.all([
+    // Save all data in parallel, but catch individual errors
+    const results = await Promise.allSettled([
       // Upsert tasks
       supabase.from('tasks').upsert(
         state.tasks.map(t => ({
@@ -324,51 +362,87 @@ export async function saveAppState(state: AppState): Promise<boolean> {
       // Upsert team member details
       supabase.from('team_member_details').upsert(
         Object.values(state.teamMemberDetails).map(m => ({
-          ...m,
-          growthGoals: m.growthGoals,
-          goals: m.goals.map(g => ({
+          name: m.name,
+          discipline: m.discipline || null,
+          level: m.level || null,
+          morale: m.morale || null,
+          performance: m.performance || null,
+          clients: m.clients || [],
+          redFlags: m.redFlags || [],
+          notes: m.notes || null,
+          updatedAt: m.updatedAt.toISOString(),
+          growthGoals: JSON.stringify(m.growthGoals || []),
+          goals: JSON.stringify(m.goals.map(g => ({
             ...g,
             createdAt: g.createdAt.toISOString(),
             targetDate: g.targetDate?.toISOString() || null,
             completedAt: g.completedAt?.toISOString() || null,
-            milestones: (g.milestones || []).map(m => ({
-              ...m,
-              targetDate: m.targetDate?.toISOString() || null,
-              completedAt: m.completedAt?.toISOString() || null,
+            milestones: (g.milestones || []).map(milestone => ({
+              ...milestone,
+              targetDate: milestone.targetDate?.toISOString() || null,
+              completedAt: milestone.completedAt?.toISOString() || null,
             })),
-            notes: (g.notes || []).map(n => ({
-              ...n,
-              date: n.date.toISOString(),
-              createdAt: n.createdAt.toISOString(),
+            notes: (g.notes || []).map(note => ({
+              ...note,
+              date: note.date.toISOString(),
+              createdAt: note.createdAt.toISOString(),
             })),
-          })),
-          clientDetails: m.clientDetails,
-          reviewCycles: m.reviewCycles.map(c => ({
+          }))),
+          clientDetails: JSON.stringify(m.clientDetails || {}),
+          reviewCycles: JSON.stringify(m.reviewCycles.map(c => ({
             ...c,
             startDate: c.startDate.toISOString(),
             endDate: c.endDate.toISOString(),
             createdAt: c.createdAt.toISOString(),
-          })),
-          oneOnOnes: m.oneOnOnes.map(o => ({
+          }))),
+          oneOnOnes: JSON.stringify(m.oneOnOnes.map(o => ({
             ...o,
             date: o.date.toISOString(),
             createdAt: o.createdAt.toISOString(),
-          })),
-          moraleCheckIns: m.moraleCheckIns.map(c => ({
+          }))),
+          moraleCheckIns: JSON.stringify(m.moraleCheckIns.map(c => ({
             ...c,
             date: c.date.toISOString(),
             createdAt: c.createdAt.toISOString(),
-          })),
-          performanceCheckIns: m.performanceCheckIns.map(c => ({
+          }))),
+          performanceCheckIns: JSON.stringify(m.performanceCheckIns.map(c => ({
             ...c,
             date: c.date.toISOString(),
             createdAt: c.createdAt.toISOString(),
-          })),
-          updatedAt: m.updatedAt.toISOString(),
+          }))),
         })),
         { onConflict: 'name' }
       ),
     ])
+
+    // Check for errors in any of the operations
+    const errors = results
+      .map((result, index) => {
+        if (result.status === 'rejected') {
+          const tableNames = [
+            'tasks', 'projects', 'columns', 'categories', 'achievements',
+            'user_stats', 'daily_stats', 'settings', 'role_growth_goals', 'team_member_details'
+          ]
+          console.error(`Error saving ${tableNames[index]} to Supabase:`, result.reason)
+          return result.reason
+        }
+        if (result.status === 'fulfilled' && result.value.error) {
+          const tableNames = [
+            'tasks', 'projects', 'columns', 'categories', 'achievements',
+            'user_stats', 'daily_stats', 'settings', 'role_growth_goals', 'team_member_details'
+          ]
+          console.error(`Error saving ${tableNames[index]} to Supabase:`, result.value.error)
+          return result.value.error
+        }
+        return null
+      })
+      .filter(Boolean)
+
+    if (errors.length > 0) {
+      console.error('Some data failed to save to Supabase:', errors)
+      // Still return true if most operations succeeded
+      return errors.length < results.length / 2
+    }
 
     return true
   } catch (error) {
