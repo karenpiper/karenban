@@ -365,16 +365,39 @@ export function TeamMemberDashboard({
     <div className="flex-1 overflow-auto bg-mgmt-beige min-h-screen p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header with Back Button */}
-        <div className="flex items-center gap-3 mb-6">
-          <Button
-            onClick={onBack}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <h1 className="text-2xl font-heading text-gray-800">{memberName}</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={onBack}
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <h1 className="text-2xl font-heading text-gray-800">{memberName}</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-600">Team:</label>
+              <Select 
+                value={details.team || "unassigned"} 
+                onValueChange={(v) => {
+                  const updated = { ...details, team: v === "unassigned" ? undefined : v, updatedAt: new Date() }
+                  onUpdate(updated)
+                }}
+              >
+                <SelectTrigger className="text-xs w-40 h-8">
+                  <SelectValue placeholder="Select team" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  <SelectItem value="Brand Strategy">Brand Strategy</SelectItem>
+                  <SelectItem value="Brand Intelligence">Brand Intelligence</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         {/* Content Container */}
@@ -990,25 +1013,6 @@ export function TeamMemberDashboard({
                       <SelectItem value="Director">Director</SelectItem>
                       <SelectItem value="Senior Director">Senior Director</SelectItem>
                       <SelectItem value="Group Director">Group Director</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600 mb-1 block">Team</label>
-                  <Select 
-                    value={details.team || ""} 
-                    onValueChange={(v) => {
-                      const updated = { ...details, team: v || undefined, updatedAt: new Date() }
-                      onUpdate(updated)
-                    }}
-                  >
-                    <SelectTrigger className="text-xs">
-                      <SelectValue placeholder="Select team" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Unassigned</SelectItem>
-                      <SelectItem value="Brand Strategy">Brand Strategy</SelectItem>
-                      <SelectItem value="Brand Intelligence">Brand Intelligence</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
