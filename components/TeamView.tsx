@@ -372,16 +372,23 @@ export function TeamView({
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-medium text-gray-800 truncate">{member}</h3>
-                    {details?.morale && (
-                      <Badge className={`text-[0.625rem] mt-0.5 ${
-                        details.morale === 'excellent' ? 'bg-green-100 text-green-700' :
-                        details.morale === 'good' ? 'bg-blue-100 text-blue-700' :
-                        details.morale === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {details.morale}
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      {details?.team && (
+                        <Badge className="text-[0.625rem] bg-purple-100 text-purple-700">
+                          {details.team}
+                        </Badge>
+                      )}
+                      {details?.morale && (
+                        <Badge className={`text-[0.625rem] ${
+                          details.morale === 'excellent' ? 'bg-green-100 text-green-700' :
+                          details.morale === 'good' ? 'bg-blue-100 text-blue-700' :
+                          details.morale === 'fair' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {details.morale}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
 
