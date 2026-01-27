@@ -691,7 +691,131 @@ export const seedAppState: AppState = {
 // Utility functions for localStorage persistence
 export const STORAGE_KEY = "kanban-dashboard-state"
 
-export const loadAppState = (): AppState => {
+// Try to load from Supabase first, fall back to localStorage
+export const loadAppState = async (): Promise<AppState> => {
+  if (typeof window === "undefined") return seedAppState
+
+  // Try Supabase first
+  try {
+    const { loadAppState: loadFromSupabase } = await import("@/lib/supabase/db")
+    const supabaseState = await loadFromSupabase()
+    
+    // If Supabase is configured but empty, try to migrate from localStorage
+    if (!supabaseState) {
+      const { checkAndMigrate } = await import("@/lib/supabase/migrate")
+      const migrated = await checkAndMigrate()
+      
+      // If migration happened, try loading again
+      if (migrated) {
+        const migratedState = await loadFromSupabase()
+        if (migratedState) {
+          console.log("✅ Successfully migrated and loaded from Supabase")
+          return migratedState
+        }
+      }
+    } else {
+      // Supabase has data, use it
+      return supabaseState
+    }
+  } catch (error) {
+    // Supabase not configured or error - fall back to localStorage
+    console.log("Supabase not available, using localStorage:", error)
+  }
+
+  // Fall back to localStorage
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      // Ensure dates are properly parsed
+      parsed.tasks = (parsed.tasks || []).map((task: any) => ({
+        ...task,
+        createdAt: new Date(task.createdAt),
+        updatedAt: new Date(task.updatedAt),
+        completedAt: task.completedAt ? new Date(task.completedAt) : undefined,
+        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+      }))
+      parsed.achievements = (parsed.achievements || []).map((achievement: any) => ({
+        ...achievement,
+        unlockedAt: achievement.unlockedAt ? new Date(achievement.unlockedAt) : undefined,
+      }))
+      // Ensure projects array exists (for backward compatibility)
+      if (!parsed.projects) {
+        parsed.projects = seedAppState.projects
+      } else {
+        // Parse project dates
+        parsed.projects = parsed.projects.map((project: any) => ({
+          ...project,
+          createdAt: new Date(project.createdAt),
+          updatedAt: new Date(project.updatedAt),
+          dueDate: project.dueDate ? new Date(project.dueDate) : undefined,
+        }))
+      }
+      // Ensure roleGrowthGoals array exists (for backward compatibility)
+      if (!parsed.roleGrowthGoals) {
+        parsed.roleGrowthGoals = []
+      } else {
+        // Parse role goal dates
+        parsed.roleGrowthGoals = parsed.roleGrowthGoals.map((goal: any) => ({
+          ...goal,
+          createdAt: new Date(goal.createdAt),
+          updatedAt: new Date(goal.updatedAt),
+        }))
+      }
+      // Ensure teamMemberDetails exists (for backward compatibility)
+      if (!parsed.teamMemberDetails) {
+        parsed.teamMemberDetails = {}
+      } else {
+        // Parse team member details dates
+        const teamDetails: Record<string, any> = {}
+        for (const [name, details] of Object.entries(parsed.teamMemberDetails)) {
+          const detail = details as any
+          teamDetails[name] = {
+            ...detail,
+            goals: (detail.goals || []).map((goal: any) => ({
+              ...goal,
+              createdAt: new Date(goal.createdAt),
+              targetDate: goal.targetDate ? new Date(goal.targetDate) : undefined,
+              completedAt: goal.completedAt ? new Date(goal.completedAt) : undefined,
+            })),
+            reviewCycles: (detail.reviewCycles || []).map((cycle: any) => ({
+              ...cycle,
+              startDate: new Date(cycle.startDate),
+              endDate: new Date(cycle.endDate),
+              createdAt: new Date(cycle.createdAt),
+            })),
+            oneOnOnes: (detail.oneOnOnes || []).map((oneOnOne: any) => ({
+              ...oneOnOne,
+              date: new Date(oneOnOne.date),
+              createdAt: new Date(oneOnOne.createdAt),
+            })),
+            moraleCheckIns: (detail.moraleCheckIns || []).map((checkIn: any) => ({
+              ...checkIn,
+              date: new Date(checkIn.date),
+              createdAt: new Date(checkIn.createdAt),
+            })),
+            performanceCheckIns: (detail.performanceCheckIns || []).map((checkIn: any) => ({
+              ...checkIn,
+              date: new Date(checkIn.date),
+              createdAt: new Date(checkIn.createdAt),
+            })),
+            clientDetails: detail.clientDetails || {},
+            updatedAt: new Date(detail.updatedAt),
+          }
+        }
+        parsed.teamMemberDetails = teamDetails
+      }
+      return parsed
+    }
+  } catch (error) {
+    console.error("Failed to load app state from localStorage:", error)
+  }
+
+  return seedAppState
+}
+
+// Synchronous version for backward compatibility (uses localStorage only)
+export const loadAppStateSync = (): AppState => {
   if (typeof window === "undefined") return seedAppState
 
   try {
@@ -785,9 +909,28 @@ export const loadAppState = (): AppState => {
   return seedAppState
 }
 
-export const saveAppState = (state: AppState): void => {
+export const saveAppState = async (state: AppState): Promise<void> => {
   if (typeof window === "undefined") return
 
+  // Try Supabase first
+  try {
+    const { saveAppState: saveToSupabase } = await import("@/lib/supabase/db")
+    const success = await saveToSupabase(state)
+    if (success) {
+      // Also save to localStorage as backup
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+      } catch (error) {
+        console.error("Failed to save app state to localStorage backup:", error)
+      }
+      return
+    }
+  } catch (error) {
+    // Supabase not configured or error - fall back to localStorage
+    console.log("Supabase not available, using localStorage:", error)
+  }
+
+  // Fall back to localStorage
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   } catch (error) {

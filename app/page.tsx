@@ -64,8 +64,10 @@ export default function HomePage() {
   }, [currentView, selectedTeamMember])
 
   useEffect(() => {
-    const state = loadAppState()
-    if (state) {
+    // Load state asynchronously (tries Supabase first, falls back to localStorage)
+    const loadState = async () => {
+      const state = await loadAppState()
+      if (state) {
       // Ensure teamMemberDetails exists
       if (!state.teamMemberDetails) {
         state.teamMemberDetails = {}
@@ -118,7 +120,9 @@ export default function HomePage() {
       } else {
         setAppState(state)
       }
+      }
     }
+    loadState()
   }, [])
 
   const handleEditProject = (project: Project) => {
