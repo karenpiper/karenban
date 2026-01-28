@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -290,8 +290,7 @@ export function TeamView({
   }, [hierarchicalTeamStructure, searchTerm])
 
   // Helper function to get sort value for a team member
-  // Note: This needs to be defined before hierarchyByReportingLine since it's used there
-  const getSortValue = (item: { name: string; details?: TeamMemberDetails }, tasks: Task[], details?: TeamMemberDetails): number => {
+  const getSortValue = useCallback((item: { name: string; details?: TeamMemberDetails }, tasks: Task[], details?: TeamMemberDetails): number => {
     switch (sortBy) {
       case "morale": {
         const morale = details?.moraleCheckIns && details.moraleCheckIns.length > 0 
@@ -331,7 +330,7 @@ export function TeamView({
       default:
         return 0 // Name sorting handled separately
     }
-  }
+  }, [sortBy])
 
   // Group by reporting line (top level = reporting to Karen, then their reports)
   const hierarchyByReportingLine = useMemo(() => {
@@ -352,7 +351,7 @@ export function TeamView({
     })
     
     // Group reports by their manager
-    const reportsByManager: Record<string, Array<typeof filteredHierarchy[0]>> = {}
+    const reportsByManager: Record<string, Array<{ name: string; details?: TeamMemberDetails; levelOrder: number; depth: number; managerName?: string }>> = {}
     reports.forEach(item => {
       const managerName = item.managerName || 'Unassigned'
       if (!reportsByManager[managerName]) {
@@ -376,7 +375,7 @@ export function TeamView({
     })
     
     return { topLevel, reportsByManager }
-  }, [filteredHierarchy, sortBy, sortDirection, safeTasks])
+  }, [filteredHierarchy, sortBy, sortDirection, safeTasks, getSortValue])
 
   const formatDate = (date: Date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
