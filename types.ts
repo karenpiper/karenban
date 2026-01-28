@@ -266,13 +266,23 @@ export interface TeamMemberGrowthGoal {
   notes?: string
 }
 
+export interface RedFlag {
+  id: string
+  text: string
+  date: Date
+  status: "open" | "resolved"
+  createdAt: Date
+  resolvedAt?: Date
+}
+
 export interface TeamMemberDetails {
   name: string
-  team?: string // e.g., "Brand Strategy", "Brand Intelligence" - which team they belong to
+  team?: string // e.g., "Brand Strategy", "Brand Intelligence" - which team they belong to (replaces discipline)
   manager?: string // Name of the manager (references another team member)
-  discipline?: string // e.g., "Developer", "Designer", "Manager"
   level?: string // e.g., "Associate", "Mid-Level", "Senior", "Associate Director", "Director", "Senior Director", "Group Director"
   headOf?: string // Name of the team/person they are head of
+  startDate?: Date // Start date for tenure calculation
+  lastPromoDate?: Date // Last promotion or raise date
   growthGoals: TeamMemberGrowthGoal[] // Goals pulled from role-based goals
   goals: TeamMemberGoal[]
   morale: "excellent" | "good" | "fair" | "poor" | null
@@ -281,7 +291,7 @@ export interface TeamMemberDetails {
   performanceCheckIns: PerformanceCheckIn[] // Historical performance tracking
   clients: string[] // List of client names this person works with
   clientDetails: Record<string, ClientDetail> // Detailed info per client
-  redFlags: string[] // List of red flag notes
+  redFlags: RedFlag[] // List of red flag notes with dates and status
   reviewCycles: TeamMemberReviewCycle[]
   oneOnOnes: TeamMemberOneOnOne[]
   notes?: string // General notes

@@ -161,11 +161,48 @@ export async function loadAppState(): Promise<AppState | null> {
           ? JSON.parse(member.performanceCheckIns)
           : (member.performanceCheckIns || [])
 
+        // Parse redFlags - handle both old string[] format and new JSONB format
+        let parsedRedFlags: any[] = []
+        if (member.redFlags) {
+          if (Array.isArray(member.redFlags)) {
+            // Check if it's old format (string[]) or new format (object[])
+            if (member.redFlags.length > 0 && typeof member.redFlags[0] === 'string') {
+              // Old format: convert strings to RedFlag objects
+              parsedRedFlags = member.redFlags.map((text: string) => ({
+                id: `flag-${Date.now()}-${Math.random()}`,
+                text,
+                date: new Date(),
+                status: 'open' as const,
+                createdAt: new Date(),
+              }))
+            } else {
+              // New format: parse JSONB objects
+              parsedRedFlags = (Array.isArray(member.redFlags) ? member.redFlags : JSON.parse(member.redFlags || '[]')).map((rf: any) => ({
+                ...rf,
+                date: new Date(rf.date),
+                createdAt: new Date(rf.createdAt),
+                resolvedAt: rf.resolvedAt ? new Date(rf.resolvedAt) : undefined,
+              }))
+            }
+          } else if (typeof member.redFlags === 'string') {
+            // JSONB stored as string
+            parsedRedFlags = JSON.parse(member.redFlags).map((rf: any) => ({
+              ...rf,
+              date: new Date(rf.date),
+              createdAt: new Date(rf.createdAt),
+              resolvedAt: rf.resolvedAt ? new Date(rf.resolvedAt) : undefined,
+            }))
+          }
+        }
+
         transformedTeamMemberDetails[member.name] = {
           name: member.name,
           team: member.team,
-          discipline: member.discipline,
+          manager: member.manager,
+          headOf: member.headOf,
           level: member.level,
+          startDate: member.startDate ? new Date(member.startDate) : undefined,
+          lastPromoDate: member.lastPromoDate ? new Date(member.lastPromoDate) : undefined,
           growthGoals: growthGoals.map((gg: any) => ({
             ...gg,
             ratings: (gg.ratings || []).map((r: any) => ({
@@ -204,7 +241,7 @@ export async function loadAppState(): Promise<AppState | null> {
           })),
           clients: member.clients || [],
           clientDetails: clientDetails,
-          redFlags: member.redFlags || [],
+          redFlags: parsedRedFlags,
           reviewCycles: reviewCycles.map((c: any) => ({
             ...c,
             startDate: new Date(c.startDate),
@@ -394,12 +431,20 @@ export async function saveAppState(state: AppState): Promise<boolean> {
         Object.values(state.teamMemberDetails).map(m => ({
           name: m.name,
           team: m.team || null,
-          discipline: m.discipline || null,
+          manager: m.manager || null,
+          headOf: m.headOf || null,
           level: m.level || null,
+          startDate: m.startDate?.toISOString() || null,
+          lastPromoDate: m.lastPromoDate?.toISOString() || null,
           morale: m.morale || null,
           performance: m.performance || null,
           clients: m.clients || [],
-          redFlags: m.redFlags || [],
+          redFlags: JSON.stringify(m.redFlags.map(rf => ({
+            ...rf,
+            date: rf.date.toISOString(),
+            createdAt: rf.createdAt.toISOString(),
+            resolvedAt: rf.resolvedAt?.toISOString() || null,
+          }))),
           notes: m.notes || null,
           updatedAt: m.updatedAt.toISOString(),
           growthGoals: JSON.stringify(m.growthGoals || []),

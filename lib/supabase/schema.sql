@@ -142,15 +142,16 @@ CREATE TABLE IF NOT EXISTS role_growth_goals (
 -- Team Member Details table
 CREATE TABLE IF NOT EXISTS team_member_details (
   name TEXT PRIMARY KEY,
-  team TEXT, -- e.g., "Brand Strategy", "Brand Intelligence"
+  team TEXT, -- e.g., "Brand Strategy", "Brand Intelligence" (replaces discipline)
   manager TEXT, -- Name of the manager (references another team member)
   "headOf" TEXT, -- Name of the team/person they are head of
-  discipline TEXT,
   level TEXT,
+  "startDate" TIMESTAMP WITH TIME ZONE, -- Start date for tenure calculation
+  "lastPromoDate" TIMESTAMP WITH TIME ZONE, -- Last promotion or raise date
   morale TEXT CHECK (morale IN ('excellent', 'good', 'fair', 'poor')),
   performance TEXT CHECK (performance IN ('excellent', 'good', 'fair', 'poor')),
   clients TEXT[] DEFAULT '{}',
-  "redFlags" TEXT[] DEFAULT '{}',
+  "redFlags" JSONB DEFAULT '[]', -- Array of {id, text, date, status: 'open'|'resolved', createdAt}
   notes TEXT,
   "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   "growthGoals" JSONB DEFAULT '[]',

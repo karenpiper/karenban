@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2, ArrowLeft, TrendingUp, BarChart3, Activity, UserMinus, UserPlus } from "lucide-react"
 import { format } from "date-fns"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts"
-import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task, MoraleCheckIn, PerformanceCheckIn, ClientDetail, GoalMilestone, GoalNote, RoleGrowthGoal, TeamMemberGrowthGoal, GrowthGoalRating } from "../types"
+import type { TeamMemberDetails, TeamMemberGoal, TeamMemberReviewCycle, TeamMemberOneOnOne, Task, MoraleCheckIn, PerformanceCheckIn, ClientDetail, GoalMilestone, GoalNote, RoleGrowthGoal, TeamMemberGrowthGoal, GrowthGoalRating, RedFlag } from "../types"
 
 interface TeamMemberDashboardProps {
   memberName: string
@@ -78,10 +78,12 @@ export function TeamMemberDashboard({
 
   const details: TeamMemberDetails = memberDetails || {
     name: memberName,
-    discipline: undefined,
+    team: undefined,
     level: undefined,
     manager: undefined,
     headOf: undefined,
+    startDate: undefined,
+    lastPromoDate: undefined,
     growthGoals: [],
     goals: [],
     morale: null,
@@ -170,19 +172,39 @@ export function TeamMemberDashboard({
 
   const handleAddRedFlag = () => {
     if (!newRedFlag.trim()) return
+    const newFlag: RedFlag = {
+      id: `flag-${Date.now()}-${Math.random()}`,
+      text: newRedFlag.trim(),
+      date: new Date(),
+      status: "open",
+      createdAt: new Date(),
+    }
     const updated = {
       ...details,
-      redFlags: [...details.redFlags, newRedFlag.trim()],
+      redFlags: [...details.redFlags, newFlag],
       updatedAt: new Date(),
     }
     onUpdate(updated)
     setNewRedFlag("")
   }
 
-  const handleRemoveRedFlag = (flag: string) => {
+  const handleRemoveRedFlag = (flagId: string) => {
     const updated = {
       ...details,
-      redFlags: details.redFlags.filter(f => f !== flag),
+      redFlags: details.redFlags.filter(f => f.id !== flagId),
+      updatedAt: new Date(),
+    }
+    onUpdate(updated)
+  }
+
+  const handleToggleRedFlagStatus = (flagId: string) => {
+    const updated = {
+      ...details,
+      redFlags: details.redFlags.map(f => 
+        f.id === flagId 
+          ? { ...f, status: f.status === "open" ? "resolved" : "open", resolvedAt: f.status === "open" ? new Date() : undefined }
+          : f
+      ),
       updatedAt: new Date(),
     }
     onUpdate(updated)
@@ -519,6 +541,50 @@ export function TeamMemberDashboard({
                 </SelectContent>
               </Select>
             </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-600">Start Date:</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-xs h-8 w-32 justify-start text-left font-normal">
+                    <CalendarIcon className="mr-1 h-3 w-3" />
+                    {details.startDate ? format(details.startDate, "MMM d, yyyy") : "Not set"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={details.startDate}
+                    onSelect={(date) => {
+                      const updated = { ...details, startDate: date, updatedAt: new Date() }
+                      onUpdate(updated)
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-600">Last Promo:</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-xs h-8 w-32 justify-start text-left font-normal">
+                    <CalendarIcon className="mr-1 h-3 w-3" />
+                    {details.lastPromoDate ? format(details.lastPromoDate, "MMM d, yyyy") : "Not set"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={details.lastPromoDate}
+                    onSelect={(date) => {
+                      const updated = { ...details, lastPromoDate: date, updatedAt: new Date() }
+                      onUpdate(updated)
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
             {onToggleTeamMemberStatus && (
               <Button
                 onClick={() => {
@@ -570,7 +636,8 @@ export function TeamMemberDashboard({
           const totalOpportunities = Object.values(details.clientDetails).reduce((sum, client) => 
             sum + (client.opportunities?.length || 0), 0
           )
-          const totalRedFlags = details.redFlags.length
+          const openRedFlags = details.redFlags.filter(f => f.status === "open")
+          const totalRedFlags = openRedFlags.length
           const activeGoals = details.goals.filter(g => g.status === 'in-progress' || g.status === 'not-started').length
           const completedGoals = details.goals.filter(g => g.status === 'completed').length
           const totalGoals = details.goals.length
@@ -857,20 +924,35 @@ export function TeamMemberDashboard({
                     <div className="space-y-2">
                       <div className="text-4xl font-bold text-red-600 mb-2">{totalRedFlags}</div>
                       <div className="space-y-1 max-h-32 overflow-y-auto">
-                        {details.redFlags.slice(0, 5).map((flag, idx) => (
-                          <div key={idx} className="text-xs bg-red-50 border border-red-200 rounded p-2 text-red-800">
-                            {flag}
+                        {openRedFlags.slice(0, 5).map((flag) => (
+                          <div key={flag.id} className="text-xs bg-red-50 border border-red-200 rounded p-2 text-red-800 flex items-center justify-between gap-2">
+                            <div className="flex-1">
+                              <div>{flag.text}</div>
+                              <div className="text-[0.625rem] text-red-600 mt-0.5">
+                                {format(flag.date, "MMM d, yyyy")}
+                              </div>
+                            </div>
+                            <Button
+                              onClick={() => handleToggleRedFlagStatus(flag.id)}
+                              variant="ghost"
+                              size="sm"
+                              className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+                              type="button"
+                              title="Mark as resolved"
+                            >
+                              <Check className="w-3 h-3" />
+                            </Button>
                           </div>
                         ))}
-                        {details.redFlags.length > 5 && (
+                        {openRedFlags.length > 5 && (
                           <div className="text-xs text-gray-500 text-center">
-                            +{details.redFlags.length - 5} more
+                            +{openRedFlags.length - 5} more
                           </div>
                         )}
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-gray-400 text-sm">No red flags</div>
+                    <div className="text-center py-8 text-gray-400 text-sm">No open red flags</div>
                   )}
                 </div>
               </div>
@@ -1836,17 +1918,101 @@ export function TeamMemberDashboard({
 
         {/* Notes Tab */}
         {activeTab === "notes" && (
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-800">General Notes</h3>
-            <Textarea
-              value={generalNotes}
-              onChange={(e) => setGeneralNotes(e.target.value)}
-              placeholder="Add general notes about this team member..."
-              className="min-h-32 text-xs"
-            />
-            <Button onClick={handleSave} className="w-full">
-              Save Notes
-            </Button>
+          <div className="space-y-6">
+            {/* Red Flags Section */}
+            <div className="bg-white border-2 border-red-200 rounded-xl p-5 shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                Red Flags
+              </h3>
+              
+              {/* Add Red Flag */}
+              <div className="flex gap-2 mb-4">
+                <Input
+                  value={newRedFlag}
+                  onChange={(e) => setNewRedFlag(e.target.value)}
+                  placeholder="Add a red flag..."
+                  className="text-xs"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddRedFlag()
+                    }
+                  }}
+                />
+                <Button onClick={handleAddRedFlag} size="sm" className="text-xs" type="button">
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add
+                </Button>
+              </div>
+
+              {/* Red Flags List */}
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {details.redFlags.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400 text-sm">No red flags</div>
+                ) : (
+                  details.redFlags.map((flag) => (
+                    <div
+                      key={flag.id}
+                      className={`text-xs rounded p-3 border flex items-start justify-between gap-2 ${
+                        flag.status === "open"
+                          ? "bg-red-50 border-red-200 text-red-800"
+                          : "bg-gray-50 border-gray-200 text-gray-600 line-through"
+                      }`}
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium">{flag.text}</div>
+                        <div className="text-[0.625rem] mt-1 opacity-75">
+                          Created: {format(flag.createdAt, "MMM d, yyyy")}
+                          {flag.resolvedAt && ` • Resolved: ${format(flag.resolvedAt, "MMM d, yyyy")}`}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          onClick={() => handleToggleRedFlagStatus(flag.id)}
+                          variant="ghost"
+                          size="sm"
+                          className={`h-6 w-6 p-0 ${
+                            flag.status === "open" ? "text-red-600 hover:text-red-700" : "text-gray-600 hover:text-gray-700"
+                          }`}
+                          type="button"
+                          title={flag.status === "open" ? "Mark as resolved" : "Reopen"}
+                        >
+                          {flag.status === "open" ? (
+                            <Check className="w-3 h-3" />
+                          ) : (
+                            <X className="w-3 h-3" />
+                          )}
+                        </Button>
+                        <Button
+                          onClick={() => handleRemoveRedFlag(flag.id)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                          type="button"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* General Notes */}
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-800 mb-4">General Notes</h3>
+              <Textarea
+                value={generalNotes}
+                onChange={(e) => setGeneralNotes(e.target.value)}
+                placeholder="Add general notes about this team member..."
+                className="min-h-32 text-xs"
+              />
+              <Button onClick={handleSave} className="w-full mt-4" type="button">
+                Save Notes
+              </Button>
+            </div>
           </div>
         )}
         </div>
