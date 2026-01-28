@@ -367,8 +367,8 @@ export function TeamView({
           const comparison = a.name.localeCompare(b.name)
           return sortDirection === "asc" ? comparison : -comparison
         }
-        const aValue = getSortValue(a, safeTasks, a.details)
-        const bValue = getSortValue(b, safeTasks, b.details)
+        const aValue = getSortValue(a, safeTasks, sortBy, a.details)
+        const bValue = getSortValue(b, safeTasks, sortBy, b.details)
         const comparison = aValue - bValue
         return sortDirection === "asc" ? comparison : -comparison
       })
