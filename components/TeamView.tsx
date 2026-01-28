@@ -622,97 +622,140 @@ export function TeamView({
                       <div
                         key={member}
                         onClick={() => handleMemberClick(member)}
-                        className="bg-white/70 backdrop-blur-xl border border-gray-200/40 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300/60 transition-all duration-200 cursor-pointer p-2.5 flex items-start gap-2"
+                        className="bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-xl border-2 border-gray-200/60 rounded-xl shadow-sm hover:shadow-lg hover:border-gray-300/80 transition-all duration-200 cursor-pointer p-3"
                         style={{ marginLeft: `${item.depth * 24}px` }}
                       >
-                        {/* Management Line */}
-                        {item.depth > 0 && (
-                          <div className="flex flex-col items-center pt-2">
-                            <div className="w-0.5 h-2 bg-gray-300"></div>
-                            <div className="w-3 h-0.5 bg-gray-300 -mt-0.5"></div>
-                          </div>
-                        )}
                         <div className="flex-1 min-w-0">
-                          {/* Compact Header with Avatar */}
-                          <div className="flex items-center gap-2 mb-2">
-                            <Avatar className={`w-8 h-8 ${getAvatarColor(member)} text-white text-[0.625rem] font-semibold`}>
+                          {/* Header with Avatar and Name */}
+                          <div className="flex items-start gap-3 mb-3">
+                            <Avatar className={`w-12 h-12 ${getAvatarColor(member)} text-white text-sm font-bold shadow-md ring-2 ring-white`}>
                               <AvatarFallback className={getAvatarColor(member)}>
                                 {getAvatarInitials(member)}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <h3 className="text-xs font-semibold text-gray-800 truncate leading-tight">{member}</h3>
+                              <h3 className="text-sm font-bold text-gray-900 truncate leading-tight mb-0.5">{member}</h3>
                               {details?.team && (
-                                <div className="text-[0.5rem] text-gray-500 truncate">{details.team}</div>
+                                <div className="text-[0.625rem] text-gray-600 font-medium truncate">{details.team}</div>
                               )}
-                              {details?.manager && (
-                                <div className="text-[0.5rem] text-gray-400 truncate">Reports to: {details.manager}</div>
+                              {details?.level && (
+                                <div className="text-[0.625rem] text-gray-500 truncate">{details.level}</div>
                               )}
                             </div>
                           </div>
 
-                          {/* Micro Infographics - Compact Stats */}
-                          <div className="space-y-1">
-                            {/* Tasks & Morale Row */}
-                            <div className="flex items-center justify-between gap-1">
-                              <div className="flex items-center gap-1 flex-1 min-w-0">
-                                <FileText className="w-2.5 h-2.5 text-gray-400 flex-shrink-0" />
-                                <span className="text-[0.625rem] font-semibold text-gray-700">{stats.total}</span>
+                          {/* Morale & Performance - Large Visual Indicators */}
+                          <div className="grid grid-cols-2 gap-2 mb-3">
+                            {/* Morale Indicator */}
+                            <div className={`rounded-lg p-2 border-2 ${
+                              latestMorale === 'excellent' ? 'bg-green-50 border-green-200' :
+                              latestMorale === 'good' ? 'bg-blue-50 border-blue-200' :
+                              latestMorale === 'fair' ? 'bg-yellow-50 border-yellow-200' :
+                              latestMorale === 'poor' ? 'bg-red-50 border-red-200' :
+                              'bg-gray-50 border-gray-200'
+                            }`}>
+                              <div className="flex items-center gap-1.5 mb-1">
+                                {getMoraleIcon(latestMorale)}
+                                <span className="text-[0.625rem] font-semibold text-gray-600">Morale</span>
                               </div>
-                              {latestMorale && (
-                                <div className={`flex items-center gap-0.5 px-1 py-0.5 rounded ${
-                                  latestMorale === 'excellent' ? 'bg-green-100 text-green-700' :
-                                  latestMorale === 'good' ? 'bg-blue-100 text-blue-700' :
-                                  latestMorale === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                                  'bg-red-100 text-red-700'
-                                }`}>
-                                  {getMoraleIcon(latestMorale)}
-                                  <span className="text-[0.5rem] font-medium capitalize">{latestMorale.charAt(0)}</span>
+                              {latestMorale ? (
+                                <div className="text-lg font-bold" style={{
+                                  color: latestMorale === 'excellent' ? '#16a34a' :
+                                         latestMorale === 'good' ? '#2563eb' :
+                                         latestMorale === 'fair' ? '#eab308' : '#dc2626'
+                                }}>
+                                  {latestMorale === 'excellent' ? '4' : latestMorale === 'good' ? '3' : latestMorale === 'fair' ? '2' : '1'}
                                 </div>
+                              ) : (
+                                <div className="text-xs text-gray-400">—</div>
                               )}
                             </div>
 
-                            {/* Performance & Clients Row */}
-                            <div className="flex items-center justify-between gap-1">
-                              {latestPerformance && (
-                                <div className={`flex items-center gap-0.5 px-1 py-0.5 rounded ${
-                                  latestPerformance === 'excellent' ? 'bg-green-100 text-green-700' :
-                                  latestPerformance === 'good' ? 'bg-blue-100 text-blue-700' :
-                                  latestPerformance === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                                  'bg-red-100 text-red-700'
-                                }`}>
-                                  {getPerformanceIcon(latestPerformance)}
-                                  <span className="text-[0.5rem] font-medium capitalize">{latestPerformance.charAt(0)}</span>
+                            {/* Performance Indicator */}
+                            <div className={`rounded-lg p-2 border-2 ${
+                              latestPerformance === 'excellent' ? 'bg-green-50 border-green-200' :
+                              latestPerformance === 'good' ? 'bg-blue-50 border-blue-200' :
+                              latestPerformance === 'fair' ? 'bg-yellow-50 border-yellow-200' :
+                              latestPerformance === 'poor' ? 'bg-red-50 border-red-200' :
+                              'bg-gray-50 border-gray-200'
+                            }`}>
+                              <div className="flex items-center gap-1.5 mb-1">
+                                {getPerformanceIcon(latestPerformance)}
+                                <span className="text-[0.625rem] font-semibold text-gray-600">Perf.</span>
+                              </div>
+                              {latestPerformance ? (
+                                <div className="text-lg font-bold" style={{
+                                  color: latestPerformance === 'excellent' ? '#16a34a' :
+                                         latestPerformance === 'good' ? '#2563eb' :
+                                         latestPerformance === 'fair' ? '#eab308' : '#dc2626'
+                                }}>
+                                  {latestPerformance === 'excellent' ? '4' : latestPerformance === 'good' ? '3' : latestPerformance === 'fair' ? '2' : '1'}
                                 </div>
+                              ) : (
+                                <div className="text-xs text-gray-400">—</div>
                               )}
-                              <div className="flex items-center gap-1 flex-1 justify-end">
-                                <Users className="w-2.5 h-2.5 text-purple-400 flex-shrink-0" />
-                                <span className="text-[0.625rem] font-semibold text-purple-700">{clientCount}</span>
-                              </div>
                             </div>
-
-                            {/* Red Flags & Goals Row */}
-                          <div className="flex items-center justify-between gap-1">
-                            {redFlagCount > 0 && (
-                              <div className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-red-100 text-red-700">
-                                <AlertTriangle className="w-2.5 h-2.5" />
-                                <span className="text-[0.5rem] font-semibold">{redFlagCount}</span>
-                              </div>
-                            )}
-                            {totalGoals > 0 && (
-                              <div className="flex items-center gap-1 flex-1 justify-end">
-                                <Target className="w-2.5 h-2.5 text-yellow-500 flex-shrink-0" />
-                                <div className="flex items-center gap-0.5">
-                                  <span className="text-[0.5rem] font-semibold text-yellow-700">{completedGoals}</span>
-                                  <span className="text-[0.5rem] text-gray-400">/</span>
-                                  <span className="text-[0.5rem] text-gray-500">{totalGoals}</span>
-                                </div>
-                              </div>
-                            )}
                           </div>
+
+                          {/* Stats Grid */}
+                          <div className="grid grid-cols-2 gap-2 mb-3">
+                            {/* Tasks */}
+                            <div className="bg-blue-50/50 rounded-lg p-2 border border-blue-100">
+                              <div className="flex items-center gap-1 mb-1">
+                                <FileText className="w-3 h-3 text-blue-600" />
+                                <span className="text-[0.625rem] font-semibold text-blue-700">Tasks</span>
+                              </div>
+                              <div className="text-xl font-bold text-blue-700">{stats.total}</div>
+                              {stats.total > 0 && (
+                                <div className="text-[0.5rem] text-blue-600 mt-0.5">
+                                  {stats.inProgress} in progress
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Clients */}
+                            <div className="bg-purple-50/50 rounded-lg p-2 border border-purple-100">
+                              <div className="flex items-center gap-1 mb-1">
+                                <Users className="w-3 h-3 text-purple-600" />
+                                <span className="text-[0.625rem] font-semibold text-purple-700">Clients</span>
+                              </div>
+                              <div className="text-xl font-bold text-purple-700">{clientCount}</div>
+                            </div>
+                          </div>
+
+                          {/* Goals Progress Bar */}
+                          {totalGoals > 0 && (
+                            <div className="mb-2">
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-1">
+                                  <Target className="w-3 h-3 text-yellow-600" />
+                                  <span className="text-[0.625rem] font-semibold text-gray-700">Goals</span>
+                                </div>
+                                <span className="text-[0.625rem] font-bold text-gray-800">
+                                  {completedGoals}/{totalGoals}
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div 
+                                  className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full transition-all"
+                                  style={{ width: `${(completedGoals / totalGoals) * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Red Flags - Prominent if present */}
+                          {redFlagCount > 0 && (
+                            <div className="bg-red-50 border-2 border-red-200 rounded-lg p-2 flex items-center gap-2">
+                              <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                              <div>
+                                <div className="text-sm font-bold text-red-700">{redFlagCount}</div>
+                                <div className="text-[0.625rem] text-red-600">Red Flag{redFlagCount > 1 ? 's' : ''}</div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
                     )
                   })}
                 </div>
