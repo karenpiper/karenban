@@ -314,12 +314,18 @@ Skills and Deliverables:
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-gray-600 mb-1 block">Discipline</label>
-              <Input
+              <Select
                 value={newGoal.discipline}
-                onChange={(e) => setNewGoal({ ...newGoal, discipline: e.target.value })}
-                placeholder="e.g., Developer, Designer, Manager"
-                className="text-xs"
-              />
+                onValueChange={(v) => setNewGoal({ ...newGoal, discipline: v })}
+              >
+                <SelectTrigger className="text-xs">
+                  <SelectValue placeholder="Select discipline" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Brand Strategy">Brand Strategy</SelectItem>
+                  <SelectItem value="Brand Intelligence">Brand Intelligence</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className="text-xs text-gray-600 mb-1 block">Level</label>
