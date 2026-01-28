@@ -319,19 +319,19 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
                 Bulk Import
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Bulk Import Role Goals</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs text-gray-600 mb-2 block">
-                  Paste your role goal data in this format:
-                </label>
-                <Textarea
-                  value={bulkImportText}
-                  onChange={(e) => setBulkImportText(e.target.value)}
-                  placeholder={`First person statement of what it is:
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Bulk Import Role Goals</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs text-gray-600 mb-2 block">
+                    Paste your role goal data in this format:
+                  </label>
+                  <Textarea
+                    value={bulkImportText}
+                    onChange={(e) => setBulkImportText(e.target.value)}
+                    placeholder={`First person statement of what it is:
 I can define the problem space and ensure the team understands what needs to be done.
 
 Title
@@ -347,20 +347,20 @@ Can articulate and shape the problem to align with business objectives and set t
 Skills and Deliverables:
 - Frame the client's business challenge into actionable strategic objectives.
 - Lead exploratory discussions to uncover deeper client needs and goals.`}
-                  className="text-xs min-h-60 font-mono"
-                />
+                    className="text-xs min-h-60 font-mono"
+                  />
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" onClick={() => setBulkImportOpen(false)} className="text-xs" type="button">
+                    Cancel
+                  </Button>
+                  <Button onClick={handleBulkImport} className="text-xs" type="button">
+                    Import Goals
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setBulkImportOpen(false)} className="text-xs" type="button">
-                  Cancel
-                </Button>
-                <Button onClick={handleBulkImport} className="text-xs" type="button">
-                  Import Goals
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
       </div>
 
       {/* Add New Goal Form - Collapsible */}
