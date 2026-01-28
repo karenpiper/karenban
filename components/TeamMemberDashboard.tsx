@@ -808,6 +808,93 @@ export function TeamMemberDashboard({
                 </div>
               </div>
 
+              {/* Growth Goals Summary */}
+              {details.team && details.level && (() => {
+                const applicableGoals = roleGoals.filter(
+                  g => g.discipline === details.team && g.level === details.level
+                )
+                const growthGoalsWithRatings = details.growthGoals
+                  .filter(g => applicableGoals.some(ag => ag.id === g.goalId))
+                  .map(g => {
+                    const roleGoal = applicableGoals.find(ag => ag.id === g.goalId)
+                    return {
+                      ...g,
+                      roleGoal,
+                      latestRating: g.ratings[0],
+                      averageRating: g.ratings.length > 0
+                        ? g.ratings.reduce((sum, r) => sum + r.rating, 0) / g.ratings.length
+                        : null
+                    }
+                  })
+
+                if (growthGoalsWithRatings.length === 0) return null
+
+                const avgRating = growthGoalsWithRatings
+                  .filter(g => g.averageRating !== null)
+                  .reduce((sum, g) => sum + (g.averageRating || 0), 0) / 
+                  growthGoalsWithRatings.filter(g => g.averageRating !== null).length
+
+                return (
+                  <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      Growth Goals Summary
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                        <div className="text-xs text-blue-600 font-medium mb-1">Total Goals</div>
+                        <div className="text-2xl font-bold text-blue-700">{growthGoalsWithRatings.length}</div>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                        <div className="text-xs text-green-600 font-medium mb-1">Avg Rating</div>
+                        <div className="text-2xl font-bold text-green-700">
+                          {avgRating ? avgRating.toFixed(1) : "—"}
+                        </div>
+                      </div>
+                      <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+                        <div className="text-xs text-purple-600 font-medium mb-1">Rated Goals</div>
+                        <div className="text-2xl font-bold text-purple-700">
+                          {growthGoalsWithRatings.filter(g => g.ratings.length > 0).length}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {growthGoalsWithRatings.map(g => (
+                        <div key={g.goalId} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-medium text-gray-800 truncate">
+                                {g.roleGoal?.firstPersonStatement || g.roleGoal?.title || "Goal"}
+                              </div>
+                              {g.latestRating && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-xs text-gray-600">
+                                    Latest: {g.latestRating.rating}/5
+                                  </span>
+                                  {g.averageRating && (
+                                    <span className="text-xs text-gray-500">
+                                      • Avg: {g.averageRating.toFixed(1)}/5
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-gray-500">
+                                    ({g.ratings.length} rating{g.ratings.length !== 1 ? 's' : ''})
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            {g.latestRating && (
+                              <div className="text-lg font-bold text-blue-600 ml-2">
+                                {g.latestRating.rating}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
+
               {/* Quick Actions - Update Morale/Performance */}
               <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
                 <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
