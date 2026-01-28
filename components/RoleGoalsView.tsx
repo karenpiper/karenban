@@ -313,13 +313,13 @@ Skills and Deliverables:
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Add New Growth Goal</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">Discipline</label>
+              <label className="text-xs text-gray-600 mb-1 block">Team</label>
               <Select
                 value={newGoal.discipline}
                 onValueChange={(v) => setNewGoal({ ...newGoal, discipline: v })}
               >
                 <SelectTrigger className="text-xs">
-                  <SelectValue placeholder="Select discipline" />
+                  <SelectValue placeholder="Select team" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Brand Strategy">Brand Strategy</SelectItem>
