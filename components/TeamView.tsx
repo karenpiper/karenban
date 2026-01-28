@@ -185,24 +185,88 @@ export function TeamView({
     )
   }, [columns, teamMembers])
 
-  // Group team members by team
-  const teamMembersByTeam = useMemo(() => {
-    const grouped: Record<string, string[]> = {
-      'Brand Strategy': [],
-      'Brand Intelligence': [],
-      'Unassigned': [],
+  // Level order for sorting (higher number = higher level)
+  const getLevelOrder = (level?: string): number => {
+    if (!level) return 0
+    const order: Record<string, number> = {
+      'Group Director': 7,
+      'Senior Director': 6,
+      'Director': 5,
+      'Associate Director': 4,
+      'Senior': 3,
+      'Mid-Level': 2,
+      'Associate': 1,
     }
+    return order[level] || 0
+  }
+
+  // Build hierarchical structure organized by level and management lines
+  const hierarchicalTeamStructure = useMemo(() => {
+    const members = Object.keys(tasksByTeam)
+    const memberDetailsMap: Record<string, { name: string; details: TeamMemberDetails | undefined; levelOrder: number }> = {}
     
-    Object.keys(tasksByTeam).forEach(member => {
+    // Create member details map with level orders
+    members.forEach(member => {
       const details = teamMemberDetails[member]
-      const team = details?.team || 'Unassigned'
-      if (!grouped[team]) {
-        grouped[team] = []
+      memberDetailsMap[member] = {
+        name: member,
+        details,
+        levelOrder: getLevelOrder(details?.level)
       }
-      grouped[team].push(member)
     })
+
+    // Find top-level managers (those with no manager or managers not in team)
+    const topLevelManagers = members.filter(member => {
+      const details = teamMemberDetails[member]
+      if (!details?.manager) return true
+      // If manager is not in the team list, this person is top-level
+      return !members.includes(details.manager)
+    })
+
+    // Build hierarchy tree
+    const buildHierarchy = (managerName: string, depth: number = 0): Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number }> => {
+      const result: Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number }> = []
+      
+      // Find direct reports
+      const directReports = members
+        .filter(member => {
+          const details = teamMemberDetails[member]
+          return details?.manager === managerName
+        })
+        .map(member => memberDetailsMap[member])
+        .sort((a, b) => b.levelOrder - a.levelOrder) // Sort by level descending
+      
+      // Add direct reports recursively
+      directReports.forEach(report => {
+        result.push({ ...report, depth })
+        const subReports = buildHierarchy(report.name, depth + 1)
+        result.push(...subReports)
+      })
+      
+      return result
+    }
+
+    // Build structure starting from top-level managers, sorted by level
+    const topLevel = topLevelManagers
+      .map(m => memberDetailsMap[m])
+      .sort((a, b) => b.levelOrder - a.levelOrder)
     
-    return grouped
+    const hierarchy: Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number }> = []
+    
+    topLevel.forEach(manager => {
+      hierarchy.push({ ...manager, depth: 0 })
+      const reports = buildHierarchy(manager.name, 1)
+      hierarchy.push(...reports)
+    })
+
+    // Also include members without managers that weren't already added
+    members.forEach(member => {
+      if (!hierarchy.find(h => h.name === member)) {
+        hierarchy.push({ ...memberDetailsMap[member], depth: 0 })
+      }
+    })
+
+    return hierarchy
   }, [tasksByTeam, teamMemberDetails])
 
   // Filter team members based on search
@@ -210,21 +274,36 @@ export function TeamView({
     return member.toLowerCase().includes(searchTerm.toLowerCase())
   })
   
-  // Filter teams based on search
-  const filteredTeams = useMemo(() => {
-    if (!searchTerm) return teamMembersByTeam
+  // Filter hierarchical structure based on search
+  const filteredHierarchy = useMemo(() => {
+    if (!searchTerm) return hierarchicalTeamStructure
     
-    const filtered: Record<string, string[]> = {}
-    Object.entries(teamMembersByTeam).forEach(([team, members]) => {
-      const filteredMembers = members.filter(member => 
-        member.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      if (filteredMembers.length > 0) {
-        filtered[team] = filteredMembers
+    return hierarchicalTeamStructure.filter(item => 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [hierarchicalTeamStructure, searchTerm])
+
+  // Group by level for row display
+  const hierarchyByLevel = useMemo(() => {
+    const grouped: Record<number, Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number }>> = {}
+    
+    filteredHierarchy.forEach(item => {
+      const level = item.levelOrder
+      if (!grouped[level]) {
+        grouped[level] = []
       }
+      grouped[level].push(item)
     })
-    return filtered
-  }, [teamMembersByTeam, searchTerm])
+    
+    // Sort levels descending (Group Director first)
+    return Object.keys(grouped)
+      .map(Number)
+      .sort((a, b) => b - a)
+      .reduce((acc, level) => {
+        acc[level] = grouped[level].sort((a, b) => a.depth - b.depth) // Sort by depth within level
+        return acc
+      }, {} as Record<number, Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number }>>)
+  }, [filteredHierarchy])
 
   const formatDate = (date: Date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -424,19 +503,22 @@ export function TeamView({
         />
       </div>
 
-      {/* Team Member Cards - Grouped by Team */}
-      {Object.keys(filteredTeams).length > 0 ? (
-        <div className="space-y-6">
-          {Object.entries(filteredTeams).map(([teamName, members]) => (
-            <div key={teamName}>
-              <div className="flex items-center gap-2 mb-3">
-                <h3 className="text-sm font-semibold text-gray-700">{teamName}</h3>
-                <Badge variant="outline" className="text-[0.625rem]">
-                  {members.length} {members.length === 1 ? 'member' : 'members'}
-                </Badge>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
-                {members.map((member) => {
+      {/* Team Member Cards - Organized by Level with Management Lines */}
+      {Object.keys(hierarchyByLevel).length > 0 ? (
+        <div className="space-y-4">
+          {Object.entries(hierarchyByLevel).map(([levelOrder, members]) => {
+            const levelName = members[0]?.details?.level || 'Unassigned Level'
+            return (
+              <div key={levelOrder}>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-xs font-semibold text-gray-600">{levelName}</h3>
+                  <Badge variant="outline" className="text-[0.625rem]">
+                    {members.length} {members.length === 1 ? 'member' : 'members'}
+                  </Badge>
+                </div>
+                <div className="space-y-1">
+                  {members.map((item) => {
+                    const member = item.name
             const memberTasks = tasksByTeam[member]
             const stats = getTaskStats(memberTasks)
             const details = teamMemberDetails[member]
@@ -457,93 +539,127 @@ export function TeamView({
             const completedGoals = details?.goals?.filter(g => g.status === 'completed').length || 0
             const totalGoals = details?.goals?.length || 0
 
-            return (
-              <div
-                key={member}
-                onClick={() => handleMemberClick(member)}
-                className="bg-white/70 backdrop-blur-xl border border-gray-200/40 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300/60 transition-all duration-200 cursor-pointer p-2.5"
-              >
-                {/* Compact Header with Avatar */}
-                <div className="flex items-center gap-2 mb-2">
-                  <Avatar className={`w-8 h-8 ${getAvatarColor(member)} text-white text-[0.625rem] font-semibold`}>
-                    <AvatarFallback className={getAvatarColor(member)}>
-                      {getAvatarInitials(member)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-xs font-semibold text-gray-800 truncate leading-tight">{member}</h3>
-                    {details?.team && (
-                      <div className="text-[0.5rem] text-gray-500 truncate">{details.team}</div>
-                    )}
-                  </div>
-                </div>
+                    const memberTasks = tasksByTeam[member]
+                    const stats = getTaskStats(memberTasks)
+                    const details = item.details
+                    const currentTasks = memberTasks.filter(t => 
+                      t.status !== 'done' && 
+                      t.status !== 'completed' && 
+                      t.columnId !== 'col-done'
+                    )
+                    
+                    const latestMorale = details?.moraleCheckIns && details.moraleCheckIns.length > 0 
+                      ? details.moraleCheckIns[details.moraleCheckIns.length - 1].morale 
+                      : null
+                    const latestPerformance = details?.performanceCheckIns && details.performanceCheckIns.length > 0 
+                      ? details.performanceCheckIns[details.performanceCheckIns.length - 1].performance 
+                      : null
+                    const clientCount = details?.clientDetails ? Object.keys(details.clientDetails).length : 0
+                    const redFlagCount = details?.redFlags?.length || 0
+                    const completedGoals = details?.goals?.filter(g => g.status === 'completed').length || 0
+                    const totalGoals = details?.goals?.length || 0
 
-                {/* Micro Infographics - Compact Stats */}
-                <div className="space-y-1">
-                  {/* Tasks & Morale Row */}
-                  <div className="flex items-center justify-between gap-1">
-                    <div className="flex items-center gap-1 flex-1 min-w-0">
-                      <FileText className="w-2.5 h-2.5 text-gray-400 flex-shrink-0" />
-                      <span className="text-[0.625rem] font-semibold text-gray-700">{stats.total}</span>
-                    </div>
-                    {latestMorale && (
-                      <div className={`flex items-center gap-0.5 px-1 py-0.5 rounded ${
-                        latestMorale === 'excellent' ? 'bg-green-100 text-green-700' :
-                        latestMorale === 'good' ? 'bg-blue-100 text-blue-700' :
-                        latestMorale === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {getMoraleIcon(latestMorale)}
-                        <span className="text-[0.5rem] font-medium capitalize">{latestMorale.charAt(0)}</span>
-                      </div>
-                    )}
-                  </div>
+                    return (
+                      <div
+                        key={member}
+                        onClick={() => handleMemberClick(member)}
+                        className="bg-white/70 backdrop-blur-xl border border-gray-200/40 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300/60 transition-all duration-200 cursor-pointer p-2.5 flex items-start gap-2"
+                        style={{ marginLeft: `${item.depth * 24}px` }}
+                      >
+                        {/* Management Line */}
+                        {item.depth > 0 && (
+                          <div className="flex flex-col items-center pt-2">
+                            <div className="w-0.5 h-2 bg-gray-300"></div>
+                            <div className="w-3 h-0.5 bg-gray-300 -mt-0.5"></div>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          {/* Compact Header with Avatar */}
+                          <div className="flex items-center gap-2 mb-2">
+                            <Avatar className={`w-8 h-8 ${getAvatarColor(member)} text-white text-[0.625rem] font-semibold`}>
+                              <AvatarFallback className={getAvatarColor(member)}>
+                                {getAvatarInitials(member)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-xs font-semibold text-gray-800 truncate leading-tight">{member}</h3>
+                              {details?.team && (
+                                <div className="text-[0.5rem] text-gray-500 truncate">{details.team}</div>
+                              )}
+                              {details?.manager && (
+                                <div className="text-[0.5rem] text-gray-400 truncate">Reports to: {details.manager}</div>
+                              )}
+                            </div>
+                          </div>
 
-                  {/* Performance & Clients Row */}
-                  <div className="flex items-center justify-between gap-1">
-                    {latestPerformance && (
-                      <div className={`flex items-center gap-0.5 px-1 py-0.5 rounded ${
-                        latestPerformance === 'excellent' ? 'bg-green-100 text-green-700' :
-                        latestPerformance === 'good' ? 'bg-blue-100 text-blue-700' :
-                        latestPerformance === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {getPerformanceIcon(latestPerformance)}
-                        <span className="text-[0.5rem] font-medium capitalize">{latestPerformance.charAt(0)}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1 flex-1 justify-end">
-                      <Users className="w-2.5 h-2.5 text-purple-400 flex-shrink-0" />
-                      <span className="text-[0.625rem] font-semibold text-purple-700">{clientCount}</span>
-                    </div>
-                  </div>
+                          {/* Micro Infographics - Compact Stats */}
+                          <div className="space-y-1">
+                            {/* Tasks & Morale Row */}
+                            <div className="flex items-center justify-between gap-1">
+                              <div className="flex items-center gap-1 flex-1 min-w-0">
+                                <FileText className="w-2.5 h-2.5 text-gray-400 flex-shrink-0" />
+                                <span className="text-[0.625rem] font-semibold text-gray-700">{stats.total}</span>
+                              </div>
+                              {latestMorale && (
+                                <div className={`flex items-center gap-0.5 px-1 py-0.5 rounded ${
+                                  latestMorale === 'excellent' ? 'bg-green-100 text-green-700' :
+                                  latestMorale === 'good' ? 'bg-blue-100 text-blue-700' :
+                                  latestMorale === 'fair' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-red-100 text-red-700'
+                                }`}>
+                                  {getMoraleIcon(latestMorale)}
+                                  <span className="text-[0.5rem] font-medium capitalize">{latestMorale.charAt(0)}</span>
+                                </div>
+                              )}
+                            </div>
 
-                  {/* Red Flags & Goals Row */}
-                  <div className="flex items-center justify-between gap-1">
-                    {redFlagCount > 0 && (
-                      <div className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-red-100 text-red-700">
-                        <AlertTriangle className="w-2.5 h-2.5" />
-                        <span className="text-[0.5rem] font-semibold">{redFlagCount}</span>
-                      </div>
-                    )}
-                    {totalGoals > 0 && (
-                      <div className="flex items-center gap-1 flex-1 justify-end">
-                        <Target className="w-2.5 h-2.5 text-yellow-500 flex-shrink-0" />
-                        <div className="flex items-center gap-0.5">
-                          <span className="text-[0.5rem] font-semibold text-yellow-700">{completedGoals}</span>
-                          <span className="text-[0.5rem] text-gray-400">/</span>
-                          <span className="text-[0.5rem] text-gray-500">{totalGoals}</span>
+                            {/* Performance & Clients Row */}
+                            <div className="flex items-center justify-between gap-1">
+                              {latestPerformance && (
+                                <div className={`flex items-center gap-0.5 px-1 py-0.5 rounded ${
+                                  latestPerformance === 'excellent' ? 'bg-green-100 text-green-700' :
+                                  latestPerformance === 'good' ? 'bg-blue-100 text-blue-700' :
+                                  latestPerformance === 'fair' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-red-100 text-red-700'
+                                }`}>
+                                  {getPerformanceIcon(latestPerformance)}
+                                  <span className="text-[0.5rem] font-medium capitalize">{latestPerformance.charAt(0)}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-1 flex-1 justify-end">
+                                <Users className="w-2.5 h-2.5 text-purple-400 flex-shrink-0" />
+                                <span className="text-[0.625rem] font-semibold text-purple-700">{clientCount}</span>
+                              </div>
+                            </div>
+
+                            {/* Red Flags & Goals Row */}
+                          <div className="flex items-center justify-between gap-1">
+                            {redFlagCount > 0 && (
+                              <div className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-red-100 text-red-700">
+                                <AlertTriangle className="w-2.5 h-2.5" />
+                                <span className="text-[0.5rem] font-semibold">{redFlagCount}</span>
+                              </div>
+                            )}
+                            {totalGoals > 0 && (
+                              <div className="flex items-center gap-1 flex-1 justify-end">
+                                <Target className="w-2.5 h-2.5 text-yellow-500 flex-shrink-0" />
+                                <div className="flex items-center gap-0.5">
+                                  <span className="text-[0.5rem] font-semibold text-yellow-700">{completedGoals}</span>
+                                  <span className="text-[0.5rem] text-gray-400">/</span>
+                                  <span className="text-[0.5rem] text-gray-500">{totalGoals}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                    )
+                  })}
                 </div>
               </div>
             )
           })}
-              </div>
-            </div>
-          ))}
         </div>
       ) : (
         <div className="text-center py-12">

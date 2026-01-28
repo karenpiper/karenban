@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { X, Plus, Check, Calendar as CalendarIcon, Target, Users, AlertTriangle, FileText, MessageSquare, Trash2, Edit2, ArrowLeft, TrendingUp, BarChart3, Activity, UserMinus, UserPlus } from "lucide-react"
@@ -1044,7 +1045,7 @@ export function TeamMemberDashboard({
           <div className="space-y-4">
             <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-800 mb-4">Role & Level</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-gray-600 mb-1 block">Team</label>
                   <Select 
@@ -1087,31 +1088,19 @@ export function TeamMemberDashboard({
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <label className="text-xs text-gray-600 mb-1 block">Head of</label>
-                  <Select 
-                    value={details.headOf || "none"} 
-                    onValueChange={(v) => {
-                      const updated = { ...details, headOf: v === "none" ? undefined : v, updatedAt: new Date() }
-                      onUpdate(updated)
-                    }}
-                  >
-                    <SelectTrigger className="text-xs">
-                      <SelectValue placeholder="Select head of" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="Brand Strategy">Brand Strategy</SelectItem>
-                      <SelectItem value="Brand Intelligence">Brand Intelligence</SelectItem>
-                      {teamMembers
-                        .filter(name => name !== memberName)
-                        .sort()
-                        .map(name => (
-                          <SelectItem key={name} value={name}>{name}</SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-2">
+                <Checkbox
+                  id="head-of"
+                  checked={!!details.headOf}
+                  onCheckedChange={(checked) => {
+                    const updated = { ...details, headOf: checked ? details.team || "Team" : undefined, updatedAt: new Date() }
+                    onUpdate(updated)
+                  }}
+                />
+                <label htmlFor="head-of" className="text-xs text-gray-600 cursor-pointer">
+                  Head of Team
+                </label>
               </div>
             </div>
 
