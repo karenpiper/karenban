@@ -49,6 +49,9 @@ export function TeamView({
   const [newMemberName, setNewMemberName] = useState("")
   const [sortBy, setSortBy] = useState<"name" | "morale" | "performance" | "tasks" | "clients" | "redFlags" | "goals">("name")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+  const [nonDirectTeamFilter, setNonDirectTeamFilter] = useState<string>("all")
+  const [nonDirectSortBy, setNonDirectSortBy] = useState<"name" | "level" | "morale" | "performance" | "tasks" | "clients" | "redFlags" | "goals">("level")
+  const [nonDirectSortDirection, setNonDirectSortDirection] = useState<"asc" | "desc">("asc")
 
   const handleMemberClick = (member: string) => {
     if (onSelectTeamMember) {
@@ -332,11 +335,51 @@ export function TeamView({
     }
   }
 
+  // Helper to get level order for sorting
+  const getLevelOrderValue = (level?: string): number => {
+    if (!level) return 0
+    const levelOrder = ["Associate", "Mid-Level", "Senior", "Associate Director", "Director", "Senior Director", "Group Director"]
+    return levelOrder.indexOf(level) + 1
+  }
+
+  // Helper to get sort value for non-direct reports (includes level)
+  const getNonDirectSortValue = (item: { name: string; details?: TeamMemberDetails }, tasks: Task[], sortByValue: "name" | "level" | "morale" | "performance" | "tasks" | "clients" | "redFlags" | "goals", details?: TeamMemberDetails): number | string => {
+    if (sortByValue === "level") {
+      return getLevelOrderValue(details?.level)
+    }
+    if (sortByValue === "name") {
+      return item.name
+    }
+    return getSortValue(item, tasks, sortByValue, details)
+  }
+
   // Group by reporting line (top level = reporting to Karen, then their reports)
   const hierarchyByReportingLine = useMemo(() => {
     // Separate top-level (reporting to Karen) from their reports
     let topLevel = filteredHierarchy.filter(item => item.depth === 0)
     const reports = filteredHierarchy.filter(item => item.depth > 0)
+    
+    // Get all direct report names (including their reports)
+    const directReportNames = new Set<string>()
+    topLevel.forEach(item => {
+      directReportNames.add(item.name)
+    })
+    reports.forEach(item => {
+      directReportNames.add(item.name)
+    })
+    
+    // Find non-direct reports (team members not in the hierarchy)
+    const allTeamMembers = Object.keys(tasksByTeam)
+    const nonDirectReports = allTeamMembers
+      .filter(member => !directReportNames.has(member))
+      .map(member => {
+        const details = teamMemberDetails[member]
+        return {
+          name: member,
+          details,
+          levelOrder: getLevelOrderValue(details?.level)
+        }
+      })
     
     // Sort top level
     topLevel = [...topLevel].sort((a, b) => {
@@ -374,8 +417,27 @@ export function TeamView({
       })
     })
     
-    return { topLevel, reportsByManager }
-  }, [filteredHierarchy, sortBy, sortDirection, safeTasks])
+    // Filter and sort non-direct reports
+    const filteredNonDirect = nonDirectReports.filter(item => {
+      if (nonDirectTeamFilter === "all") return true
+      return item.details?.team === nonDirectTeamFilter
+    }).sort((a, b) => {
+      if (nonDirectSortBy === "name") {
+        const comparison = a.name.localeCompare(b.name)
+        return nonDirectSortDirection === "asc" ? comparison : -comparison
+      }
+      const aValue = getNonDirectSortValue(a, safeTasks, nonDirectSortBy, a.details)
+      const bValue = getNonDirectSortValue(b, safeTasks, nonDirectSortBy, b.details)
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue)
+        return nonDirectSortDirection === "asc" ? comparison : -comparison
+      }
+      const comparison = (aValue as number) - (bValue as number)
+      return nonDirectSortDirection === "asc" ? comparison : -comparison
+    })
+    
+    return { topLevel, reportsByManager, nonDirectReports: filteredNonDirect }
+  }, [filteredHierarchy, sortBy, sortDirection, safeTasks, tasksByTeam, teamMemberDetails, nonDirectTeamFilter, nonDirectSortBy, nonDirectSortDirection])
 
   const formatDate = (date: Date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -637,138 +699,111 @@ export function TeamView({
                       <div key={member}>
                         <div
                           onClick={() => handleMemberClick(member)}
-                          className="bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-xl border-2 border-gray-200/60 rounded-xl shadow-sm hover:shadow-lg hover:border-gray-300/80 transition-all duration-200 cursor-pointer p-3"
+                          className="bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-xl border border-gray-200/60 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300/80 transition-all duration-200 cursor-pointer p-2"
                           style={{ marginLeft: `${item.depth * 24}px` }}
                         >
                           <div className="flex-1 min-w-0">
                             {/* Header with Avatar and Name */}
-                            <div className="flex items-start gap-3 mb-3">
-                              <Avatar className={`w-12 h-12 ${getAvatarColor(member)} text-white text-sm font-bold shadow-md ring-2 ring-white`}>
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <Avatar className={`w-8 h-8 ${getAvatarColor(member)} text-white text-[0.625rem] font-bold shadow-sm ring-1 ring-white`}>
                                 <AvatarFallback className={getAvatarColor(member)}>
                                   {getAvatarInitials(member)}
                                 </AvatarFallback>
                               </Avatar>
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-sm font-bold text-gray-900 truncate leading-tight mb-0.5">{member}</h3>
+                                <h3 className="text-xs font-bold text-gray-900 truncate leading-tight">{member}</h3>
                                 {details?.team && (
-                                  <div className="text-[0.625rem] text-gray-600 font-medium truncate">{details.team}</div>
-                                )}
-                                {details?.level && (
-                                  <div className="text-[0.625rem] text-gray-500 truncate">{details.level}</div>
+                                  <div className="text-[0.5rem] text-gray-600 font-medium truncate">{details.team}</div>
                                 )}
                               </div>
                             </div>
 
-                            {/* Morale & Performance - Large Visual Indicators */}
-                            <div className="grid grid-cols-2 gap-2 mb-3">
-                              {/* Morale Indicator */}
-                              <div className={`rounded-lg p-2 border-2 ${
-                                latestMorale === 'excellent' ? 'bg-green-50 border-green-200' :
-                                latestMorale === 'good' ? 'bg-blue-50 border-blue-200' :
-                                latestMorale === 'fair' ? 'bg-yellow-50 border-yellow-200' :
-                                latestMorale === 'poor' ? 'bg-red-50 border-red-200' :
-                                'bg-gray-50 border-gray-200'
-                              }`}>
-                                <div className="flex items-center gap-1.5 mb-1">
-                                  {getMoraleIcon(latestMorale)}
-                                  <span className="text-[0.625rem] font-semibold text-gray-600">Morale</span>
-                                </div>
-                                {latestMorale ? (
-                                  <div className="text-lg font-bold" style={{
+                            {/* Compact Stats Row */}
+                            <div className="grid grid-cols-4 gap-1 mb-1.5">
+                              {/* Morale */}
+                              {latestMorale ? (
+                                <div className={`rounded p-1 border ${
+                                  latestMorale === 'excellent' ? 'bg-green-50 border-green-200' :
+                                  latestMorale === 'good' ? 'bg-blue-50 border-blue-200' :
+                                  latestMorale === 'fair' ? 'bg-yellow-50 border-yellow-200' :
+                                  'bg-red-50 border-red-200'
+                                }`}>
+                                  <div className="text-[0.5rem] text-gray-600 mb-0.5">M</div>
+                                  <div className="text-xs font-bold" style={{
                                     color: latestMorale === 'excellent' ? '#16a34a' :
                                            latestMorale === 'good' ? '#2563eb' :
                                            latestMorale === 'fair' ? '#eab308' : '#dc2626'
                                   }}>
                                     {latestMorale === 'excellent' ? '4' : latestMorale === 'good' ? '3' : latestMorale === 'fair' ? '2' : '1'}
                                   </div>
-                                ) : (
-                                  <div className="text-xs text-gray-400">—</div>
-                                )}
-                              </div>
-
-                              {/* Performance Indicator */}
-                              <div className={`rounded-lg p-2 border-2 ${
-                                latestPerformance === 'excellent' ? 'bg-green-50 border-green-200' :
-                                latestPerformance === 'good' ? 'bg-blue-50 border-blue-200' :
-                                latestPerformance === 'fair' ? 'bg-yellow-50 border-yellow-200' :
-                                latestPerformance === 'poor' ? 'bg-red-50 border-red-200' :
-                                'bg-gray-50 border-gray-200'
-                              }`}>
-                                <div className="flex items-center gap-1.5 mb-1">
-                                  {getPerformanceIcon(latestPerformance)}
-                                  <span className="text-[0.625rem] font-semibold text-gray-600">Perf.</span>
                                 </div>
-                                {latestPerformance ? (
-                                  <div className="text-lg font-bold" style={{
+                              ) : (
+                                <div className="rounded p-1 border bg-gray-50 border-gray-200">
+                                  <div className="text-[0.5rem] text-gray-400 mb-0.5">M</div>
+                                  <div className="text-[0.625rem] text-gray-400">—</div>
+                                </div>
+                              )}
+
+                              {/* Performance */}
+                              {latestPerformance ? (
+                                <div className={`rounded p-1 border ${
+                                  latestPerformance === 'excellent' ? 'bg-green-50 border-green-200' :
+                                  latestPerformance === 'good' ? 'bg-blue-50 border-blue-200' :
+                                  latestPerformance === 'fair' ? 'bg-yellow-50 border-yellow-200' :
+                                  'bg-red-50 border-red-200'
+                                }`}>
+                                  <div className="text-[0.5rem] text-gray-600 mb-0.5">P</div>
+                                  <div className="text-xs font-bold" style={{
                                     color: latestPerformance === 'excellent' ? '#16a34a' :
                                            latestPerformance === 'good' ? '#2563eb' :
                                            latestPerformance === 'fair' ? '#eab308' : '#dc2626'
                                   }}>
                                     {latestPerformance === 'excellent' ? '4' : latestPerformance === 'good' ? '3' : latestPerformance === 'fair' ? '2' : '1'}
                                   </div>
-                                ) : (
-                                  <div className="text-xs text-gray-400">—</div>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Stats Grid */}
-                            <div className="grid grid-cols-2 gap-2 mb-3">
-                              {/* Tasks */}
-                              <div className="bg-blue-50/50 rounded-lg p-2 border border-blue-100">
-                                <div className="flex items-center gap-1 mb-1">
-                                  <FileText className="w-3 h-3 text-blue-600" />
-                                  <span className="text-[0.625rem] font-semibold text-blue-700">Tasks</span>
                                 </div>
-                                <div className="text-xl font-bold text-blue-700">{stats.total}</div>
-                                {stats.total > 0 && (
-                                  <div className="text-[0.5rem] text-blue-600 mt-0.5">
-                                    {stats.inProgress} in progress
-                                  </div>
-                                )}
+                              ) : (
+                                <div className="rounded p-1 border bg-gray-50 border-gray-200">
+                                  <div className="text-[0.5rem] text-gray-400 mb-0.5">P</div>
+                                  <div className="text-[0.625rem] text-gray-400">—</div>
+                                </div>
+                              )}
+
+                              {/* Tasks */}
+                              <div className="bg-blue-50/50 rounded p-1 border border-blue-100">
+                                <div className="text-[0.5rem] text-blue-600 mb-0.5">T</div>
+                                <div className="text-xs font-bold text-blue-700">{stats.total}</div>
                               </div>
 
                               {/* Clients */}
-                              <div className="bg-purple-50/50 rounded-lg p-2 border border-purple-100">
-                                <div className="flex items-center gap-1 mb-1">
-                                  <Users className="w-3 h-3 text-purple-600" />
-                                  <span className="text-[0.625rem] font-semibold text-purple-700">Clients</span>
-                                </div>
-                                <div className="text-xl font-bold text-purple-700">{clientCount}</div>
+                              <div className="bg-purple-50/50 rounded p-1 border border-purple-100">
+                                <div className="text-[0.5rem] text-purple-600 mb-0.5">C</div>
+                                <div className="text-xs font-bold text-purple-700">{clientCount}</div>
                               </div>
                             </div>
 
-                            {/* Goals Progress Bar */}
-                            {totalGoals > 0 && (
-                              <div className="mb-2">
-                                <div className="flex items-center justify-between mb-1">
-                                  <div className="flex items-center gap-1">
-                                    <Target className="w-3 h-3 text-yellow-600" />
-                                    <span className="text-[0.625rem] font-semibold text-gray-700">Goals</span>
-                                  </div>
-                                  <span className="text-[0.625rem] font-bold text-gray-800">
+                            {/* Goals & Red Flags Row */}
+                            <div className="flex items-center justify-between gap-1">
+                              {totalGoals > 0 && (
+                                <div className="flex items-center gap-0.5 flex-1">
+                                  <Target className="w-2.5 h-2.5 text-yellow-600" />
+                                  <span className="text-[0.5rem] font-semibold text-gray-700">
                                     {completedGoals}/{totalGoals}
                                   </span>
+                                  <div className="flex-1 bg-gray-200 rounded-full h-1 overflow-hidden ml-1">
+                                    <div 
+                                      className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full"
+                                      style={{ width: `${(completedGoals / totalGoals) * 100}%` }}
+                                    />
+                                  </div>
                                 </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                  <div 
-                                    className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full transition-all"
-                                    style={{ width: `${(completedGoals / totalGoals) * 100}%` }}
-                                  />
+                              )}
+                              {redFlagCount > 0 && (
+                                <div className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-red-100 text-red-700">
+                                  <AlertTriangle className="w-2.5 h-2.5" />
+                                  <span className="text-[0.5rem] font-bold">{redFlagCount}</span>
                                 </div>
-                              </div>
-                            )}
-
-                            {/* Red Flags - Prominent if present */}
-                            {redFlagCount > 0 && (
-                              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-2 flex items-center gap-2">
-                                <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
-                                <div>
-                                  <div className="text-sm font-bold text-red-700">{redFlagCount}</div>
-                                  <div className="text-[0.625rem] text-red-600">Red Flag{redFlagCount > 1 ? 's' : ''}</div>
-                                </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
 
@@ -882,6 +917,187 @@ export function TeamView({
               </div>
             </div>
           </div>
+
+          {/* Non-Direct Reports Section */}
+          {hierarchyByReportingLine.nonDirectReports.length > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-semibold text-gray-600">Non-Direct Reports</h3>
+                  <Badge variant="outline" className="text-[0.625rem]">
+                    {hierarchyByReportingLine.nonDirectReports.length} {hierarchyByReportingLine.nonDirectReports.length === 1 ? 'member' : 'members'}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select value={nonDirectTeamFilter} onValueChange={setNonDirectTeamFilter}>
+                    <SelectTrigger className="text-xs w-32 h-7 bg-white/40 backdrop-blur-xl border border-gray-200/30">
+                      <SelectValue placeholder="All teams" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Teams</SelectItem>
+                      <SelectItem value="Brand Strategy">Brand Strategy</SelectItem>
+                      <SelectItem value="Brand Intelligence">Brand Intelligence</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={nonDirectSortBy} onValueChange={(v) => setNonDirectSortBy(v as typeof nonDirectSortBy)}>
+                    <SelectTrigger className="text-xs w-32 h-7 bg-white/40 backdrop-blur-xl border border-gray-200/30">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="level">Level</SelectItem>
+                      <SelectItem value="name">Name</SelectItem>
+                      <SelectItem value="morale">Morale</SelectItem>
+                      <SelectItem value="performance">Performance</SelectItem>
+                      <SelectItem value="tasks">Tasks</SelectItem>
+                      <SelectItem value="clients">Clients</SelectItem>
+                      <SelectItem value="redFlags">Red Flags</SelectItem>
+                      <SelectItem value="goals">Goal Progress</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={() => setNonDirectSortDirection(prev => prev === "asc" ? "desc" : "asc")}
+                    variant="outline"
+                    size="sm"
+                    className="h-7 w-7 p-0 bg-white/40 backdrop-blur-xl border border-gray-200/30"
+                    type="button"
+                  >
+                    <ArrowUpDown className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                {hierarchyByReportingLine.nonDirectReports.map((item) => {
+                  const member = item.name
+                  const memberTasks = tasksByTeam[member]
+                  const stats = getTaskStats(memberTasks)
+                  const details = item.details
+                  
+                  const latestMorale = details?.moraleCheckIns && details.moraleCheckIns.length > 0 
+                    ? details.moraleCheckIns[details.moraleCheckIns.length - 1].morale 
+                    : null
+                  const latestPerformance = details?.performanceCheckIns && details.performanceCheckIns.length > 0 
+                    ? details.performanceCheckIns[details.performanceCheckIns.length - 1].performance 
+                    : null
+                  const clientCount = details?.clientDetails ? Object.keys(details.clientDetails).length : 0
+                  const redFlagCount = details?.redFlags?.length || 0
+                  const completedGoals = details?.goals?.filter(g => g.status === 'completed').length || 0
+                  const totalGoals = details?.goals?.length || 0
+
+                  return (
+                    <div
+                      key={member}
+                      onClick={() => handleMemberClick(member)}
+                      className="bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-xl border border-gray-200/60 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300/80 transition-all duration-200 cursor-pointer p-2"
+                    >
+                      <div className="flex-1 min-w-0">
+                        {/* Header with Avatar and Name */}
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <Avatar className={`w-8 h-8 ${getAvatarColor(member)} text-white text-[0.625rem] font-bold shadow-sm ring-1 ring-white`}>
+                            <AvatarFallback className={getAvatarColor(member)}>
+                              {getAvatarInitials(member)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-xs font-bold text-gray-900 truncate leading-tight">{member}</h3>
+                            {details?.team && (
+                              <div className="text-[0.5rem] text-gray-600 font-medium truncate">{details.team}</div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Compact Stats Row */}
+                        <div className="grid grid-cols-4 gap-1 mb-1.5">
+                          {/* Morale */}
+                          {latestMorale ? (
+                            <div className={`rounded p-1 border ${
+                              latestMorale === 'excellent' ? 'bg-green-50 border-green-200' :
+                              latestMorale === 'good' ? 'bg-blue-50 border-blue-200' :
+                              latestMorale === 'fair' ? 'bg-yellow-50 border-yellow-200' :
+                              'bg-red-50 border-red-200'
+                            }`}>
+                              <div className="text-[0.5rem] text-gray-600 mb-0.5">M</div>
+                              <div className="text-xs font-bold" style={{
+                                color: latestMorale === 'excellent' ? '#16a34a' :
+                                       latestMorale === 'good' ? '#2563eb' :
+                                       latestMorale === 'fair' ? '#eab308' : '#dc2626'
+                              }}>
+                                {latestMorale === 'excellent' ? '4' : latestMorale === 'good' ? '3' : latestMorale === 'fair' ? '2' : '1'}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="rounded p-1 border bg-gray-50 border-gray-200">
+                              <div className="text-[0.5rem] text-gray-400 mb-0.5">M</div>
+                              <div className="text-[0.625rem] text-gray-400">—</div>
+                            </div>
+                          )}
+
+                          {/* Performance */}
+                          {latestPerformance ? (
+                            <div className={`rounded p-1 border ${
+                              latestPerformance === 'excellent' ? 'bg-green-50 border-green-200' :
+                              latestPerformance === 'good' ? 'bg-blue-50 border-blue-200' :
+                              latestPerformance === 'fair' ? 'bg-yellow-50 border-yellow-200' :
+                              'bg-red-50 border-red-200'
+                            }`}>
+                              <div className="text-[0.5rem] text-gray-600 mb-0.5">P</div>
+                              <div className="text-xs font-bold" style={{
+                                color: latestPerformance === 'excellent' ? '#16a34a' :
+                                       latestPerformance === 'good' ? '#2563eb' :
+                                       latestPerformance === 'fair' ? '#eab308' : '#dc2626'
+                              }}>
+                                {latestPerformance === 'excellent' ? '4' : latestPerformance === 'good' ? '3' : latestPerformance === 'fair' ? '2' : '1'}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="rounded p-1 border bg-gray-50 border-gray-200">
+                              <div className="text-[0.5rem] text-gray-400 mb-0.5">P</div>
+                              <div className="text-[0.625rem] text-gray-400">—</div>
+                            </div>
+                          )}
+
+                          {/* Tasks */}
+                          <div className="bg-blue-50/50 rounded p-1 border border-blue-100">
+                            <div className="text-[0.5rem] text-blue-600 mb-0.5">T</div>
+                            <div className="text-xs font-bold text-blue-700">{stats.total}</div>
+                          </div>
+
+                          {/* Clients */}
+                          <div className="bg-purple-50/50 rounded p-1 border border-purple-100">
+                            <div className="text-[0.5rem] text-purple-600 mb-0.5">C</div>
+                            <div className="text-xs font-bold text-purple-700">{clientCount}</div>
+                          </div>
+                        </div>
+
+                        {/* Goals & Red Flags Row */}
+                        <div className="flex items-center justify-between gap-1">
+                          {totalGoals > 0 && (
+                            <div className="flex items-center gap-0.5 flex-1">
+                              <Target className="w-2.5 h-2.5 text-yellow-600" />
+                              <span className="text-[0.5rem] font-semibold text-gray-700">
+                                {completedGoals}/{totalGoals}
+                              </span>
+                              <div className="flex-1 bg-gray-200 rounded-full h-1 overflow-hidden ml-1">
+                                <div 
+                                  className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full"
+                                  style={{ width: `${(completedGoals / totalGoals) * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                          {redFlagCount > 0 && (
+                            <div className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-red-100 text-red-700">
+                              <AlertTriangle className="w-2.5 h-2.5" />
+                              <span className="text-[0.5rem] font-bold">{redFlagCount}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
       ) : (
         <div className="text-center py-12">
           <div className="w-14 h-14 bg-gray-100/60 rounded-full flex items-center justify-center mx-auto mb-3">
