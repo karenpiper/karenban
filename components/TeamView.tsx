@@ -375,7 +375,7 @@ export function TeamView({
     })
     
     return { topLevel, reportsByManager }
-  }, [filteredHierarchy, sortBy, sortDirection, safeTasks, getSortValue])
+  }, [filteredHierarchy, sortBy, sortDirection, safeTasks])
 
   const formatDate = (date: Date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']

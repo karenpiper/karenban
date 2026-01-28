@@ -268,8 +268,7 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
   }, [roleGoals, selectedTeam, selectedLevel])
 
   return (
-    <>
-      <div className="space-y-4">
+    <div className="space-y-4">
       {/* Filters and Actions */}
       <div className="flex items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-3">
@@ -547,7 +546,6 @@ Skills and Deliverables:
         )}
       </div>
     </div>
-    </>
   )
 }
 
