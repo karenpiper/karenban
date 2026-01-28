@@ -50,6 +50,11 @@ export function TeamMemberDashboard({
   const [newClient, setNewClient] = useState("")
   const [newRedFlag, setNewRedFlag] = useState("")
   const [generalNotes, setGeneralNotes] = useState(memberDetails?.notes || "")
+  const [goalsMode, setGoalsMode] = useState<Record<string, "rating" | "notes">>({})
+  const [showGoalNotes, setShowGoalNotes] = useState<Record<string, boolean>>({})
+  const [ratingNotes, setRatingNotes] = useState<Record<string, string>>({})
+  const [editingRating, setEditingRating] = useState<string | null>(null)
+  const [editRatingValue, setEditRatingValue] = useState<{ rating: number; notes?: string } | null>(null)
 
   useEffect(() => {
     setGeneralNotes(memberDetails?.notes || "")
@@ -1160,6 +1165,8 @@ export function TeamMemberDashboard({
                   updatedAt: new Date()
                 }
                 onUpdate(updated)
+                // Clear the rating notes after saving
+                setRatingNotes({ ...ratingNotes, [goalId]: "" })
               }
 
               return (
@@ -1198,85 +1205,302 @@ export function TeamMemberDashboard({
                           new Date(r.weekStartDate).getTime() === weekStart.getTime()
                         )
 
+                        const currentMode = goalsMode[memberGoal.goalId] || "rating"
+                        const showNotes = showGoalNotes[memberGoal.goalId] || false
+
                         return (
                           <div key={memberGoal.goalId} className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1">
-                                <h4 className="text-sm font-semibold text-gray-800">{roleGoal.title}</h4>
-                                {roleGoal.description && (
-                                  <p className="text-xs text-gray-600 mt-1">{roleGoal.description}</p>
-                                )}
-                                {roleGoal.category && (
-                                  <span className="inline-block mt-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                                    {roleGoal.category}
-                                  </span>
-                                )}
-                              </div>
-                              {latestRating && (
-                                <div className="text-right">
-                                  <div className="text-2xl font-bold text-blue-600">{latestRating.rating}</div>
-                                  <div className="text-xs text-gray-500">/ 5</div>
+                            {/* Goal Title and Details */}
+                            <div className="mb-4">
+                              <h4 className="text-sm font-semibold text-gray-800 mb-3">
+                                {roleGoal.firstPersonStatement || roleGoal.title}
+                              </h4>
+                              
+                              {/* Behaviors */}
+                              {roleGoal.behaviors && roleGoal.behaviors.length > 0 && (
+                                <div className="mb-3">
+                                  <div className="text-xs font-medium text-gray-700 mb-1">Behaviors:</div>
+                                  <ul className="text-xs text-gray-600 space-y-0.5 list-disc list-inside">
+                                    {roleGoal.behaviors.map((behavior, idx) => (
+                                      <li key={idx}>{behavior}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* Competency */}
+                              {roleGoal.competency && (
+                                <div className="mb-3">
+                                  <div className="text-xs font-medium text-gray-700 mb-1">Competency:</div>
+                                  <div className="text-xs text-gray-600">{roleGoal.competency}</div>
+                                </div>
+                              )}
+
+                              {/* Skills and Deliverables */}
+                              {roleGoal.skillsAndDeliverables && roleGoal.skillsAndDeliverables.length > 0 && (
+                                <div className="mb-3">
+                                  <div className="text-xs font-medium text-gray-700 mb-1">Skills and Deliverables:</div>
+                                  <ul className="text-xs text-gray-600 space-y-0.5 list-disc list-inside">
+                                    {roleGoal.skillsAndDeliverables.map((skill, idx) => (
+                                      <li key={idx}>{skill}</li>
+                                    ))}
+                                  </ul>
                                 </div>
                               )}
                             </div>
 
-                            {/* Weekly Rating */}
-                            <div className="mt-4 pt-4 border-t border-gray-200">
-                              <div className="flex items-center justify-between mb-2">
-                                <label className="text-xs font-medium text-gray-700">
-                                  {hasThisWeekRating ? "This Week's Rating" : "Rate This Week"}
-                                </label>
-                                {hasThisWeekRating && (
-                                  <span className="text-xs text-gray-500">
-                                    {format(new Date(weekStart), "MMM d")}
-                                  </span>
-                                )}
-                              </div>
-                              {!hasThisWeekRating ? (
-                                <div className="flex gap-2">
-                                  {[1, 2, 3, 4, 5].map(rating => (
-                                    <Button
-                                      key={rating}
-                                      onClick={() => handleAddRating(memberGoal.goalId, rating)}
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-8 w-8 p-0"
-                                    >
-                                      {rating}
-                                    </Button>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2">
-                                  <div className="text-lg font-semibold text-gray-800">
-                                    {latestRating.rating} / 5
+                            {/* Mode Toggle */}
+                            <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200">
+                              <Button
+                                onClick={() => setGoalsMode({ ...goalsMode, [memberGoal.goalId]: "rating" })}
+                                variant={currentMode === "rating" ? "default" : "outline"}
+                                size="sm"
+                                className="text-xs h-7"
+                                type="button"
+                              >
+                                Rating
+                              </Button>
+                              <Button
+                                onClick={() => setGoalsMode({ ...goalsMode, [memberGoal.goalId]: "notes" })}
+                                variant={currentMode === "notes" ? "default" : "outline"}
+                                size="sm"
+                                className="text-xs h-7"
+                                type="button"
+                              >
+                                Notes
+                              </Button>
+                            </div>
+
+                            {/* Rating Mode */}
+                            {currentMode === "rating" && (
+                              <div className="space-y-4">
+                                {/* Weekly Rating */}
+                                <div>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <label className="text-xs font-medium text-gray-700">
+                                      {hasThisWeekRating ? "This Week's Rating" : "Rate This Week"}
+                                    </label>
+                                    {hasThisWeekRating && (
+                                      <span className="text-xs text-gray-500">
+                                        {format(new Date(weekStart), "MMM d")}
+                                      </span>
+                                    )}
                                   </div>
-                                  {latestRating.notes && (
-                                    <div className="text-xs text-gray-600">{latestRating.notes}</div>
+                                  {!hasThisWeekRating ? (
+                                    <div className="space-y-2">
+                                      <div className="flex gap-2">
+                                        {[1, 2, 3, 4, 5].map(rating => (
+                                          <Button
+                                            key={rating}
+                                            onClick={() => handleAddRating(memberGoal.goalId, rating, ratingNotes[memberGoal.goalId])}
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 w-8 p-0"
+                                            type="button"
+                                          >
+                                            {rating}
+                                          </Button>
+                                        ))}
+                                      </div>
+                                      <Textarea
+                                        value={ratingNotes[memberGoal.goalId] || ""}
+                                        onChange={(e) => setRatingNotes({ ...ratingNotes, [memberGoal.goalId]: e.target.value })}
+                                        placeholder="Optional notes for this rating..."
+                                        className="text-xs min-h-16"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-2">
+                                        <div className="text-lg font-semibold text-gray-800">
+                                          {latestRating.rating} / 5
+                                        </div>
+                                      </div>
+                                      {latestRating.notes && (
+                                        <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                                          {latestRating.notes}
+                                        </div>
+                                      )}
+                                    </div>
                                   )}
                                 </div>
-                              )}
-                            </div>
 
-                            {/* Historical Ratings */}
-                            {memberGoal.ratings.length > 0 && (
-                              <div className="mt-4 pt-4 border-t border-gray-200">
-                                <h5 className="text-xs font-medium text-gray-700 mb-2">Rating History</h5>
-                                <div className="space-y-1 max-h-32 overflow-y-auto">
-                                  {memberGoal.ratings.map(rating => (
-                                    <div key={rating.id} className="flex items-center justify-between text-xs bg-gray-50 rounded p-2">
-                                      <span className="text-gray-600">
-                                        {format(new Date(rating.weekStartDate), "MMM d, yyyy")}
-                                      </span>
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-gray-800">{rating.rating} / 5</span>
-                                        {rating.notes && (
-                                          <span className="text-gray-500">• {rating.notes}</span>
-                                        )}
-                                      </div>
+                                {/* Historical Ratings */}
+                                {memberGoal.ratings.length > 0 && (
+                                  <div className="pt-4 border-t border-gray-200">
+                                    <h5 className="text-xs font-medium text-gray-700 mb-2">Rating History</h5>
+                                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                                      {memberGoal.ratings.map(rating => (
+                                        <div key={rating.id} className="flex items-start justify-between text-xs bg-gray-50 rounded p-2">
+                                          <div className="flex-1">
+                                            <span className="text-gray-600">
+                                              {format(new Date(rating.weekStartDate), "MMM d, yyyy")}
+                                            </span>
+                                            {rating.notes && (
+                                              <div className="text-gray-500 mt-1">{rating.notes}</div>
+                                            )}
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-800">{rating.rating} / 5</span>
+                                            <Button
+                                              onClick={() => {
+                                                setEditingRating(rating.id)
+                                                setEditRatingValue({ rating: rating.rating, notes: rating.notes })
+                                              }}
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 w-5 p-0"
+                                              type="button"
+                                            >
+                                              <Edit2 className="w-3 h-3" />
+                                            </Button>
+                                            <Button
+                                              onClick={() => {
+                                                if (confirm("Delete this rating?")) {
+                                                  const updated = {
+                                                    ...details,
+                                                    growthGoals: details.growthGoals.map(g =>
+                                                      g.goalId === memberGoal.goalId
+                                                        ? {
+                                                            ...g,
+                                                            ratings: g.ratings.filter(r => r.id !== rating.id),
+                                                            currentRating: g.ratings.length > 1 && g.ratings[0].id === rating.id
+                                                              ? g.ratings[1].rating
+                                                              : g.currentRating
+                                                          }
+                                                        : g
+                                                    ),
+                                                    updatedAt: new Date()
+                                                  }
+                                                  onUpdate(updated)
+                                                }
+                                              }}
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 w-5 p-0 text-red-500 hover:text-red-700"
+                                              type="button"
+                                            >
+                                              <Trash2 className="w-3 h-3" />
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
                                     </div>
-                                  ))}
+                                  </div>
+                                )}
+
+                                {/* Edit Rating Form */}
+                                {editingRating && memberGoal.ratings.find(r => r.id === editingRating) && editRatingValue && (
+                                  <div className="pt-4 border-t border-gray-200 bg-blue-50 p-3 rounded">
+                                    <div className="text-xs font-medium text-gray-700 mb-2">Edit Rating</div>
+                                    <div className="flex gap-2 mb-2">
+                                      {[1, 2, 3, 4, 5].map(rating => (
+                                        <Button
+                                          key={rating}
+                                          onClick={() => setEditRatingValue({ ...editRatingValue, rating })}
+                                          variant={editRatingValue.rating === rating ? "default" : "outline"}
+                                          size="sm"
+                                          className="h-7 w-7 p-0"
+                                          type="button"
+                                        >
+                                          {rating}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                    <Textarea
+                                      value={editRatingValue.notes || ""}
+                                      onChange={(e) => setEditRatingValue({ ...editRatingValue, notes: e.target.value })}
+                                      placeholder="Notes..."
+                                      className="text-xs min-h-16 mb-2"
+                                    />
+                                    <div className="flex gap-2">
+                                      <Button
+                                        onClick={() => {
+                                          const ratingToUpdate = memberGoal.ratings.find(r => r.id === editingRating)
+                                          if (ratingToUpdate) {
+                                            const ratingWeekStart = new Date(ratingToUpdate.weekStartDate)
+                                            const updated = {
+                                              ...details,
+                                              growthGoals: details.growthGoals.map(g =>
+                                                g.goalId === memberGoal.goalId
+                                                  ? {
+                                                      ...g,
+                                                      ratings: g.ratings.map(r =>
+                                                        r.id === editingRating
+                                                          ? { ...r, rating: editRatingValue.rating, notes: editRatingValue.notes }
+                                                          : r
+                                                      ),
+                                                      currentRating: ratingWeekStart.getTime() === weekStart.getTime()
+                                                        ? editRatingValue.rating
+                                                        : g.currentRating
+                                                    }
+                                                  : g
+                                              ),
+                                              updatedAt: new Date()
+                                            }
+                                            onUpdate(updated)
+                                          }
+                                          setEditingRating(null)
+                                          setEditRatingValue(null)
+                                        }}
+                                        size="sm"
+                                        className="h-7 text-xs"
+                                        type="button"
+                                      >
+                                        Save
+                                      </Button>
+                                      <Button
+                                        onClick={() => {
+                                          setEditingRating(null)
+                                          setEditRatingValue(null)
+                                        }}
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-7 text-xs"
+                                        type="button"
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Notes Mode */}
+                            {currentMode === "notes" && (
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <label className="text-xs font-medium text-gray-700">Goal Notes</label>
+                                  <Button
+                                    onClick={() => setShowGoalNotes({ ...showGoalNotes, [memberGoal.goalId]: !showNotes })}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 text-xs"
+                                    type="button"
+                                  >
+                                    {showNotes ? "Hide" : "Show"} Notes
+                                  </Button>
                                 </div>
+                                {showNotes && (
+                                  <Textarea
+                                    value={memberGoal.notes || ""}
+                                    onChange={(e) => {
+                                      const updated = {
+                                        ...details,
+                                        growthGoals: details.growthGoals.map(g =>
+                                          g.goalId === memberGoal.goalId
+                                            ? { ...g, notes: e.target.value }
+                                            : g
+                                        ),
+                                        updatedAt: new Date()
+                                      }
+                                      onUpdate(updated)
+                                    }}
+                                    placeholder="Add notes about progress on this goal..."
+                                    className="text-xs min-h-32"
+                                  />
+                                )}
                               </div>
                             )}
                           </div>
