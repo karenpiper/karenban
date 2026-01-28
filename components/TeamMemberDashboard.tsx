@@ -27,6 +27,7 @@ interface TeamMemberDashboardProps {
   onBack: () => void
   onCreateTask?: (title: string, assignedTo: string, client?: string) => void
   onToggleTeamMemberStatus?: (name: string) => void // Toggle team member status
+  onUpdateName?: (oldName: string, newName: string) => void // Update team member name
 }
 
 export function TeamMemberDashboard({
@@ -41,7 +42,8 @@ export function TeamMemberDashboard({
   onUpdate,
   onBack,
   onCreateTask,
-  onToggleTeamMemberStatus
+  onToggleTeamMemberStatus,
+  onUpdateName
 }: TeamMemberDashboardProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "goals" | "reviews" | "oneonones" | "notes" | "growth">("overview")
   const [editingGoal, setEditingGoal] = useState<TeamMemberGoal | null>(null)
@@ -55,6 +57,8 @@ export function TeamMemberDashboard({
   const [ratingNotes, setRatingNotes] = useState<Record<string, string>>({})
   const [editingRating, setEditingRating] = useState<string | null>(null)
   const [editRatingValue, setEditRatingValue] = useState<{ rating: number; notes?: string } | null>(null)
+  const [editingName, setEditingName] = useState(false)
+  const [newName, setNewName] = useState(memberName)
 
   useEffect(() => {
     setGeneralNotes(memberDetails?.notes || "")
@@ -391,7 +395,65 @@ export function TeamMemberDashboard({
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <h1 className="text-2xl font-heading text-gray-800">{memberName}</h1>
+            {editingName ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newName.trim() && onUpdateName) {
+                      onUpdateName(memberName, newName.trim())
+                      setEditingName(false)
+                    } else if (e.key === 'Escape') {
+                      setEditingName(false)
+                      setNewName(memberName)
+                    }
+                  }}
+                  className="text-2xl font-heading h-10"
+                  autoFocus
+                />
+                <Button
+                  onClick={() => {
+                    if (newName.trim() && onUpdateName) {
+                      onUpdateName(memberName, newName.trim())
+                      setEditingName(false)
+                    }
+                  }}
+                  size="sm"
+                  className="h-8"
+                  type="button"
+                >
+                  <Check className="w-4 h-4" />
+                </Button>
+                <Button
+                  onClick={() => {
+                    setEditingName(false)
+                    setNewName(memberName)
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8"
+                  type="button"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-heading text-gray-800">{memberName}</h1>
+                {onUpdateName && (
+                  <Button
+                    onClick={() => setEditingName(true)}
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    type="button"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">

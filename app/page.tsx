@@ -550,6 +550,67 @@ export default function HomePage() {
     saveAppState(updatedState)
   }
 
+  const handleUpdateTeamMemberName = (oldName: string, newName: string) => {
+    if (!appState) return
+    
+    // Update columns - update personName and name in categories
+    const updatedColumns = appState.columns.map(col => ({
+      ...col,
+      categories: col.categories.map(cat => {
+        if (cat.isPerson && (cat.personName === oldName || cat.name === oldName)) {
+          return {
+            ...cat,
+            personName: newName,
+            name: newName
+          }
+        }
+        return cat
+      })
+    }))
+
+    // Update tasks - update assignedTo
+    const updatedTasks = appState.tasks.map(task => 
+      task.assignedTo === oldName ? { ...task, assignedTo: newName } : task
+    )
+
+    // Update teamMemberDetails - re-key the object
+    const updatedTeamMemberDetails: Record<string, TeamMemberDetails> = {}
+    Object.keys(appState.teamMemberDetails).forEach(key => {
+      if (key === oldName) {
+        updatedTeamMemberDetails[newName] = {
+          ...appState.teamMemberDetails[key],
+          name: newName
+        }
+      } else {
+        // Update manager references
+        const details = appState.teamMemberDetails[key]
+        if (details.manager === oldName) {
+          updatedTeamMemberDetails[key] = {
+            ...details,
+            manager: newName
+          }
+        } else {
+          updatedTeamMemberDetails[key] = details
+        }
+      }
+    })
+
+    const updatedState: AppState = {
+      ...appState,
+      columns: updatedColumns,
+      tasks: updatedTasks,
+      teamMemberDetails: updatedTeamMemberDetails
+    }
+    
+    setAppState(updatedState)
+    saveAppState(updatedState)
+    
+    // Update selectedTeamMember if it's the renamed person
+    if (selectedTeamMember === oldName) {
+      setSelectedTeamMember(newName)
+    }
+  }
+
   const handleToggleTeamMemberStatus = (name: string) => {
     if (!appState) return
     
@@ -893,6 +954,7 @@ export default function HomePage() {
               }}
               onCreateTask={handleCreateTaskFromTeamMember}
               onToggleTeamMemberStatus={handleToggleTeamMemberStatus}
+              onUpdateName={handleUpdateTeamMemberName}
             />
           </div>
         )
