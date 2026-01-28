@@ -519,26 +519,6 @@ export function TeamView({
                 <div className="space-y-1">
                   {members.map((item) => {
                     const member = item.name
-            const memberTasks = tasksByTeam[member]
-            const stats = getTaskStats(memberTasks)
-            const details = teamMemberDetails[member]
-            const currentTasks = memberTasks.filter(t => 
-              t.status !== 'done' && 
-              t.status !== 'completed' && 
-              t.columnId !== 'col-done'
-            )
-            
-            const latestMorale = details?.moraleCheckIns && details.moraleCheckIns.length > 0 
-              ? details.moraleCheckIns[details.moraleCheckIns.length - 1].morale 
-              : null
-            const latestPerformance = details?.performanceCheckIns && details.performanceCheckIns.length > 0 
-              ? details.performanceCheckIns[details.performanceCheckIns.length - 1].performance 
-              : null
-            const clientCount = details?.clientDetails ? Object.keys(details.clientDetails).length : 0
-            const redFlagCount = details?.redFlags?.length || 0
-            const completedGoals = details?.goals?.filter(g => g.status === 'completed').length || 0
-            const totalGoals = details?.goals?.length || 0
-
                     const memberTasks = tasksByTeam[member]
                     const stats = getTaskStats(memberTasks)
                     const details = item.details
