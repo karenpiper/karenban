@@ -955,6 +955,11 @@ export default function HomePage() {
               onCreateTask={handleCreateTaskFromTeamMember}
               onToggleTeamMemberStatus={handleToggleTeamMemberStatus}
               onUpdateName={handleUpdateTeamMemberName}
+              onUpdateTeamMemberDetails={handleUpdateTeamMemberDetails}
+              onSelectTeamMember={(name) => {
+                setSelectedTeamMember(name)
+                setCurrentView("team-member")
+              }}
             />
           </div>
         )

@@ -28,6 +28,8 @@ interface TeamMemberDashboardProps {
   onCreateTask?: (title: string, assignedTo: string, client?: string) => void
   onToggleTeamMemberStatus?: (name: string) => void // Toggle team member status
   onUpdateName?: (oldName: string, newName: string) => void // Update team member name
+  onUpdateTeamMemberDetails?: (name: string, details: TeamMemberDetails) => void // Update other team members' details
+  onSelectTeamMember?: (name: string) => void // Navigate to another team member's page
 }
 
 export function TeamMemberDashboard({
@@ -43,7 +45,9 @@ export function TeamMemberDashboard({
   onBack,
   onCreateTask,
   onToggleTeamMemberStatus,
-  onUpdateName
+  onUpdateName,
+  onUpdateTeamMemberDetails,
+  onSelectTeamMember
 }: TeamMemberDashboardProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "goals" | "reviews" | "oneonones" | "notes" | "growth">("overview")
   const [editingGoal, setEditingGoal] = useState<TeamMemberGoal | null>(null)
@@ -52,9 +56,10 @@ export function TeamMemberDashboard({
   const [newClient, setNewClient] = useState("")
   const [newRedFlag, setNewRedFlag] = useState("")
   const [generalNotes, setGeneralNotes] = useState(memberDetails?.notes || "")
-  const [goalsMode, setGoalsMode] = useState<Record<string, "rating" | "notes">>({})
+  const [goalsMode, setGoalsMode] = useState<Record<string, "rating" | "notes" | "trend">>({})
   const [showGoalNotes, setShowGoalNotes] = useState<Record<string, boolean>>({})
   const [ratingNotes, setRatingNotes] = useState<Record<string, string>>({})
+  const [pendingRating, setPendingRating] = useState<Record<string, { rating: number | null; notes: string }>>({})
   const [editingRating, setEditingRating] = useState<string | null>(null)
   const [editRatingValue, setEditRatingValue] = useState<{ rating: number; notes?: string } | null>(null)
   const [editingName, setEditingName] = useState(false)
@@ -870,6 +875,153 @@ export function TeamMemberDashboard({
                 </div>
               </div>
 
+              {/* Direct Reports Section */}
+              {(() => {
+                // Find direct reports (people who report to this team member)
+                const directReports = Object.keys(teamMemberDetails)
+                  .filter(name => teamMemberDetails[name]?.manager === memberName)
+                  .map(name => ({
+                    name,
+                    details: teamMemberDetails[name]
+                  }))
+                  .filter(report => report.details) // Only include if details exist
+
+                if (directReports.length === 0) return null
+
+                const handleUpdateDirectReportMorale = (reportName: string, morale: "excellent" | "good" | "fair" | "poor" | null) => {
+                  if (!onUpdateTeamMemberDetails) return
+                  const reportDetails = teamMemberDetails[reportName]
+                  if (!reportDetails) return
+
+                  const checkIn: MoraleCheckIn = {
+                    id: `morale-${Date.now()}`,
+                    date: new Date(),
+                    morale: morale || "good",
+                    createdAt: new Date(),
+                  }
+
+                  const updated: TeamMemberDetails = {
+                    ...reportDetails,
+                    morale,
+                    moraleCheckIns: [...(reportDetails.moraleCheckIns || []), checkIn],
+                    updatedAt: new Date()
+                  }
+                  onUpdateTeamMemberDetails(reportName, updated)
+                }
+
+                const handleUpdateDirectReportPerformance = (reportName: string, performance: "excellent" | "good" | "fair" | "poor" | null) => {
+                  if (!onUpdateTeamMemberDetails) return
+                  const reportDetails = teamMemberDetails[reportName]
+                  if (!reportDetails) return
+
+                  const checkIn: PerformanceCheckIn = {
+                    id: `performance-${Date.now()}`,
+                    date: new Date(),
+                    performance: performance || "good",
+                    createdAt: new Date(),
+                  }
+
+                  const updated: TeamMemberDetails = {
+                    ...reportDetails,
+                    performance,
+                    performanceCheckIns: [...(reportDetails.performanceCheckIns || []), checkIn],
+                    updatedAt: new Date()
+                  }
+                  onUpdateTeamMemberDetails(reportName, updated)
+                }
+
+                return (
+                  <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Direct Reports ({directReports.length})
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {directReports.map(({ name, details }) => {
+                        const latestMorale = details?.moraleCheckIns && details.moraleCheckIns.length > 0 
+                          ? details.moraleCheckIns[details.moraleCheckIns.length - 1].morale 
+                          : null
+                        const latestPerformance = details?.performanceCheckIns && details.performanceCheckIns.length > 0 
+                          ? details.performanceCheckIns[details.performanceCheckIns.length - 1].performance 
+                          : null
+
+                        return (
+                          <div key={name} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-800">{name}</h4>
+                                {details?.team && (
+                                  <div className="text-[0.625rem] text-gray-500">{details.team}</div>
+                                )}
+                              </div>
+                              <Button
+                                onClick={() => {
+                                  if (onSelectTeamMember) {
+                                    onSelectTeamMember(name)
+                                  }
+                                }}
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-xs"
+                                type="button"
+                              >
+                                View
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-[0.625rem] text-gray-600 mb-1 block">
+                                  Morale
+                                </label>
+                                <Select 
+                                  value={latestMorale || ""} 
+                                  onValueChange={(v) => {
+                                    const morale = v as "excellent" | "good" | "fair" | "poor" | null
+                                    handleUpdateDirectReportMorale(name, morale)
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full h-7 text-xs">
+                                    <SelectValue placeholder="—" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="excellent">Excellent</SelectItem>
+                                    <SelectItem value="good">Good</SelectItem>
+                                    <SelectItem value="fair">Fair</SelectItem>
+                                    <SelectItem value="poor">Poor</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className="text-[0.625rem] text-gray-600 mb-1 block">
+                                  Performance
+                                </label>
+                                <Select 
+                                  value={latestPerformance || ""} 
+                                  onValueChange={(v) => {
+                                    const performance = v as "excellent" | "good" | "fair" | "poor" | null
+                                    handleUpdateDirectReportPerformance(name, performance)
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full h-7 text-xs">
+                                    <SelectValue placeholder="—" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="excellent">Excellent</SelectItem>
+                                    <SelectItem value="good">Good</SelectItem>
+                                    <SelectItem value="fair">Fair</SelectItem>
+                                    <SelectItem value="poor">Poor</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })()}
+
               {/* Growth Goals Summary */}
               {details.team && details.level && (() => {
                 const applicableGoals = roleGoals.filter(
@@ -1418,6 +1570,17 @@ export function TeamMemberDashboard({
                               >
                                 Notes
                               </Button>
+                              {memberGoal.ratings.length > 0 && (
+                                <Button
+                                  onClick={() => setGoalsMode({ ...goalsMode, [memberGoal.goalId]: "trend" })}
+                                  variant={currentMode === "trend" ? "default" : "outline"}
+                                  size="sm"
+                                  className="text-xs h-7"
+                                  type="button"
+                                >
+                                  Trend
+                                </Button>
+                              )}
                             </div>
 
                             {/* Rating Mode */}
