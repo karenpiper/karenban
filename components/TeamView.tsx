@@ -1098,6 +1098,7 @@ export function TeamView({
               </div>
             </div>
           )}
+        </div>
       ) : (
         <div className="text-center py-12">
           <div className="w-14 h-14 bg-gray-100/60 rounded-full flex items-center justify-center mx-auto mb-3">
