@@ -361,6 +361,7 @@ Skills and Deliverables:
               </div>
             </DialogContent>
           </Dialog>
+        </div>
       </div>
 
       {/* Add New Goal Form - Collapsible */}
