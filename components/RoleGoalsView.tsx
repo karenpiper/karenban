@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, Trash2, Edit2, X, Check, Upload } from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { RoleGrowthGoal } from "../types"
 
 interface RoleGoalsViewProps {
@@ -18,6 +19,9 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
   const [editingGoal, setEditingGoal] = useState<RoleGrowthGoal | null>(null)
   const [bulkImportOpen, setBulkImportOpen] = useState(false)
   const [bulkImportText, setBulkImportText] = useState("")
+  const [selectedTeam, setSelectedTeam] = useState<string>("all")
+  const [selectedLevel, setSelectedLevel] = useState<string>("all")
+  const [showAddForm, setShowAddForm] = useState(false)
   const [newGoal, setNewGoal] = useState({
     discipline: "",
     level: "",
@@ -236,27 +240,90 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
     }
   }
 
-  const goalsByDisciplineAndLevel = useMemo(() => {
-    const grouped: Record<string, Record<string, RoleGrowthGoal[]>> = {}
-    roleGoals.forEach(goal => {
-      if (!grouped[goal.discipline]) grouped[goal.discipline] = {}
-      if (!grouped[goal.discipline][goal.level]) grouped[goal.discipline][goal.level] = []
-      grouped[goal.discipline][goal.level].push(goal)
-    })
-    return grouped
+  // Get unique teams and levels for filters
+  const uniqueTeams = useMemo(() => {
+    const teams = new Set(roleGoals.map(g => g.discipline).filter(Boolean))
+    return Array.from(teams).sort()
   }, [roleGoals])
 
+  const uniqueLevels = useMemo(() => {
+    const levels = new Set(roleGoals.map(g => g.level).filter(Boolean))
+    return Array.from(levels).sort()
+  }, [roleGoals])
+
+  // Filter goals based on selected team and level
+  const filteredGoals = useMemo(() => {
+    return roleGoals.filter(goal => {
+      const teamMatch = selectedTeam === "all" || goal.discipline === selectedTeam
+      const levelMatch = selectedLevel === "all" || goal.level === selectedLevel
+      return teamMatch && levelMatch
+    }).sort((a, b) => {
+      // Sort by team, then level, then by firstPersonStatement
+      if (a.discipline !== b.discipline) {
+        return (a.discipline || "").localeCompare(b.discipline || "")
+      }
+      if (a.level !== b.level) {
+        const levelOrder = ["Associate", "Mid-Level", "Senior", "Associate Director", "Director", "Senior Director", "Group Director"]
+        const aOrder = levelOrder.indexOf(a.level || "")
+        const bOrder = levelOrder.indexOf(b.level || "")
+        return aOrder - bOrder
+      }
+      return (a.firstPersonStatement || a.title || "").localeCompare(b.firstPersonStatement || b.title || "")
+    })
+  }, [roleGoals, selectedTeam, selectedLevel])
+
   return (
-    <div>
-      {/* Bulk Import Button */}
-      <div className="mb-4 flex justify-end">
-        <Dialog open={bulkImportOpen} onOpenChange={setBulkImportOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="text-xs">
-              <Upload className="w-3 h-3 mr-2" />
-              Bulk Import Goals
-            </Button>
-          </DialogTrigger>
+    <div className="space-y-4">
+      {/* Filters and Actions */}
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-600">Team:</label>
+            <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+              <SelectTrigger className="text-xs w-40 h-8">
+                <SelectValue placeholder="All teams" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Teams</SelectItem>
+                {uniqueTeams.map(team => (
+                  <SelectItem key={team} value={team}>{team}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-600">Level:</label>
+            <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+              <SelectTrigger className="text-xs w-40 h-8">
+                <SelectValue placeholder="All levels" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Levels</SelectItem>
+                {uniqueLevels.map(level => (
+                  <SelectItem key={level} value={level}>{level}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowAddForm(!showAddForm)}
+            variant="outline"
+            size="sm"
+            className="text-xs"
+            type="button"
+          >
+            <Plus className="w-3 h-3 mr-2" />
+            {showAddForm ? "Hide" : "Add"} Goal
+          </Button>
+          <Dialog open={bulkImportOpen} onOpenChange={setBulkImportOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs" type="button">
+                <Upload className="w-3 h-3 mr-2" />
+                Bulk Import
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Bulk Import Role Goals</DialogTitle>
@@ -289,10 +356,10 @@ Skills and Deliverables:
                 />
               </div>
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setBulkImportOpen(false)} className="text-xs">
+                <Button variant="outline" onClick={() => setBulkImportOpen(false)} className="text-xs" type="button">
                   Cancel
                 </Button>
-                <Button onClick={handleBulkImport} className="text-xs">
+                <Button onClick={handleBulkImport} className="text-xs" type="button">
                   Import Goals
                 </Button>
               </div>
@@ -301,8 +368,9 @@ Skills and Deliverables:
         </Dialog>
       </div>
 
-      {/* Add New Goal Form */}
-      <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6 mb-6">
+      {/* Add New Goal Form - Collapsible */}
+      {showAddForm && (
+        <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Add New Growth Goal</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -378,97 +446,114 @@ Skills and Deliverables:
             </div>
           </div>
         </div>
+      )}
 
-        {/* Goals List by Discipline and Level */}
-        <div className="space-y-6">
-          {Object.keys(goalsByDisciplineAndLevel).length === 0 ? (
-            <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-8 text-center">
-              <p className="text-gray-500">No role goals defined yet. Add your first goal above.</p>
-            </div>
-          ) : (
-            Object.entries(goalsByDisciplineAndLevel).map(([discipline, levelsMap]) => (
-              <div key={discipline} className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">{discipline}</h2>
-                {Object.entries(levelsMap).map(([level, goals]) => (
-                  <div key={level} className="mb-6 last:mb-0">
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">{level} Level</h3>
-                    <div className="space-y-2">
-                      {goals.map(goal => (
-                        editingGoal?.id === goal.id ? (
+      {/* Goals Table View */}
+      <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm overflow-hidden">
+        {filteredGoals.length === 0 ? (
+          <div className="p-8 text-center">
+            <p className="text-gray-500">
+              {roleGoals.length === 0 
+                ? "No role goals defined yet. Add your first goal above."
+                : "No goals match the selected filters."}
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[120px] text-xs font-semibold">Team</TableHead>
+                  <TableHead className="w-[150px] text-xs font-semibold">Level</TableHead>
+                  <TableHead className="text-xs font-semibold">First Person Statement</TableHead>
+                  <TableHead className="w-[200px] text-xs font-semibold">Behaviors</TableHead>
+                  <TableHead className="w-[200px] text-xs font-semibold">Competency</TableHead>
+                  <TableHead className="w-[200px] text-xs font-semibold">Skills & Deliverables</TableHead>
+                  <TableHead className="w-[80px] text-xs font-semibold text-center">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredGoals.map(goal => (
+                  editingGoal?.id === goal.id ? (
+                    <TableRow key={goal.id}>
+                      <TableCell colSpan={7} className="p-0">
+                        <div className="p-4 bg-blue-50">
                           <GoalEditForm
-                            key={goal.id}
                             goal={goal}
                             onSave={handleUpdateGoal}
                             onCancel={() => setEditingGoal(null)}
                           />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    <TableRow key={goal.id} className="hover:bg-gray-50/50">
+                      <TableCell className="text-xs font-medium">{goal.discipline || "—"}</TableCell>
+                      <TableCell className="text-xs">{goal.level || "—"}</TableCell>
+                      <TableCell className="text-xs italic max-w-md">
+                        {goal.firstPersonStatement || goal.title || "—"}
+                      </TableCell>
+                      <TableCell className="text-xs max-w-[200px]">
+                        {goal.behaviors && goal.behaviors.length > 0 ? (
+                          <ul className="list-disc list-inside space-y-0.5">
+                            {goal.behaviors.slice(0, 3).map((behavior, idx) => (
+                              <li key={idx} className="truncate">{behavior}</li>
+                            ))}
+                            {goal.behaviors.length > 3 && (
+                              <li className="text-gray-400 text-[0.625rem]">+{goal.behaviors.length - 3} more</li>
+                            )}
+                          </ul>
                         ) : (
-                          <div key={goal.id} className="bg-gray-50 rounded-lg p-3">
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex-1">
-                                {goal.firstPersonStatement && (
-                                  <div className="font-medium text-sm text-gray-800 italic">"{goal.firstPersonStatement}"</div>
-                                )}
-                                {!goal.firstPersonStatement && goal.title && (
-                                  <div className="font-medium text-sm text-gray-800">{goal.title}</div>
-                                )}
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  onClick={() => setEditingGoal(goal)}
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0"
-                                >
-                                  <Edit2 className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  onClick={() => handleDeleteGoal(goal.id)}
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 text-red-500"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </div>
-                            {goal.competency && (
-                              <div className="text-xs text-gray-600 mt-2">
-                                <span className="font-medium">Competency:</span> {goal.competency}
-                              </div>
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs max-w-[200px]">
+                        <div className="line-clamp-2">{goal.competency || "—"}</div>
+                      </TableCell>
+                      <TableCell className="text-xs max-w-[200px]">
+                        {goal.skillsAndDeliverables && goal.skillsAndDeliverables.length > 0 ? (
+                          <ul className="list-disc list-inside space-y-0.5">
+                            {goal.skillsAndDeliverables.slice(0, 3).map((skill, idx) => (
+                              <li key={idx} className="truncate">{skill}</li>
+                            ))}
+                            {goal.skillsAndDeliverables.length > 3 && (
+                              <li className="text-gray-400 text-[0.625rem]">+{goal.skillsAndDeliverables.length - 3} more</li>
                             )}
-                            {goal.behaviors && goal.behaviors.length > 0 && (
-                              <div className="text-xs text-gray-600 mt-2">
-                                <span className="font-medium">Behaviors:</span>
-                                <ul className="list-disc list-inside mt-1 space-y-0.5">
-                                  {goal.behaviors.map((behavior, idx) => (
-                                    <li key={idx}>{behavior}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            {goal.skillsAndDeliverables && goal.skillsAndDeliverables.length > 0 && (
-                              <div className="text-xs text-gray-600 mt-2">
-                                <span className="font-medium">Skills and Deliverables:</span>
-                                <ul className="list-disc list-inside mt-1 space-y-0.5">
-                                  {goal.skillsAndDeliverables.map((skill, idx) => (
-                                    <li key={idx}>{skill}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            {goal.description && (
-                              <div className="text-xs text-gray-500 mt-2 italic">{goal.description}</div>
-                            )}
-                          </div>
-                        )
-                      ))}
-                    </div>
-                  </div>
+                          </ul>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            onClick={() => setEditingGoal(goal)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            type="button"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteGoal(goal.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                            type="button"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
                 ))}
-              </div>
-            ))
-          )}
-        </div>
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
