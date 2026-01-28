@@ -31,11 +31,6 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
     skillsAndDeliverables: "",
   })
 
-  const disciplines = useMemo(() => {
-    const uniqueDisciplines = new Set(roleGoals.map(g => g.discipline).filter(Boolean))
-    return Array.from(uniqueDisciplines).sort()
-  }, [roleGoals])
-
   const levels = ["Associate", "Mid-Level", "Senior", "Associate Director", "Director", "Senior Director", "Group Director"]
 
   const handleAddGoal = () => {
