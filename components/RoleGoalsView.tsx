@@ -272,16 +272,6 @@ export function RoleGoalsView({ roleGoals, onUpdate }: RoleGoalsViewProps) {
     })
   }, [roleGoals, selectedTeam, selectedLevel])
 
-  const goalsByDisciplineAndLevel = useMemo(() => {
-    const grouped: Record<string, Record<string, RoleGrowthGoal[]>> = {}
-    roleGoals.forEach(goal => {
-      if (!grouped[goal.discipline]) grouped[goal.discipline] = {}
-      if (!grouped[goal.discipline][goal.level]) grouped[goal.discipline][goal.level] = []
-      grouped[goal.discipline][goal.level].push(goal)
-    })
-    return grouped
-  }, [roleGoals])
-
   return (
     <div className="space-y-4">
       {/* Filters and Actions */}

@@ -290,7 +290,8 @@ export function TeamView({
   }, [hierarchicalTeamStructure, searchTerm])
 
   // Helper function to get sort value for a team member
-  const getSortValue = (item: typeof filteredHierarchy[0], tasks: Task[], details?: TeamMemberDetails): number => {
+  // Note: This needs to be defined before hierarchyByReportingLine since it's used there
+  const getSortValue = (item: { name: string; details?: TeamMemberDetails }, tasks: Task[], details?: TeamMemberDetails): number => {
     switch (sortBy) {
       case "morale": {
         const morale = details?.moraleCheckIns && details.moraleCheckIns.length > 0 
