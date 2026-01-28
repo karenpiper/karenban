@@ -1022,12 +1022,12 @@ export function TeamMemberDashboard({
                 )
               })()}
 
-              {/* Growth Goals Summary */}
+              {/* Growth & Skills Summary */}
               {details.team && details.level && (() => {
                 const applicableGoals = roleGoals.filter(
                   g => g.discipline === details.team && g.level === details.level
                 )
-                const growthGoalsWithRatings = details.growthGoals
+                const growthSkillsWithRatings = details.growthGoals
                   .filter(g => applicableGoals.some(ag => ag.id === g.goalId))
                   .map(g => {
                     const roleGoal = applicableGoals.find(ag => ag.id === g.goalId)
@@ -1041,23 +1041,23 @@ export function TeamMemberDashboard({
                     }
                   })
 
-                if (growthGoalsWithRatings.length === 0) return null
+                if (growthSkillsWithRatings.length === 0) return null
 
-                const avgRating = growthGoalsWithRatings
+                const avgRating = growthSkillsWithRatings
                   .filter(g => g.averageRating !== null)
                   .reduce((sum, g) => sum + (g.averageRating || 0), 0) / 
-                  growthGoalsWithRatings.filter(g => g.averageRating !== null).length
+                  growthSkillsWithRatings.filter(g => g.averageRating !== null).length
 
                 return (
                   <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
                     <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
                       <Target className="w-4 h-4" />
-                      Growth Goals Summary
+                      Growth & Skills Summary
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                        <div className="text-xs text-blue-600 font-medium mb-1">Total Goals</div>
-                        <div className="text-2xl font-bold text-blue-700">{growthGoalsWithRatings.length}</div>
+                        <div className="text-xs text-blue-600 font-medium mb-1">Total Skills</div>
+                        <div className="text-2xl font-bold text-blue-700">{growthSkillsWithRatings.length}</div>
                       </div>
                       <div className="bg-green-50 rounded-lg p-3 border border-green-200">
                         <div className="text-xs text-green-600 font-medium mb-1">Avg Rating</div>
@@ -1066,19 +1066,19 @@ export function TeamMemberDashboard({
                         </div>
                       </div>
                       <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-                        <div className="text-xs text-purple-600 font-medium mb-1">Rated Goals</div>
+                        <div className="text-xs text-purple-600 font-medium mb-1">Rated Skills</div>
                         <div className="text-2xl font-bold text-purple-700">
-                          {growthGoalsWithRatings.filter(g => g.ratings.length > 0).length}
+                          {growthSkillsWithRatings.filter(g => g.ratings.length > 0).length}
                         </div>
                       </div>
                     </div>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {growthGoalsWithRatings.map(g => (
+                      {growthSkillsWithRatings.map(g => (
                         <div key={g.goalId} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
                               <div className="text-xs font-medium text-gray-800 truncate">
-                                {g.roleGoal?.firstPersonStatement || g.roleGoal?.title || "Goal"}
+                                {g.roleGoal?.firstPersonStatement || g.roleGoal?.title || "Skill"}
                               </div>
                               {g.latestRating && (
                                 <div className="flex items-center gap-2 mt-1">
@@ -1346,7 +1346,7 @@ export function TeamMemberDashboard({
           </div>
         )}
 
-        {/* Growth Goals Tab */}
+        {/* Growth & Skills Tab */}
         {activeTab === "growth" && (
           <div className="space-y-4">
             <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
@@ -1475,9 +1475,9 @@ export function TeamMemberDashboard({
                   {applicableGoals.length === 0 ? (
                     <div className="bg-white border-2 border-gray-200 rounded-xl p-5 text-center">
                       <p className="text-sm text-gray-500">
-                        No growth goals defined for {details.team} - {details.level} level.
+                        No growth skills defined for {details.team} - {details.level} level.
                         <br />
-                        <span className="text-xs">Add goals in the Role Goals section.</span>
+                        <span className="text-xs">Add growth skills in the Role Goals section of Settings.</span>
                       </p>
                     </div>
                   ) : (
@@ -1485,11 +1485,11 @@ export function TeamMemberDashboard({
                       {details.growthGoals.length < applicableGoals.length && (
                         <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
                           <p className="text-xs text-blue-800 mb-2">
-                            {applicableGoals.length - details.growthGoals.length} new goal(s) available
+                            {applicableGoals.length - details.growthGoals.length} new growth skill(s) available
                           </p>
                           <Button onClick={handleSyncGoals} size="sm" className="h-7">
                             <Plus className="w-3 h-3 mr-1" />
-                            Sync Goals
+                            Sync Skills
                           </Button>
                         </div>
                       )}
@@ -1511,7 +1511,7 @@ export function TeamMemberDashboard({
 
                         return (
                           <div key={memberGoal.goalId} className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
-                            {/* Goal Title and Details */}
+                            {/* Growth Skill Title and Details */}
                             <div className="mb-4">
                               <h4 className="text-sm font-semibold text-gray-800 mb-3">
                                 {roleGoal.firstPersonStatement || roleGoal.title}
@@ -1783,7 +1783,7 @@ export function TeamMemberDashboard({
                             {currentMode === "notes" && (
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <label className="text-xs font-medium text-gray-700">Goal Notes</label>
+                                  <label className="text-xs font-medium text-gray-700">Skill Notes</label>
                                   <Button
                                     onClick={() => setShowGoalNotes({ ...showGoalNotes, [memberGoal.goalId]: !showNotes })}
                                     variant="ghost"
@@ -1809,7 +1809,7 @@ export function TeamMemberDashboard({
                                       }
                                       onUpdate(updated)
                                     }}
-                                    placeholder="Add notes about progress on this goal..."
+                                    placeholder="Add notes about progress on this skill..."
                                     className="text-xs min-h-32"
                                   />
                                 )}
@@ -1827,7 +1827,7 @@ export function TeamMemberDashboard({
             {(!details.team || !details.level) && (
               <div className="bg-white border-2 border-gray-200 rounded-xl p-8 text-center">
                 <p className="text-sm text-gray-500">
-                  Please set the team member's team and level above to view growth goals.
+                  Please set the team member's team and level above to view growth skills.
                 </p>
               </div>
             )}
