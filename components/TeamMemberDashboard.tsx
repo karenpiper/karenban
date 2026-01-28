@@ -27,7 +27,6 @@ interface TeamMemberDashboardProps {
   onBack: () => void
   onCreateTask?: (title: string, assignedTo: string, client?: string) => void
   onToggleTeamMemberStatus?: (name: string) => void // Toggle team member status
-  onUpdateName?: (oldName: string, newName: string) => void // Update team member name
 }
 
 export function TeamMemberDashboard({
@@ -42,8 +41,7 @@ export function TeamMemberDashboard({
   onUpdate,
   onBack,
   onCreateTask,
-  onToggleTeamMemberStatus,
-  onUpdateName
+  onToggleTeamMemberStatus
 }: TeamMemberDashboardProps) {
   const [activeTab, setActiveTab] = useState<"overview" | "goals" | "reviews" | "oneonones" | "notes" | "growth">("overview")
   const [editingGoal, setEditingGoal] = useState<TeamMemberGoal | null>(null)
@@ -52,13 +50,6 @@ export function TeamMemberDashboard({
   const [newClient, setNewClient] = useState("")
   const [newRedFlag, setNewRedFlag] = useState("")
   const [generalNotes, setGeneralNotes] = useState(memberDetails?.notes || "")
-  const [goalsMode, setGoalsMode] = useState<"rating" | "notes">("rating")
-  const [showGoalNotes, setShowGoalNotes] = useState<Record<string, boolean>>({})
-  const [ratingNotes, setRatingNotes] = useState<Record<string, string>>({})
-  const [editingName, setEditingName] = useState(false)
-  const [newName, setNewName] = useState(memberName)
-  const [editingRating, setEditingRating] = useState<{ goalId: string; ratingId: string } | null>(null)
-  const [editRatingValue, setEditRatingValue] = useState<{ rating: number; notes: string } | null>(null)
 
   useEffect(() => {
     setGeneralNotes(memberDetails?.notes || "")
@@ -395,73 +386,7 @@ export function TeamMemberDashboard({
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            {editingName ? (
-              <div className="flex items-center gap-2">
-                <Input
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      if (newName.trim() && newName !== memberName) {
-                        const updated = { ...details, name: newName.trim(), updatedAt: new Date() }
-                        onUpdate(updated)
-                        if (onUpdateName) {
-                          onUpdateName(memberName, newName.trim())
-                        }
-                      }
-                      setEditingName(false)
-                    } else if (e.key === 'Escape') {
-                      setNewName(memberName)
-                      setEditingName(false)
-                    }
-                  }}
-                  className="text-2xl font-heading h-10"
-                  autoFocus
-                />
-                <Button
-                  onClick={() => {
-                    if (newName.trim() && newName !== memberName) {
-                      const updated = { ...details, name: newName.trim(), updatedAt: new Date() }
-                      onUpdate(updated)
-                      if (onUpdateName) {
-                        onUpdateName(memberName, newName.trim())
-                      }
-                    }
-                    setEditingName(false)
-                  }}
-                  size="sm"
-                  className="h-8"
-                >
-                  <Check className="w-3 h-3" />
-                </Button>
-                <Button
-                  onClick={() => {
-                    setNewName(memberName)
-                    setEditingName(false)
-                  }}
-                  variant="ghost"
-                  size="sm"
-                  className="h-8"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-heading text-gray-800">{memberName}</h1>
-                <Button
-                  onClick={() => {
-                    setNewName(memberName)
-                    setEditingName(true)
-                  }}
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                >
-                  <Edit2 className="w-3 h-3" />
-                </Button>
-              </div>
-            )}
+            <h1 className="text-2xl font-heading text-gray-800">{memberName}</h1>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
@@ -578,21 +503,6 @@ export function TeamMemberDashboard({
           const completedGoals = details.goals.filter(g => g.status === 'completed').length
           const totalGoals = details.goals.length
           const goalProgress = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0
-
-          // Growth Goals Summary
-          const growthGoals = details.growthGoals || []
-          const growthGoalsWithRatings = growthGoals.filter(g => g.ratings && g.ratings.length > 0)
-          const averageGrowthRating = growthGoalsWithRatings.length > 0
-            ? Math.round((growthGoalsWithRatings.reduce((sum, g) => sum + (g.currentRating || 0), 0) / growthGoalsWithRatings.length) * 10) / 10
-            : null
-          const growthGoalsTrend = growthGoalsWithRatings.map(g => {
-            if (g.ratings.length < 2) return null
-            const latest = g.ratings[0].rating
-            const previous = g.ratings[1].rating
-            return latest - previous
-          }).filter(t => t !== null) as number[]
-          const improvingGoals = growthGoalsTrend.filter(t => t > 0).length
-          const decliningGoals = growthGoalsTrend.filter(t => t < 0).length
           
           // Morale and Performance indicators
           const moraleLevel = details.morale || null
@@ -833,56 +743,6 @@ export function TeamMemberDashboard({
                           <Tooltip />
                         </PieChart>
                       </ResponsiveContainer>
-                    </div>
-                  </div>
-                )}
-
-                {/* Growth Goals Summary */}
-                {growthGoals.length > 0 && (
-                  <div className="bg-white border-2 border-indigo-200 rounded-xl p-5 shadow-sm">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                      <Target className="w-4 h-4 text-indigo-600" />
-                      Growth Goals Summary
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">Total Goals:</span>
-                        <span className="text-lg font-semibold text-gray-800">{growthGoals.length}</span>
-                      </div>
-                      {averageGrowthRating !== null && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-600">Average Rating:</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold text-indigo-600">{averageGrowthRating}</span>
-                            <span className="text-xs text-gray-500">/ 5</span>
-                          </div>
-                        </div>
-                      )}
-                      {growthGoalsWithRatings.length > 0 && (
-                        <>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-600">Goals with Ratings:</span>
-                            <span className="text-sm font-semibold text-gray-800">{growthGoalsWithRatings.length}</span>
-                          </div>
-                          {growthGoalsTrend.length > 0 && (
-                            <div className="pt-2 border-t border-gray-200 space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-600">Improving:</span>
-                                <span className="text-xs font-semibold text-green-600">{improvingGoals}</span>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-600">Declining:</span>
-                                <span className="text-xs font-semibold text-red-600">{decliningGoals}</span>
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
-                      {growthGoals.length > 0 && growthGoalsWithRatings.length === 0 && (
-                        <div className="text-xs text-gray-500 text-center py-2">
-                          No ratings yet. Start rating goals in the Growth tab.
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
@@ -1276,12 +1136,11 @@ export function TeamMemberDashboard({
                 weekStart.setDate(now.getDate() - now.getDay() + 1) // Monday
                 weekStart.setHours(0, 0, 0, 0)
 
-                const ratingNotesText = ratingNotes[goalId] || notes || ""
                 const newRating: GrowthGoalRating = {
                   id: `rating-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                   weekStartDate: weekStart,
                   rating,
-                  notes: ratingNotesText,
+                  notes,
                   createdAt: now
                 }
 
@@ -1301,12 +1160,6 @@ export function TeamMemberDashboard({
                   updatedAt: new Date()
                 }
                 onUpdate(updated)
-                // Clear the notes input for this goal
-                setRatingNotes(prev => {
-                  const updated = { ...prev }
-                  delete updated[goalId]
-                  return updated
-                })
               }
 
               return (
@@ -1347,317 +1200,82 @@ export function TeamMemberDashboard({
 
                         return (
                           <div key={memberGoal.goalId} className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm">
-                            {/* Header with Mode Toggle */}
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex-1">
-                                <h4 className="text-sm font-semibold text-gray-800 mb-2">
-                                  {roleGoal.firstPersonStatement || roleGoal.title}
-                                </h4>
+                                <h4 className="text-sm font-semibold text-gray-800">{roleGoal.title}</h4>
+                                {roleGoal.description && (
+                                  <p className="text-xs text-gray-600 mt-1">{roleGoal.description}</p>
+                                )}
                                 {roleGoal.category && (
-                                  <span className="inline-block text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                  <span className="inline-block mt-2 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                                     {roleGoal.category}
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2">
-                                {latestRating && (
-                                  <div className="text-right">
-                                    <div className="text-2xl font-bold text-blue-600">{latestRating.rating}</div>
-                                    <div className="text-xs text-gray-500">/ 5</div>
-                                  </div>
+                              {latestRating && (
+                                <div className="text-right">
+                                  <div className="text-2xl font-bold text-blue-600">{latestRating.rating}</div>
+                                  <div className="text-xs text-gray-500">/ 5</div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Weekly Rating */}
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="text-xs font-medium text-gray-700">
+                                  {hasThisWeekRating ? "This Week's Rating" : "Rate This Week"}
+                                </label>
+                                {hasThisWeekRating && (
+                                  <span className="text-xs text-gray-500">
+                                    {format(new Date(weekStart), "MMM d")}
+                                  </span>
                                 )}
-                                <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
-                                  <button
-                                    onClick={() => setGoalsMode("rating")}
-                                    className={`px-2 py-1 text-xs rounded transition-colors ${
-                                      goalsMode === "rating" 
-                                        ? "bg-white shadow-sm text-gray-800 font-medium" 
-                                        : "text-gray-600 hover:text-gray-800"
-                                    }`}
-                                  >
-                                    Rating
-                                  </button>
-                                  <button
-                                    onClick={() => setGoalsMode("notes")}
-                                    className={`px-2 py-1 text-xs rounded transition-colors ${
-                                      goalsMode === "notes" 
-                                        ? "bg-white shadow-sm text-gray-800 font-medium" 
-                                        : "text-gray-600 hover:text-gray-800"
-                                    }`}
-                                  >
-                                    Notes
-                                  </button>
-                                </div>
                               </div>
-                            </div>
-
-                            {/* Goal Details - Always Visible */}
-                            <div className="mb-4 space-y-3 border-b border-gray-200 pb-4">
-                              {/* Behaviors */}
-                              {roleGoal.behaviors && roleGoal.behaviors.length > 0 && (
-                                <div>
-                                  <h5 className="text-xs font-semibold text-gray-700 mb-1.5">Behaviors:</h5>
-                                  <ul className="space-y-1">
-                                    {roleGoal.behaviors.map((behavior, idx) => (
-                                      <li key={idx} className="text-xs text-gray-600 flex items-start gap-2">
-                                        <span className="text-gray-400 mt-0.5">•</span>
-                                        <span>{behavior}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
+                              {!hasThisWeekRating ? (
+                                <div className="flex gap-2">
+                                  {[1, 2, 3, 4, 5].map(rating => (
+                                    <Button
+                                      key={rating}
+                                      onClick={() => handleAddRating(memberGoal.goalId, rating)}
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      {rating}
+                                    </Button>
+                                  ))}
                                 </div>
-                              )}
-
-                              {/* Competency */}
-                              {roleGoal.competency && (
-                                <div>
-                                  <h5 className="text-xs font-semibold text-gray-700 mb-1">Competency:</h5>
-                                  <p className="text-xs text-gray-600">{roleGoal.competency}</p>
-                                </div>
-                              )}
-
-                              {/* Skills and Deliverables */}
-                              {roleGoal.skillsAndDeliverables && roleGoal.skillsAndDeliverables.length > 0 && (
-                                <div>
-                                  <h5 className="text-xs font-semibold text-gray-700 mb-1.5">Skills and Deliverables:</h5>
-                                  <ul className="space-y-1">
-                                    {roleGoal.skillsAndDeliverables.map((skill, idx) => (
-                                      <li key={idx} className="text-xs text-gray-600 flex items-start gap-2">
-                                        <span className="text-gray-400 mt-0.5">•</span>
-                                        <span>{skill}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Rating Mode */}
-                            {goalsMode === "rating" && (
-                              <div className="mt-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <label className="text-xs font-medium text-gray-700">
-                                    {hasThisWeekRating ? "This Week's Rating" : "Rate This Week"}
-                                  </label>
-                                  {hasThisWeekRating && (
-                                    <span className="text-xs text-gray-500">
-                                      {format(new Date(weekStart), "MMM d")}
-                                    </span>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <div className="text-lg font-semibold text-gray-800">
+                                    {latestRating.rating} / 5
+                                  </div>
+                                  {latestRating.notes && (
+                                    <div className="text-xs text-gray-600">{latestRating.notes}</div>
                                   )}
                                 </div>
-                                {!hasThisWeekRating ? (
-                                  <div className="space-y-3">
-                                    <div className="flex gap-2">
-                                      {[1, 2, 3, 4, 5].map(rating => (
-                                        <Button
-                                          key={rating}
-                                          onClick={() => handleAddRating(memberGoal.goalId, rating, ratingNotes[memberGoal.goalId])}
-                                          variant="outline"
-                                          size="sm"
-                                          className="h-8 w-8 p-0"
-                                        >
-                                          {rating}
-                                        </Button>
-                                      ))}
-                                    </div>
-                                    <div>
-                                      <label className="text-xs text-gray-600 mb-1 block">Notes (optional):</label>
-                                      <Textarea
-                                        value={ratingNotes[memberGoal.goalId] || ""}
-                                        onChange={(e) => setRatingNotes(prev => ({ ...prev, [memberGoal.goalId]: e.target.value }))}
-                                        placeholder="Add notes about this rating..."
-                                        className="text-xs min-h-16"
-                                      />
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      <div className="text-lg font-semibold text-gray-800">
-                                        {latestRating.rating} / 5
-                                      </div>
-                                    </div>
-                                    {latestRating.notes && (
-                                      <div className="text-xs text-gray-600 bg-gray-50 rounded p-2">
-                                        {latestRating.notes}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Notes Mode */}
-                            {goalsMode === "notes" && (
-                              <div className="mt-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <label className="text-xs font-medium text-gray-700">Goal Notes</label>
-                                  <button
-                                    onClick={() => setShowGoalNotes(prev => ({ ...prev, [memberGoal.goalId]: !prev[memberGoal.goalId] }))}
-                                    className="text-xs text-blue-600 hover:text-blue-700"
-                                  >
-                                    {showGoalNotes[memberGoal.goalId] ? "Hide" : "Show"} Notes
-                                  </button>
-                                </div>
-                                {showGoalNotes[memberGoal.goalId] && (
-                                  <Textarea
-                                    value={memberGoal.notes || ""}
-                                    onChange={(e) => {
-                                      const updated = {
-                                        ...details,
-                                        growthGoals: details.growthGoals.map(g =>
-                                          g.goalId === memberGoal.goalId
-                                            ? { ...g, notes: e.target.value }
-                                            : g
-                                        ),
-                                        updatedAt: new Date()
-                                      }
-                                      onUpdate(updated)
-                                    }}
-                                    placeholder="Add notes about progress on this goal..."
-                                    className="text-xs min-h-24"
-                                  />
-                                )}
-                              </div>
-                            )}
+                              )}
+                            </div>
 
                             {/* Historical Ratings */}
                             {memberGoal.ratings.length > 0 && (
                               <div className="mt-4 pt-4 border-t border-gray-200">
                                 <h5 className="text-xs font-medium text-gray-700 mb-2">Rating History</h5>
                                 <div className="space-y-1 max-h-32 overflow-y-auto">
-                                  {memberGoal.ratings.map(rating => {
-                                    const isEditing = editingRating?.goalId === memberGoal.goalId && editingRating?.ratingId === rating.id
-                                    return (
-                                      <div key={rating.id} className="flex items-center justify-between text-xs bg-gray-50 rounded p-2">
-                                        {isEditing ? (
-                                          <div className="flex-1 flex items-center gap-2">
-                                            <span className="text-gray-600 min-w-[100px]">
-                                              {format(new Date(rating.weekStartDate), "MMM d, yyyy")}
-                                            </span>
-                                            <div className="flex gap-1">
-                                              {[1, 2, 3, 4, 5].map(r => (
-                                                <Button
-                                                  key={r}
-                                                  onClick={() => setEditRatingValue({ rating: r, notes: editRatingValue?.notes || rating.notes || "" })}
-                                                  variant={editRatingValue?.rating === r ? "default" : "outline"}
-                                                  size="sm"
-                                                  className="h-6 w-6 p-0 text-xs"
-                                                >
-                                                  {r}
-                                                </Button>
-                                              ))}
-                                            </div>
-                                            <Input
-                                              value={editRatingValue?.notes || ""}
-                                              onChange={(e) => setEditRatingValue(prev => ({ rating: prev?.rating || rating.rating, notes: e.target.value }))}
-                                              placeholder="Notes..."
-                                              className="text-xs h-6 flex-1"
-                                            />
-                                            <Button
-                                              onClick={() => {
-                                                if (editRatingValue) {
-                                                  const updated = {
-                                                    ...details,
-                                                    growthGoals: details.growthGoals.map(g => {
-                                                      if (g.goalId === memberGoal.goalId) {
-                                                        const updatedRatings = g.ratings.map(r =>
-                                                          r.id === rating.id
-                                                            ? { ...r, rating: editRatingValue.rating, notes: editRatingValue.notes }
-                                                            : r
-                                                        ).sort((a, b) => 
-                                                          new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime()
-                                                        )
-                                                        // Update currentRating if this is the latest rating
-                                                        const isLatest = updatedRatings[0]?.id === rating.id
-                                                        return {
-                                                          ...g,
-                                                          ratings: updatedRatings,
-                                                          currentRating: isLatest ? editRatingValue.rating : g.currentRating
-                                                        }
-                                                      }
-                                                      return g
-                                                    }),
-                                                    updatedAt: new Date()
-                                                  }
-                                                  onUpdate(updated)
-                                                }
-                                                setEditingRating(null)
-                                                setEditRatingValue(null)
-                                              }}
-                                              size="sm"
-                                              className="h-6 px-2"
-                                            >
-                                              <Check className="w-3 h-3" />
-                                            </Button>
-                                            <Button
-                                              onClick={() => {
-                                                setEditingRating(null)
-                                                setEditRatingValue(null)
-                                              }}
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-6 px-2"
-                                            >
-                                              <X className="w-3 h-3" />
-                                            </Button>
-                                          </div>
-                                        ) : (
-                                          <>
-                                            <span className="text-gray-600">
-                                              {format(new Date(rating.weekStartDate), "MMM d, yyyy")}
-                                            </span>
-                                            <div className="flex items-center gap-2">
-                                              <span className="font-semibold text-gray-800">{rating.rating} / 5</span>
-                                              {rating.notes && (
-                                                <span className="text-gray-500">• {rating.notes}</span>
-                                              )}
-                                              <Button
-                                                onClick={() => {
-                                                  setEditingRating({ goalId: memberGoal.goalId, ratingId: rating.id })
-                                                  setEditRatingValue({ rating: rating.rating, notes: rating.notes || "" })
-                                                }}
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 w-5 p-0"
-                                              >
-                                                <Edit2 className="w-3 h-3" />
-                                              </Button>
-                                              <Button
-                                                onClick={() => {
-                                                  if (confirm("Delete this rating?")) {
-                                                    const updated = {
-                                                      ...details,
-                                                      growthGoals: details.growthGoals.map(g =>
-                                                        g.goalId === memberGoal.goalId
-                                                          ? {
-                                                              ...g,
-                                                              ratings: g.ratings.filter(r => r.id !== rating.id),
-                                                              currentRating: g.ratings[0]?.id === rating.id && g.ratings.length > 1
-                                                                ? g.ratings[1].rating
-                                                                : g.ratings[0]?.id === rating.id
-                                                                ? undefined
-                                                                : g.currentRating
-                                                            }
-                                                          : g
-                                                      ),
-                                                      updatedAt: new Date()
-                                                    }
-                                                    onUpdate(updated)
-                                                  }
-                                                }}
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 w-5 p-0 text-red-500 hover:text-red-700"
-                                              >
-                                                <Trash2 className="w-3 h-3" />
-                                              </Button>
-                                            </div>
-                                          </>
+                                  {memberGoal.ratings.map(rating => (
+                                    <div key={rating.id} className="flex items-center justify-between text-xs bg-gray-50 rounded p-2">
+                                      <span className="text-gray-600">
+                                        {format(new Date(rating.weekStartDate), "MMM d, yyyy")}
+                                      </span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-semibold text-gray-800">{rating.rating} / 5</span>
+                                        {rating.notes && (
+                                          <span className="text-gray-500">• {rating.notes}</span>
                                         )}
                                       </div>
-                                    )
-                                  })}
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
                             )}
