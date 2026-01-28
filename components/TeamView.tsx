@@ -203,7 +203,9 @@ export function TeamView({
     return order[level] || 0
   }
 
-  // Build hierarchical structure organized by level and management lines
+  // Build hierarchical structure organized by reporting lines
+  // Top level: people reporting to Karen (or no manager)
+  // Then their direct reports below them
   const hierarchicalTeamStructure = useMemo(() => {
     const members = Object.keys(tasksByTeam)
     const memberDetailsMap: Record<string, { name: string; details: TeamMemberDetails | undefined; levelOrder: number }> = {}
@@ -218,17 +220,17 @@ export function TeamView({
       }
     })
 
-    // Find top-level managers (those with no manager or managers not in team)
+    // Find top-level managers (those reporting to Karen or no manager)
     const topLevelManagers = members.filter(member => {
       const details = teamMemberDetails[member]
       if (!details?.manager) return true
-      // If manager is not in the team list, this person is top-level
-      return !members.includes(details.manager)
+      // If manager is "Karen" or not in the team list, this person is top-level
+      return details.manager === 'Karen' || !members.includes(details.manager)
     })
 
-    // Build hierarchy tree
-    const buildHierarchy = (managerName: string, depth: number = 0): Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number }> => {
-      const result: Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number }> = []
+    // Build hierarchy tree starting from a manager
+    const buildHierarchy = (managerName: string, depth: number = 0): Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number; managerName?: string }> => {
+      const result: Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number; managerName?: string }> = []
       
       // Find direct reports
       const directReports = members
@@ -236,12 +238,12 @@ export function TeamView({
           const details = teamMemberDetails[member]
           return details?.manager === managerName
         })
-        .map(member => memberDetailsMap[member])
+        .map(member => ({ ...memberDetailsMap[member], managerName, depth }))
         .sort((a, b) => b.levelOrder - a.levelOrder) // Sort by level descending
       
       // Add direct reports recursively
       directReports.forEach(report => {
-        result.push({ ...report, depth })
+        result.push(report)
         const subReports = buildHierarchy(report.name, depth + 1)
         result.push(...subReports)
       })
@@ -249,15 +251,16 @@ export function TeamView({
       return result
     }
 
-    // Build structure starting from top-level managers, sorted by level
+    // Build structure starting from top-level managers (those reporting to Karen)
+    // Sort top-level by level descending
     const topLevel = topLevelManagers
-      .map(m => memberDetailsMap[m])
+      .map(m => ({ ...memberDetailsMap[m], managerName: 'Karen', depth: 0 }))
       .sort((a, b) => b.levelOrder - a.levelOrder)
     
-    const hierarchy: Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number }> = []
+    const hierarchy: Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number; managerName?: string }> = []
     
     topLevel.forEach(manager => {
-      hierarchy.push({ ...manager, depth: 0 })
+      hierarchy.push(manager)
       const reports = buildHierarchy(manager.name, 1)
       hierarchy.push(...reports)
     })
@@ -265,7 +268,7 @@ export function TeamView({
     // Also include members without managers that weren't already added
     members.forEach(member => {
       if (!hierarchy.find(h => h.name === member)) {
-        hierarchy.push({ ...memberDetailsMap[member], depth: 0 })
+        hierarchy.push({ ...memberDetailsMap[member], managerName: undefined, depth: 0 })
       }
     })
 
@@ -329,35 +332,49 @@ export function TeamView({
     }
   }
 
-  // Group by level for row display
-  const hierarchyByLevel = useMemo(() => {
-    const grouped: Record<number, Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number }>> = {}
+  // Group by reporting line (top level = reporting to Karen, then their reports)
+  const hierarchyByReportingLine = useMemo(() => {
+    // Separate top-level (reporting to Karen) from their reports
+    let topLevel = filteredHierarchy.filter(item => item.depth === 0)
+    const reports = filteredHierarchy.filter(item => item.depth > 0)
     
-    filteredHierarchy.forEach(item => {
-      const level = item.levelOrder
-      if (!grouped[level]) {
-        grouped[level] = []
+    // Sort top level
+    topLevel = [...topLevel].sort((a, b) => {
+      if (sortBy === "name") {
+        const comparison = a.name.localeCompare(b.name)
+        return sortDirection === "asc" ? comparison : -comparison
       }
-      grouped[level].push(item)
+      const aValue = getSortValue(a, safeTasks, sortBy, a.details)
+      const bValue = getSortValue(b, safeTasks, sortBy, b.details)
+      const comparison = aValue - bValue
+      return sortDirection === "asc" ? comparison : -comparison
     })
     
-    // Sort levels descending (Group Director first)
-    return Object.keys(grouped)
-      .map(Number)
-      .sort((a, b) => b - a)
-      .reduce((acc, level) => {
-        acc[level] = grouped[level].sort((a, b) => {
-          if (sortBy === "name") {
-            const comparison = a.name.localeCompare(b.name)
-            return sortDirection === "asc" ? comparison : -comparison
-          }
-          const aValue = getSortValue(a, safeTasks, sortBy, a.details)
-          const bValue = getSortValue(b, safeTasks, sortBy, b.details)
-          const comparison = aValue - bValue
+    // Group reports by their manager
+    const reportsByManager: Record<string, Array<{ name: string; details?: TeamMemberDetails; levelOrder: number; depth: number; managerName?: string }>> = {}
+    reports.forEach(item => {
+      const managerName = item.managerName || 'Unassigned'
+      if (!reportsByManager[managerName]) {
+        reportsByManager[managerName] = []
+      }
+      reportsByManager[managerName].push(item)
+    })
+    
+    // Sort reports for each manager
+    Object.keys(reportsByManager).forEach(manager => {
+      reportsByManager[manager] = reportsByManager[manager].sort((a, b) => {
+        if (sortBy === "name") {
+          const comparison = a.name.localeCompare(b.name)
           return sortDirection === "asc" ? comparison : -comparison
-        })
-        return acc
-      }, {} as Record<number, Array<{ name: string; details: TeamMemberDetails | undefined; levelOrder: number; depth: number }>>)
+        }
+        const aValue = getSortValue(a, safeTasks, sortBy, a.details)
+        const bValue = getSortValue(b, safeTasks, sortBy, b.details)
+        const comparison = aValue - bValue
+        return sortDirection === "asc" ? comparison : -comparison
+      })
+    })
+    
+    return { topLevel, reportsByManager }
   }, [filteredHierarchy, sortBy, sortDirection, safeTasks])
 
   const formatDate = (date: Date) => {
@@ -582,21 +599,19 @@ export function TeamView({
         </Button>
       </div>
 
-      {/* Team Member Cards - Organized by Level with Management Lines */}
-      {Object.keys(hierarchyByLevel).length > 0 ? (
+      {/* Team Member Cards - Organized by Reporting Lines */}
+      {hierarchyByReportingLine.topLevel.length > 0 ? (
         <div className="space-y-4">
-          {Object.entries(hierarchyByLevel).map(([levelOrder, members]) => {
-            const levelName = members[0]?.details?.level || 'Unassigned Level'
-            return (
-              <div key={levelOrder}>
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-xs font-semibold text-gray-600">{levelName}</h3>
-                  <Badge variant="outline" className="text-[0.625rem]">
-                    {members.length} {members.length === 1 ? 'member' : 'members'}
-                  </Badge>
-                </div>
-                <div className="space-y-1">
-                  {members.map((item) => {
+          {/* Top Row: People reporting to Karen */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-xs font-semibold text-gray-600">Direct Reports</h3>
+              <Badge variant="outline" className="text-[0.625rem]">
+                {hierarchyByReportingLine.topLevel.length} {hierarchyByReportingLine.topLevel.length === 1 ? 'member' : 'members'}
+              </Badge>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {hierarchyByReportingLine.topLevel.map((item) => {
                     const member = item.name
                     const memberTasks = tasksByTeam[member]
                     const stats = getTaskStats(memberTasks)
@@ -756,13 +771,117 @@ export function TeamView({
                           )}
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
+
+                      {/* Direct Reports Section */}
+                      {hierarchyByReportingLine.reportsByManager[member] && hierarchyByReportingLine.reportsByManager[member].length > 0 && (
+                        <div className="mt-2 ml-4 pl-4 border-l-2 border-gray-200">
+                          <div className="text-[0.625rem] text-gray-500 mb-1 font-medium">
+                            Direct Reports ({hierarchyByReportingLine.reportsByManager[member].length})
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                            {hierarchyByReportingLine.reportsByManager[member].map((reportItem) => {
+                              const reportMember = reportItem.name
+                              const reportTasks = tasksByTeam[reportMember]
+                              const reportStats = getTaskStats(reportTasks)
+                              const reportDetails = reportItem.details
+                              
+                              const reportLatestMorale = reportDetails?.moraleCheckIns && reportDetails.moraleCheckIns.length > 0 
+                                ? reportDetails.moraleCheckIns[reportDetails.moraleCheckIns.length - 1].morale 
+                                : null
+                              const reportLatestPerformance = reportDetails?.performanceCheckIns && reportDetails.performanceCheckIns.length > 0 
+                                ? reportDetails.performanceCheckIns[reportDetails.performanceCheckIns.length - 1].performance 
+                                : null
+                              const reportClientCount = reportDetails?.clientDetails ? Object.keys(reportDetails.clientDetails).length : 0
+                              const reportRedFlagCount = reportDetails?.redFlags?.length || 0
+                              const reportCompletedGoals = reportDetails?.goals?.filter(g => g.status === 'completed').length || 0
+                              const reportTotalGoals = reportDetails?.goals?.length || 0
+
+                              return (
+                                <div
+                                  key={reportMember}
+                                  onClick={() => handleMemberClick(reportMember)}
+                                  className="bg-gradient-to-br from-white/80 to-gray-50/40 backdrop-blur-xl border border-gray-200/40 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300/60 transition-all duration-200 cursor-pointer p-2.5"
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Avatar className={`w-8 h-8 ${getAvatarColor(reportMember)} text-white text-[0.625rem] font-semibold ring-1 ring-white`}>
+                                        <AvatarFallback className={getAvatarColor(reportMember)}>
+                                          {getAvatarInitials(reportMember)}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="flex-1 min-w-0">
+                                        <h4 className="text-xs font-semibold text-gray-800 truncate">{reportMember}</h4>
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-1.5">
+                                      {/* Morale */}
+                                      {reportLatestMorale && (
+                                        <div className={`rounded p-1.5 border ${
+                                          reportLatestMorale === 'excellent' ? 'bg-green-50 border-green-200' :
+                                          reportLatestMorale === 'good' ? 'bg-blue-50 border-blue-200' :
+                                          reportLatestMorale === 'fair' ? 'bg-yellow-50 border-yellow-200' :
+                                          'bg-red-50 border-red-200'
+                                        }`}>
+                                          <div className="text-[0.5rem] text-gray-600 mb-0.5">M</div>
+                                          <div className="text-sm font-bold" style={{
+                                            color: reportLatestMorale === 'excellent' ? '#16a34a' :
+                                                   reportLatestMorale === 'good' ? '#2563eb' :
+                                                   reportLatestMorale === 'fair' ? '#eab308' : '#dc2626'
+                                          }}>
+                                            {reportLatestMorale === 'excellent' ? '4' : reportLatestMorale === 'good' ? '3' : reportLatestMorale === 'fair' ? '2' : '1'}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {/* Performance */}
+                                      {reportLatestPerformance && (
+                                        <div className={`rounded p-1.5 border ${
+                                          reportLatestPerformance === 'excellent' ? 'bg-green-50 border-green-200' :
+                                          reportLatestPerformance === 'good' ? 'bg-blue-50 border-blue-200' :
+                                          reportLatestPerformance === 'fair' ? 'bg-yellow-50 border-yellow-200' :
+                                          'bg-red-50 border-red-200'
+                                        }`}>
+                                          <div className="text-[0.5rem] text-gray-600 mb-0.5">P</div>
+                                          <div className="text-sm font-bold" style={{
+                                            color: reportLatestPerformance === 'excellent' ? '#16a34a' :
+                                                   reportLatestPerformance === 'good' ? '#2563eb' :
+                                                   reportLatestPerformance === 'fair' ? '#eab308' : '#dc2626'
+                                          }}>
+                                            {reportLatestPerformance === 'excellent' ? '4' : reportLatestPerformance === 'good' ? '3' : reportLatestPerformance === 'fair' ? '2' : '1'}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center justify-between gap-1 mt-1.5">
+                                      <div className="flex items-center gap-0.5">
+                                        <FileText className="w-2.5 h-2.5 text-blue-500" />
+                                        <span className="text-[0.625rem] font-bold text-blue-700">{reportStats.total}</span>
+                                      </div>
+                                      {reportClientCount > 0 && (
+                                        <div className="flex items-center gap-0.5">
+                                          <Users className="w-2.5 h-2.5 text-purple-500" />
+                                          <span className="text-[0.625rem] font-bold text-purple-700">{reportClientCount}</span>
+                                        </div>
+                                      )}
+                                      {reportRedFlagCount > 0 && (
+                                        <div className="flex items-center gap-0.5">
+                                          <AlertTriangle className="w-2.5 h-2.5 text-red-500" />
+                                          <span className="text-[0.625rem] font-bold text-red-700">{reportRedFlagCount}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
-            )
-          })}
-        </div>
+            </div>
+          </div>
       ) : (
         <div className="text-center py-12">
           <div className="w-14 h-14 bg-gray-100/60 rounded-full flex items-center justify-center mx-auto mb-3">
