@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -49,6 +49,49 @@ export function TeamView({
   const [newMemberName, setNewMemberName] = useState("")
   const [sortBy, setSortBy] = useState<"name" | "morale" | "performance" | "tasks" | "clients" | "redFlags" | "goals">("name")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+
+  // Helper function to get sort value for a team member
+  const getSortValue = (item: { name: string; details?: TeamMemberDetails }, tasks: Task[], sortByValue: typeof sortBy, details?: TeamMemberDetails): number => {
+    switch (sortByValue) {
+      case "morale": {
+        const morale = details?.moraleCheckIns && details.moraleCheckIns.length > 0 
+          ? details.moraleCheckIns[details.moraleCheckIns.length - 1].morale 
+          : null
+        const values = { excellent: 4, good: 3, fair: 2, poor: 1, null: 0 }
+        return values[morale as keyof typeof values] || 0
+      }
+      case "performance": {
+        const performance = details?.performanceCheckIns && details.performanceCheckIns.length > 0 
+          ? details.performanceCheckIns[details.performanceCheckIns.length - 1].performance 
+          : null
+        const values = { excellent: 4, good: 3, fair: 2, poor: 1, null: 0 }
+        return values[performance as keyof typeof values] || 0
+      }
+      case "tasks": {
+        const memberTasks = tasks.filter(t => 
+          t.assignedTo === item.name && 
+          t.status !== 'done' && 
+          t.status !== 'completed' && 
+          t.columnId !== 'col-done'
+        )
+        return memberTasks.length
+      }
+      case "clients": {
+        return details?.clientDetails ? Object.keys(details.clientDetails).length : 0
+      }
+      case "redFlags": {
+        return details?.redFlags?.length || 0
+      }
+      case "goals": {
+        const completed = details?.goals?.filter(g => g.status === 'completed').length || 0
+        const total = details?.goals?.length || 0
+        return total > 0 ? (completed / total) * 100 : 0
+      }
+      case "name":
+      default:
+        return 0 // Name sorting handled separately
+    }
+  }
 
   const handleMemberClick = (member: string) => {
     if (onSelectTeamMember) {
@@ -289,49 +332,6 @@ export function TeamView({
     )
   }, [hierarchicalTeamStructure, searchTerm])
 
-  // Helper function to get sort value for a team member
-  const getSortValue = useCallback((item: { name: string; details?: TeamMemberDetails }, tasks: Task[], details?: TeamMemberDetails): number => {
-    switch (sortBy) {
-      case "morale": {
-        const morale = details?.moraleCheckIns && details.moraleCheckIns.length > 0 
-          ? details.moraleCheckIns[details.moraleCheckIns.length - 1].morale 
-          : null
-        const values = { excellent: 4, good: 3, fair: 2, poor: 1, null: 0 }
-        return values[morale as keyof typeof values] || 0
-      }
-      case "performance": {
-        const performance = details?.performanceCheckIns && details.performanceCheckIns.length > 0 
-          ? details.performanceCheckIns[details.performanceCheckIns.length - 1].performance 
-          : null
-        const values = { excellent: 4, good: 3, fair: 2, poor: 1, null: 0 }
-        return values[performance as keyof typeof values] || 0
-      }
-      case "tasks": {
-        const memberTasks = tasks.filter(t => 
-          t.assignedTo === item.name && 
-          t.status !== 'done' && 
-          t.status !== 'completed' && 
-          t.columnId !== 'col-done'
-        )
-        return memberTasks.length
-      }
-      case "clients": {
-        return details?.clientDetails ? Object.keys(details.clientDetails).length : 0
-      }
-      case "redFlags": {
-        return details?.redFlags?.length || 0
-      }
-      case "goals": {
-        const completed = details?.goals?.filter(g => g.status === 'completed').length || 0
-        const total = details?.goals?.length || 0
-        return total > 0 ? (completed / total) * 100 : 0
-      }
-      case "name":
-      default:
-        return 0 // Name sorting handled separately
-    }
-  }, [sortBy])
-
   // Group by reporting line (top level = reporting to Karen, then their reports)
   const hierarchyByReportingLine = useMemo(() => {
     // Separate top-level (reporting to Karen) from their reports
@@ -344,8 +344,8 @@ export function TeamView({
         const comparison = a.name.localeCompare(b.name)
         return sortDirection === "asc" ? comparison : -comparison
       }
-      const aValue = getSortValue(a, safeTasks, a.details)
-      const bValue = getSortValue(b, safeTasks, b.details)
+      const aValue = getSortValue(a, safeTasks, sortBy, a.details)
+      const bValue = getSortValue(b, safeTasks, sortBy, b.details)
       const comparison = aValue - bValue
       return sortDirection === "asc" ? comparison : -comparison
     })
@@ -375,7 +375,7 @@ export function TeamView({
     })
     
     return { topLevel, reportsByManager }
-  }, [filteredHierarchy, sortBy, sortDirection, safeTasks, getSortValue])
+  }, [filteredHierarchy, sortBy, sortDirection, safeTasks])
 
   const formatDate = (date: Date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
