@@ -440,6 +440,7 @@ Skills and Deliverables:
             </div>
           </div>
         </div>
+      )}
 
       {/* Goals Table View */}
       <div className="bg-white/60 backdrop-blur-xl border border-gray-200/30 rounded-xl shadow-sm overflow-hidden">
