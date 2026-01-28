@@ -51,7 +51,7 @@ export function TeamView({
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
 
   // Helper function to get sort value for a team member
-  const getSortValue = (item: { name: string; details?: TeamMemberDetails }, tasks: Task[], sortByValue: typeof sortBy, details?: TeamMemberDetails): number => {
+  const getSortValue = (item: { name: string; details?: TeamMemberDetails }, tasks: Task[], sortByValue: "name" | "morale" | "performance" | "tasks" | "clients" | "redFlags" | "goals", details?: TeamMemberDetails): number => {
     switch (sortByValue) {
       case "morale": {
         const morale = details?.moraleCheckIns && details.moraleCheckIns.length > 0 
