@@ -550,6 +550,67 @@ export default function HomePage() {
     saveAppState(updatedState)
   }
 
+  const handleUpdateTeamMemberName = (oldName: string, newName: string) => {
+    if (!appState || oldName === newName) return
+    
+    // Update category name in follow-up column
+    const updatedColumns = appState.columns.map(col => {
+      if (col.id === 'col-followup') {
+        return {
+          ...col,
+          categories: col.categories.map(cat =>
+            cat.isPerson && (cat.personName || cat.name) === oldName
+              ? { ...cat, personName: newName, name: newName }
+              : cat
+          )
+        }
+      }
+      return col
+    })
+    
+    // Update task assignments
+    const updatedTasks = appState.tasks.map(task => {
+      if (task.assignedTo === oldName) {
+        return { ...task, assignedTo: newName }
+      }
+      return task
+    })
+    
+    // Update team member details key
+    const updatedTeamMemberDetails = { ...appState.teamMemberDetails }
+    if (updatedTeamMemberDetails[oldName]) {
+      updatedTeamMemberDetails[newName] = {
+        ...updatedTeamMemberDetails[oldName],
+        name: newName
+      }
+      delete updatedTeamMemberDetails[oldName]
+    }
+    
+    // Update manager references in other team members
+    Object.keys(updatedTeamMemberDetails).forEach(key => {
+      if (updatedTeamMemberDetails[key]?.manager === oldName) {
+        updatedTeamMemberDetails[key] = {
+          ...updatedTeamMemberDetails[key],
+          manager: newName
+        }
+      }
+    })
+    
+    const updatedState = {
+      ...appState,
+      columns: updatedColumns,
+      tasks: updatedTasks,
+      teamMemberDetails: updatedTeamMemberDetails
+    }
+    setAppState(updatedState)
+    saveAppState(updatedState)
+    
+    // Update selected team member if it was the one being renamed
+    if (selectedTeamMember === oldName) {
+      setSelectedTeamMember(newName)
+    }
+  }
+
   const handleToggleTeamMemberStatus = (name: string) => {
     if (!appState) return
     
@@ -887,6 +948,7 @@ export default function HomePage() {
               allPeopleForManagers={allPeopleForManagers}
               teamMemberDetails={appState.teamMemberDetails || {}}
               onUpdate={(details) => handleUpdateTeamMemberDetails(selectedTeamMember, details)}
+              onUpdateName={handleUpdateTeamMemberName}
               onBack={() => {
                 setCurrentView("team")
                 setSelectedTeamMember(null)
